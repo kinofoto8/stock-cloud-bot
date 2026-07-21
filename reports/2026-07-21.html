@@ -9,8 +9,6 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.7;font-size:14px}
 .container{max-width:1100px;margin:0 auto;padding:20px}
-
-/* 首屏 */
 .hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#fff;border-radius:16px;padding:36px 40px;margin-bottom:20px}
 .hero h1{font-size:26px;margin-bottom:8px}
 .hero .date{font-size:14px;color:#a0a0b8;margin-bottom:20px}
@@ -20,12 +18,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .hero .summary-item .num.up{color:#ff6b6b}
 .hero .summary-item .num.down{color:#51cf66}
 .hero .summary-item .label{font-size:12px;color:#a0a0b8;margin-top:4px}
-
-/* 通用 section */
 .section{background:#fff;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .section-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:20px;padding-left:12px;border-left:4px solid #c0392b}
-
-/* 表格 */
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:#f8f9fa;padding:10px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
 td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
@@ -34,83 +28,58 @@ tr:hover td{background:#fafbfc}
 .up{color:#c0392b}
 .down{color:#27ae60}
 .flat{color:#999}
-
-/* 图表 */
 .chart-box{width:100%;border-radius:8px;overflow:hidden;margin:10px 0}
 .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:768px){.chart-row{grid-template-columns:1fr}.hero .summary{grid-template-columns:repeat(2,1fr)}}
-
-/* 板块网格 */
 .board-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .board-col h4{font-size:15px;margin-bottom:12px;color:#555}
 .board-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
 .board-item .name{flex:1}
 .board-item .pct{font-weight:600}
-.board-item .count{font-size:11px;color:#999;margin-left:8px}
-
-/* 资金流向条 */
-.flow-item{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
-.flow-name{width:90px;text-align:right;color:#555;flex-shrink:0}
-.flow-track{flex:1;height:20px;background:#f0f0f0;border-radius:4px;position:relative;overflow:hidden}
-.flow-fill{height:100%;border-radius:4px;position:absolute}
-.flow-pos{background:linear-gradient(90deg,#e74c3c,#ff7676)}
-.flow-neg{background:linear-gradient(90deg,#2ecc71,#27ae60)}
-.flow-val{width:80px;font-family:monospace;font-size:11px;flex-shrink:0}
-.flow-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ccc;z-index:2}
-
-/* 新闻 */
 .news-list{list-style:none;padding:0}
 .news-list li{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
 .news-list li .time{color:#999;font-size:11px;margin-right:8px}
-
 .source{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}
 </style>
 </head>
 <body>
 <div class="container">
-
-<!-- 首屏 -->
 <div class="hero">
   <h1>A股收盘复盘报告</h1>
-  <div class="date">2026年07月21日（周二） | 数据来源：东方财富</div>
+  <div class="date">2026年07月21日（周二） | 数据来源：Sina财经 & 东方财富</div>
   <div class="summary">
     <div class="summary-item">
-      <div class="num up">100</div>
+      <div class="num up">0</div>
       <div class="label">上涨 / 总数 100</div>
     </div>
     <div class="summary-item">
-      <div class="num down">0</div>
-      <div class="label">下跌</div>
+      <div class="num down">100</div>
+      <div class="label">下跌 / 平盘 0</div>
     </div>
     <div class="summary-item">
-      <div class="num">4.67万</div>
+      <div class="num">0.44万</div>
       <div class="label">两市成交（亿）</div>
     </div>
     <div class="summary-item">
-      <div class="num up">40</div>
-      <div class="label">涨停 / 跌停 <span class="down">0</span></div>
+      <div class="num up">0</div>
+      <div class="label">涨停 / 跌停 <span class="down">34</span></div>
     </div>
   </div>
 </div>
-
-<!-- 一、指数行情 -->
 <div class="section">
   <div class="section-title">一、主要指数表现</div>
   <table>
-    <thead><tr><th>指数</th><th>收盘价</th><th class="num">涨跌幅</th><th class="num">成交额(亿)</th></tr></thead>
+    <thead><tr><th>指数</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">涨跌额</th><th class="num">成交额(亿)</th></tr></thead>
     <tbody>
-      <tr><td>上证指数</td><td class="num">3864.37</td><td class="num up">+1.79%</td><td class="num">13965.18</td></tr>
-      <tr><td>深证成指</td><td class="num">14264.29</td><td class="num up">+4.81%</td><td class="num">15605.75</td></tr>
-      <tr><td>创业板指</td><td class="num">3685.97</td><td class="num up">+7.05%</td><td class="num">7450.92</td></tr>
-      <tr><td>科创50</td><td class="num">1903.16</td><td class="num up">+10.73%</td><td class="num">2130.55</td></tr>
-      <tr><td>沪深300</td><td class="num">4739.23</td><td class="num up">+3.06%</td><td class="num">10167.27</td></tr>
-      <tr><td>中证500</td><td class="num">0.00</td><td class="num flat">+0.00%</td><td class="num">0.00</td></tr>
-      <tr><td>中证1000</td><td class="num">0.00</td><td class="num flat">+0.00%</td><td class="num">0.00</td></tr>
-    </tbody>
-  </table>
-</div>
+      <tr><td>上证指数</td><td class="num">3864.37</td><td class="num up">+1.79%</td><td class="num up">+68.09</td><td class="num">13965.18</td></tr>
+      <tr><td>深证成指</td><td class="num">14264.29</td><td class="num up">+4.81%</td><td class="num up">+654.06</td><td class="num">15605.75</td></tr>
+      <tr><td>创业板指</td><td class="num">3685.97</td><td class="num up">+7.05%</td><td class="num up">+242.87</td><td class="num">3888.43</td></tr>
+      <tr><td>科创50</td><td class="num">1903.16</td><td class="num up">+10.73%</td><td class="num up">+184.47</td><td class="num">2130.55</td></tr>
+      <tr><td>沪深300</td><td class="num">4739.23</td><td class="num up">+3.06%</td><td class="num up">+140.91</td><td class="num">10167.27</td></tr>
+      <tr><td>中证500</td><td class="num">7800.61</td><td class="num up">+5.25%</td><td class="num up">+389.30</td><td class="num">6069.55</td></tr>
+      <tr><td>中证1000</td><td class="num">7259.86</td><td class="num up">+4.23%</td><td class="num up">+294.49</td><td class="num">5728.69</td></tr>
+    </tbody></table></div>
 
-<!-- 二、板块表现 + 资金流向 -->
 <div class="chart-row">
   <div class="section" style="margin-bottom:0">
     <div class="section-title">二、行业板块 Top 10</div>
@@ -124,168 +93,162 @@ tr:hover td{background:#fafbfc}
   </div>
 </div>
 
-<!-- 四、概念板块 -->
 <div class="section">
   <div class="section-title">四、概念板块热力图</div>
   <div class="board-grid">
     <div class="board-col">
-      <h4>🔥 涨幅 Top 10</h4>
+      <h4>&#x1f525; 涨幅 Top 10</h4>
+      <div class="board-item"><span class="name">高带宽内存</span><span class="pct up">+11.82%</span></div>
+      <div class="board-item"><span class="name">基金重仓</span><span class="pct up">+10.79%</span></div>
+      <div class="board-item"><span class="name">MLCC</span><span class="pct up">+9.67%</span></div>
+      <div class="board-item"><span class="name">科技风格</span><span class="pct up">+9.64%</span></div>
+      <div class="board-item"><span class="name">中芯概念</span><span class="pct up">+9.59%</span></div>
+      <div class="board-item"><span class="name">百元股</span><span class="pct up">+9.19%</span></div>
+      <div class="board-item"><span class="name">存储芯片</span><span class="pct up">+9.12%</span></div>
+      <div class="board-item"><span class="name">玻璃基板</span><span class="pct up">+8.97%</span></div>
+      <div class="board-item"><span class="name">先进封装</span><span class="pct up">+8.96%</span></div>
+      <div class="board-item"><span class="name">CPO概念</span><span class="pct up">+8.74%</span></div>
     </div>
     <div class="board-col">
-      <h4>❄️ 跌幅 Top 10</h4>
-    </div>
-  </div>
-</div>
+      <h4>&#x2744; 跌幅 Top 10</h4>
+      <div class="board-item"><span class="name">碳基材料</span><span class="pct up">+3.56%</span></div>
+      <div class="board-item"><span class="name">超清视频</span><span class="pct up">+3.52%</span></div>
+      <div class="board-item"><span class="name">新材料</span><span class="pct up">+3.51%</span></div>
+      <div class="board-item"><span class="name">裸眼3D</span><span class="pct up">+3.48%</span></div>
+      <div class="board-item"><span class="name">氦气概念</span><span class="pct up">+3.46%</span></div>
+      <div class="board-item"><span class="name">东方财富热股</span><span class="pct up">+3.44%</span></div>
+      <div class="board-item"><span class="name">氟化工概念</span><span class="pct up">+3.43%</span></div>
+      <div class="board-item"><span class="name">MLOps概念</span><span class="pct up">+3.39%</span></div>
+      <div class="board-item"><span class="name">中盘股</span><span class="pct up">+3.34%</span></div>
+      <div class="board-item"><span class="name">新型工业化</span><span class="pct up">+3.33%</span></div>
+    </div></div></div>
 
-<!-- 五、自选股 -->
 <div class="section">
   <div class="section-title">五、自选股表现</div>
   <table>
     <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th></tr></thead>
     <tbody>
       <tr><td>紫金矿业 <span style="color:#999;font-size:11px">(601899)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
-        <td class="num">0.00%</td>
-        <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">30.21</td>
+        <td class="num up">+2.93%</td>
+        <td class="num">0.02%</td>
+        <td class="num">0.32</td>
+        <td class="num">1019428.86</td></tr>
       <tr><td>兴业银锡 <span style="color:#999;font-size:11px">(000426)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
-        <td class="num">0.00%</td>
-        <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">29.62</td>
+        <td class="num up">+9.99%</td>
+        <td class="num">0.04%</td>
+        <td class="num">0.30</td>
+        <td class="num">203590.11</td></tr>
       <tr><td>中金黄金 <span style="color:#999;font-size:11px">(600489)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
-        <td class="num">0.00%</td>
-        <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">20.78</td>
+        <td class="num up">+6.40%</td>
+        <td class="num">0.02%</td>
+        <td class="num">0.21</td>
+        <td class="num">223672.28</td></tr>
       <tr><td>藏格矿业 <span style="color:#999;font-size:11px">(000408)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">72.31</td>
+        <td class="num up">+3.54%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">130858.14</td></tr>
       <tr><td>宏达股份 <span style="color:#999;font-size:11px">(600331)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">11.50</td>
+        <td class="num up">+7.28%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">88698.38</td></tr>
       <tr><td>盛新锂能 <span style="color:#999;font-size:11px">(002240)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">27.39</td>
+        <td class="num up">+5.39%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">165235.13</td></tr>
       <tr><td>科创半导体ETF华夏 <span style="color:#999;font-size:11px">(588170)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
-        <td class="num">0.00%</td>
-        <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">1.07</td>
+        <td class="num up">+19.02%</td>
+        <td class="num">0.33%</td>
+        <td class="num">0.01</td>
+        <td class="num">958960.67</td></tr>
       <tr><td>赤峰黄金 <span style="color:#999;font-size:11px">(600988)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">35.48</td>
+        <td class="num up">+10.02%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">278258.26</td></tr>
       <tr><td>云铝股份 <span style="color:#999;font-size:11px">(000807)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">25.18</td>
+        <td class="num down">-3.23%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">309656.47</td></tr>
       <tr><td>神火股份 <span style="color:#999;font-size:11px">(000933)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">24.46</td>
+        <td class="num down">-2.94%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">193262.65</td></tr>
       <tr><td>中国海洋石油 <span style="color:#999;font-size:11px">(00883)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">23.90</td>
+        <td class="num up">+0.42%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
         <td class="num">0.00</td></tr>
       <tr><td>泡泡玛特 <span style="color:#999;font-size:11px">(09992)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">164.00</td>
+        <td class="num down">-0.61%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
+        <td class="num">0.02</td></tr>
       <tr><td>紫金黄金国际 <span style="color:#999;font-size:11px">(02259)</span></td>
-        <td class="num">0.00</td>
-        <td class="num flat">+0.00%</td>
+        <td class="num">97.95</td>
+        <td class="num down">-1.36%</td>
         <td class="num">0.00%</td>
         <td class="num">0.00</td>
-        <td class="num">0.00</td></tr>
-    </tbody>
-  </table>
-</div>
+        <td class="num">0.01</td></tr>
+    </tbody></table></div>
 
-<!-- 六、市场新闻 -->
 <div class="section">
   <div class="section-title">六、今日要闻</div>
   <ul class="news-list">
     <li style="color:#999">暂无重要新闻</li>
-  </ul>
-</div>
-
+  </ul></div>
 <div class="source">
-  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-21 22:08:42
-</div>
-
-</div><!-- container -->
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-21 22:21:22
+</div></div>
 
 <script>
-// 行业板块图表
 (function() {
-  var dom = document.getElementById('chart-industry');
-  var chart = echarts.init(dom);
-  var option = {
+  var chart = echarts.init(document.getElementById('chart-industry'));
+  chart.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
-    yAxis: { type: 'category', data: [], axisLabel: { fontSize: 12 } },
-    series: [{
-      type: 'bar',
-      data: [],
-      itemStyle: {
-        color: function(params) { return params.value > 0 ? '#c0392b' : '#27ae60'; }
-      },
+    yAxis: { type: 'category', data: ["\u767d\u94f6", "\u954d", "\u7535\u5b50\u5316\u5b66\u54c1\u2161", "\u7535\u5b50\u5316\u5b66\u54c1\u2162", "\u5206\u7acb\u5668\u4ef6", "\u534a\u5bfc\u4f53", "\u96c6\u6210\u7535\u8def\u5c01\u6d4b", "\u96c6\u6210\u7535\u8def\u5236\u9020", "\u534a\u5bfc\u4f53\u6750\u6599", "\u534a\u5bfc\u4f53\u8bbe\u5907"], axisLabel: { fontSize: 12 } },
+    series: [{ type: 'bar', data: [8.96, 9.17, 9.19, 9.19, 9.69, 9.85, 10.02, 11.28, 11.51, 14.75],
+      itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
       label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
     }]
-  };
-  chart.setOption(option);
+  });
   window.addEventListener('resize', function() { chart.resize(); });
 })();
 
-// 资金流向图表
 (function() {
-  var dom = document.getElementById('chart-fundflow');
-  var chart = echarts.init(dom);
-  var flowData = [];
+  var chart = echarts.init(document.getElementById('chart-fundflow'));
+  var flowData = [{"name": "\u7535\u5b50", "value": 274.97}, {"name": "\u534a\u5bfc\u4f53", "value": 166.18}, {"name": "\u6570\u5b57\u82af\u7247\u8bbe\u8ba1", "value": 60.6}, {"name": "\u901a\u4fe1\u7f51\u7edc\u8bbe\u5907\u53ca\u5668\u4ef6", "value": 49.89}, {"name": "\u6709\u8272\u91d1\u5c5e", "value": 49.2}, {"name": "\u5316\u5b66\u539f\u6599", "value": 0.98}, {"name": "\u78f7\u80a5\u53ca\u78f7\u5316\u5de5", "value": 0.95}, {"name": "\u822a\u7a7a\u8fd0\u8f93", "value": 0.9}, {"name": "\u5de5\u7a0b\u54a8\u8be2\u670d\u52a1\u2162", "value": 0.86}, {"name": "\u5de5\u7a0b\u54a8\u8be2\u670d\u52a1\u2161", "value": 0.86}];
   var names = flowData.map(function(d) { return d.name; });
   var values = flowData.map(function(d) { return d.value; });
-  var option = {
+  chart.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', axisLabel: { formatter: '{value}亿' } },
     yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 11 } },
-    series: [{
-      type: 'bar',
-      data: values.reverse(),
-      itemStyle: {
-        color: function(params) { return params.value > 0 ? '#c0392b' : '#27ae60'; }
-      },
+    series: [{ type: 'bar', data: values.reverse(),
+      itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
       label: { show: true, position: 'right', formatter: '{c}亿', fontSize: 11 }
     }]
-  };
-  chart.setOption(option);
+  });
   window.addEventListener('resize', function() { chart.resize(); });
 })();
 </script>
-</body>
-</html>
+</body></html>
