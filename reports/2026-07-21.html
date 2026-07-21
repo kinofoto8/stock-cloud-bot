@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股收盘复盘 | 2026年07月21日（周二）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.7;font-size:14px}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+
+/* 首屏 */
+.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#fff;border-radius:16px;padding:36px 40px;margin-bottom:20px}
+.hero h1{font-size:26px;margin-bottom:8px}
+.hero .date{font-size:14px;color:#a0a0b8;margin-bottom:20px}
+.hero .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.hero .summary-item{text-align:center;padding:12px;background:rgba(255,255,255,.08);border-radius:10px}
+.hero .summary-item .num{font-size:28px;font-weight:700}
+.hero .summary-item .num.up{color:#ff6b6b}
+.hero .summary-item .num.down{color:#51cf66}
+.hero .summary-item .label{font-size:12px;color:#a0a0b8;margin-top:4px}
+
+/* 通用 section */
+.section{background:#fff;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.section-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:20px;padding-left:12px;border-left:4px solid #c0392b}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:10px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
+tr:hover td{background:#fafbfc}
+.num{font-family:"SF Mono","Fira Code",monospace;text-align:right}
+.up{color:#c0392b}
+.down{color:#27ae60}
+.flat{color:#999}
+
+/* 图表 */
+.chart-box{width:100%;border-radius:8px;overflow:hidden;margin:10px 0}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.chart-row{grid-template-columns:1fr}.hero .summary{grid-template-columns:repeat(2,1fr)}}
+
+/* 板块网格 */
+.board-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.board-col h4{font-size:15px;margin-bottom:12px;color:#555}
+.board-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.board-item .name{flex:1}
+.board-item .pct{font-weight:600}
+.board-item .count{font-size:11px;color:#999;margin-left:8px}
+
+/* 资金流向条 */
+.flow-item{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+.flow-name{width:90px;text-align:right;color:#555;flex-shrink:0}
+.flow-track{flex:1;height:20px;background:#f0f0f0;border-radius:4px;position:relative;overflow:hidden}
+.flow-fill{height:100%;border-radius:4px;position:absolute}
+.flow-pos{background:linear-gradient(90deg,#e74c3c,#ff7676)}
+.flow-neg{background:linear-gradient(90deg,#2ecc71,#27ae60)}
+.flow-val{width:80px;font-family:monospace;font-size:11px;flex-shrink:0}
+.flow-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ccc;z-index:2}
+
+/* 新闻 */
+.news-list{list-style:none;padding:0}
+.news-list li{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.news-list li .time{color:#999;font-size:11px;margin-right:8px}
+
+.source{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- 首屏 -->
+<div class="hero">
+  <h1>A股收盘复盘报告</h1>
+  <div class="date">2026年07月21日（周二） | 数据来源：东方财富</div>
+  <div class="summary">
+    <div class="summary-item">
+      <div class="num up">100</div>
+      <div class="label">上涨 / 总数 100</div>
+    </div>
+    <div class="summary-item">
+      <div class="num down">0</div>
+      <div class="label">下跌</div>
+    </div>
+    <div class="summary-item">
+      <div class="num">4.67万</div>
+      <div class="label">两市成交（亿）</div>
+    </div>
+    <div class="summary-item">
+      <div class="num up">40</div>
+      <div class="label">涨停 / 跌停 <span class="down">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 一、指数行情 -->
+<div class="section">
+  <div class="section-title">一、主要指数表现</div>
+  <table>
+    <thead><tr><th>指数</th><th>收盘价</th><th class="num">涨跌幅</th><th class="num">成交额(亿)</th></tr></thead>
+    <tbody>
+      <tr><td>上证指数</td><td class="num">3864.37</td><td class="num up">+1.79%</td><td class="num">0.00</td></tr>
+      <tr><td>深证成指</td><td class="num">14264.29</td><td class="num up">+4.81%</td><td class="num">0.00</td></tr>
+      <tr><td>创业板指</td><td class="num">3685.97</td><td class="num up">+7.05%</td><td class="num">0.00</td></tr>
+      <tr><td>科创50</td><td class="num">1903.16</td><td class="num up">+10.73%</td><td class="num">0.00</td></tr>
+      <tr><td>沪深300</td><td class="num">4739.23</td><td class="num up">+3.06%</td><td class="num">0.00</td></tr>
+      <tr><td>中证500</td><td class="num">7800.61</td><td class="num up">+5.25%</td><td class="num">0.00</td></tr>
+      <tr><td>中证1000</td><td class="num">7259.86</td><td class="num up">+4.23%</td><td class="num">0.00</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 二、板块表现 + 资金流向 -->
+<div class="chart-row">
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">二、行业板块 Top 10</div>
+    <div class="chart-box" id="chart-industry" style="height:350px"></div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
+  </div>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">三、行业资金流向</div>
+    <div class="chart-box" id="chart-fundflow" style="height:350px"></div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入 TOP/BOTTOM 5（亿元）</div>
+  </div>
+</div>
+
+<!-- 四、概念板块 -->
+<div class="section">
+  <div class="section-title">四、概念板块热力图</div>
+  <div class="board-grid">
+    <div class="board-col">
+      <h4>🔥 涨幅 Top 10</h4>
+    </div>
+    <div class="board-col">
+      <h4>❄️ 跌幅 Top 10</h4>
+    </div>
+  </div>
+</div>
+
+<!-- 五、自选股 -->
+<div class="section">
+  <div class="section-title">五、自选股表现</div>
+  <table>
+    <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th></tr></thead>
+    <tbody>
+      <tr><td>紫金矿业 <span style="color:#999;font-size:11px">(601899)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>兴业银锡 <span style="color:#999;font-size:11px">(000426)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>中金黄金 <span style="color:#999;font-size:11px">(600489)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>藏格矿业 <span style="color:#999;font-size:11px">(000408)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>宏达股份 <span style="color:#999;font-size:11px">(600331)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>盛新锂能 <span style="color:#999;font-size:11px">(002240)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>科创半导体ETF华夏 <span style="color:#999;font-size:11px">(588170)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>赤峰黄金 <span style="color:#999;font-size:11px">(600988)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>云铝股份 <span style="color:#999;font-size:11px">(000807)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>神火股份 <span style="color:#999;font-size:11px">(000933)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>中国海洋石油 <span style="color:#999;font-size:11px">(00883)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>泡泡玛特 <span style="color:#999;font-size:11px">(09992)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+      <tr><td>紫金黄金国际 <span style="color:#999;font-size:11px">(02259)</span></td>
+        <td class="num">0.00</td>
+        <td class="num flat">+0.00%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">0.00</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 六、市场新闻 -->
+<div class="section">
+  <div class="section-title">六、今日要闻</div>
+  <ul class="news-list">
+    <li style="color:#999">暂无重要新闻</li>
+  </ul>
+</div>
+
+<div class="source">
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-21 21:47:33
+</div>
+
+</div><!-- container -->
+
+<script>
+// 行业板块图表
+(function() {
+  var dom = document.getElementById('chart-industry');
+  var chart = echarts.init(dom);
+  var option = {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
+    yAxis: { type: 'category', data: [], axisLabel: { fontSize: 12 } },
+    series: [{
+      type: 'bar',
+      data: [],
+      itemStyle: {
+        color: function(params) { return params.value > 0 ? '#c0392b' : '#27ae60'; }
+      },
+      label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+
+// 资金流向图表
+(function() {
+  var dom = document.getElementById('chart-fundflow');
+  var chart = echarts.init(dom);
+  var flowData = [];
+  var names = flowData.map(function(d) { return d.name; });
+  var values = flowData.map(function(d) { return d.value; });
+  var option = {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', axisLabel: { formatter: '{value}亿' } },
+    yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 11 } },
+    series: [{
+      type: 'bar',
+      data: values.reverse(),
+      itemStyle: {
+        color: function(params) { return params.value > 0 ? '#c0392b' : '#27ae60'; }
+      },
+      label: { show: true, position: 'right', formatter: '{c}亿', fontSize: 11 }
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+</body>
+</html>
