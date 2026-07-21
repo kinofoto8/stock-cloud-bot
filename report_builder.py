@@ -256,12 +256,12 @@ def get_watchlist_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f47,f48,f50,f168,f169,f170",
+            "fields": "f43,f44,f45,f47,f48,f50,f51,f168,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
-        if not debug_printed and d:
-            print(f"  [DEBUG] {s['name']}({s['code']}) raw data sample: {json.dumps(d, ensure_ascii=False)[:200]}")
+        if not debug_printed:
+            print(f"  [DEBUG] {s['name']}({s['code']}) secid={s['secid']} raw_response: {json.dumps(data, ensure_ascii=False)[:300]}")
             debug_printed = True
         result.append({
             "name": s["name"],
@@ -284,7 +284,7 @@ def get_watchlist_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f47,f48,f50,f168,f169,f170",
+            "fields": "f43,f44,f45,f47,f48,f50,f51,f168,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
