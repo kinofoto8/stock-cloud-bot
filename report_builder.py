@@ -753,9 +753,41 @@ def get_index_data():
         })
     return result
 
+def _parse_sina_boards(url, var_name):
+    """解析 Sina 板块数据 (行业/概念通用)。
+    返回 [{"name","code","pct","price","rise_count","fall_count","flat_count"}, ...]
+    """
+    resp = SESSION.get(url, timeout=15)
+    resp.encoding = "utf-8"
+    text = resp.text
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start < 0 or end <= 0:
+        return []
+    import json as _json
+    raw = _json.loads(text[start:end])
+
+    boards = []
+    for k, v in raw.items():
+        parts = v.split(",")
+        if len(parts) < 5:
+            continue
+        boards.append({
+            "name": parts[1],
+            "code": parts[0],
+            "pct": safe_float(parts[4]) if parts[4] else 0,
+            "price": safe_float(parts[3]) if parts[3] else 0,
+            "rise_count": 0,
+            "fall_count": 0,
+            "flat_count": 0,
+        })
+    boards.sort(key=lambda x: x["pct"], reverse=True)
+    return boards
+
 def get_industry_boards():
-    """行业板块。"""
+    """行业板块 — EM优先, Sina备用 (确保本地/云端都有数据)。"""
     print("  [3/5] 获取行业板块...")
+    # 尝试 EM clist (申万一级行业, GitHub Actions可用)
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "100", "po": "1", "np": "1",
@@ -766,22 +798,38 @@ def get_industry_boards():
     data = em_fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
 
-    boards = []
-    for it in items:
-        boards.append({
-            "name": it.get("f14", ""),
-            "code": it.get("f12", ""),
-            "pct": safe_float(it.get("f3")),
-            "price": safe_float(it.get("f2")),
-            "rise_count": safe_int(it.get("f104")),
-            "fall_count": safe_int(it.get("f105")),
-            "flat_count": safe_int(it.get("f106")),
-        })
-    return boards
+    if items:
+        boards = []
+        for it in items:
+            boards.append({
+                "name": it.get("f14", ""),
+                "code": it.get("f12", ""),
+                "pct": safe_float(it.get("f3")),
+                "price": safe_float(it.get("f2")),
+                "rise_count": safe_int(it.get("f104")),
+                "fall_count": safe_int(it.get("f105")),
+                "flat_count": safe_int(it.get("f106")),
+            })
+        return boards
+
+    # EM 失败 → Sina 备用 (本地代理/EM封锁时)
+    print("  [INFO] EM板块API不可用, 切换Sina备用源...")
+    try:
+        boards = _parse_sina_boards(
+            "https://money.finance.sina.com.cn/q/view/newSinaHy.php",
+            "S_Finance_bankuai_sinaindustry"
+        )
+        if boards:
+            print(f"  [INFO] Sina行业板块: {len(boards)}个")
+        return boards
+    except Exception as e:
+        print(f"  [WARN] Sina行业板块也失败: {e}")
+        return []
 
 def get_concept_boards():
-    """概念板块。"""
+    """概念板块 — EM优先, Sina备用。"""
     print("  [4/5] 获取概念板块...")
+    # 尝试 EM clist
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "500", "po": "1", "np": "1",
@@ -792,19 +840,34 @@ def get_concept_boards():
     data = em_fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
 
-    boards = []
-    for it in items:
-        boards.append({
-            "name": it.get("f14", ""),
-            "code": it.get("f12", ""),
-            "pct": safe_float(it.get("f3")),
-            "price": safe_float(it.get("f2")),
-        })
-    boards.sort(key=lambda x: x["pct"], reverse=True)
-    return boards
+    if items:
+        boards = []
+        for it in items:
+            boards.append({
+                "name": it.get("f14", ""),
+                "code": it.get("f12", ""),
+                "pct": safe_float(it.get("f3")),
+                "price": safe_float(it.get("f2")),
+            })
+        boards.sort(key=lambda x: x["pct"], reverse=True)
+        return boards
+
+    # EM 失败 → Sina 备用
+    print("  [INFO] EM概念板块API不可用, 切换Sina备用源...")
+    try:
+        boards = _parse_sina_boards(
+            "https://money.finance.sina.com.cn/q/view/newFLJK.php?param=class",
+            "S_Finance_bankuai_class"
+        )
+        if boards:
+            print(f"  [INFO] Sina概念板块: {len(boards)}个")
+        return boards
+    except Exception as e:
+        print(f"  [WARN] Sina概念板块也失败: {e}")
+        return []
 
 def get_industry_fund_flow():
-    """行业资金流向。"""
+    """行业资金流向 — EM专属 (Sina无替代, 失败时返回空列表)。"""
     print("  [5/5] 获取资金流向...")
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
@@ -815,6 +878,9 @@ def get_industry_fund_flow():
     }
     data = em_fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
+
+    if not items:
+        print("  [INFO] EM资金流向API不可用 (本地代理/云端封锁)")
 
     flows = []
     for it in items:
