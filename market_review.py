@@ -17,6 +17,22 @@ def is_trade_day() -> bool:
 
 
 def run_review():
+    try:
+        return _run_review_impl()
+    except Exception as e:
+        import traceback
+        print(f"\n{'='*50}")
+        print(f"[FATAL] 复盘执行失败！")
+        traceback.print_exc()
+        print(f"{'='*50}")
+        try:
+            send_markdown("A股复盘 - 执行失败", f"### ❌ 复盘执行失败\n\n**错误：** {e}\n\n请检查 GitHub Actions 日志。")
+        except Exception:
+            pass
+        sys.exit(1)
+
+
+def _run_review_impl():
     beijing_tz = timezone(timedelta(hours=8))
     today = datetime.now(beijing_tz).strftime("%Y-%m-%d")
 
@@ -31,6 +47,15 @@ def run_review():
     print("阶段 1: 数据采集")
     print("=" * 50)
     all_data = fetch_all_data()
+
+    # 打印数据摘要
+    for k, v in all_data.items():
+        if isinstance(v, list):
+            print(f"  {k}: {len(v)} items")
+        elif v:
+            print(f"  {k}: OK")
+        else:
+            print(f"  {k}: EMPTY/FAILED")
 
     # 2. 生成 HTML 报告
     print("\n" + "=" * 50)

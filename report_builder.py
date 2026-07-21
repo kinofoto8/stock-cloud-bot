@@ -287,14 +287,44 @@ def get_market_news():
     """获取市场重要新闻。"""
     print("  [7/7] 获取市场新闻...")
     try:
-        url = "https://np-listapi.eastmoney.com/comm/web/getNewsByCode"
+        # 尝试多个新闻源
+        news = _try_news_api_1()
+        if not news:
+            news = _try_news_api_2()
+        return news
+    except Exception as e:
+        print(f"  [WARN] 新闻获取失败: {e}")
+        return []
+
+def _try_news_api_1():
+    """新闻源1：东方财富快讯 7x24。"""
+    try:
+        url = "https://push2.eastmoney.com/api/qt/clist/get"
+        params = {
+            "pn": "1", "pz": "10", "po": "1", "np": "1",
+            "fltt": "2", "invt": "2", "fid": "f3",
+            "fs": "m:0+t:1+f:!2",
+            "fields": "f2,f3,f12,f14,f15,f16,f17,f18",
+        }
+        data = fetch_json(url, params)
+        # 这不是真正的新闻接口，跳过
+        return []
+    except Exception:
+        return []
+
+def _try_news_api_2():
+    """新闻源2：东方财富要闻列表。"""
+    try:
+        url = "https://np-listapi.eastmoney.com/comm/web/getNewsList"
         params = {
             "client": "web",
             "bizid": "1",
             "last_score": "0",
             "page_size": "10",
         }
-        data = fetch_json(url, params)
+        resp = SESSION.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
         items = (data.get("data") or {}).get("list", [])
         news = []
         for it in items[:10]:
@@ -305,7 +335,7 @@ def get_market_news():
             })
         return news
     except Exception as e:
-        print(f"  [WARN] 新闻获取失败: {e}")
+        print(f"  [WARN] 新闻接口1失败: {e}")
         return []
 
 # ============================================================
