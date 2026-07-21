@@ -30,7 +30,7 @@ jobs:
         env:
           TZ: Asia/Shanghai
 
-      - name: 部署到 GitHub Pages
+      - name: 部署报告到 Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
