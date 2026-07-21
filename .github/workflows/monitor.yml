@@ -2,7 +2,8 @@ name: 自选股盘中监控
 
 on:
   schedule:
-    - cron: "30 1,2,3,5,6,7 * * 1-5"
+        # 北京时间 10:30, 14:30 → UTC 2:30, 6:30
+    - cron: "30 2,6 * * 1-5"
   workflow_dispatch:
 
 jobs:
