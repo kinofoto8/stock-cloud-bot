@@ -2,20 +2,38 @@ name: A股每日收盘复盘
 
 on:
   schedule:
-      # 北京时间 16:20 → UTC 8:20
+    # 北京时间 16:20 → UTC 8:20
     - cron: "20 8 * * 1-5"
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   review:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - run: pip install -r requirements.txt
-      - run: python market_review.py
+
+      - name: 执行收盘复盘
+        run: python market_review.py
         env:
           TZ: Asia/Shanghai
+
+      - name: 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports
+          destination_dir: reports
+          keep_files: true
