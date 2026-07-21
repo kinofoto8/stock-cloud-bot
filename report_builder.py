@@ -406,6 +406,59 @@ def get_kline_tencent(symbol, datalen=60):
         print(f"  [WARN] 腾讯K线请求异常 {symbol}: {e}")
         return []
 
+def get_kline_tencent_hk(symbol, datalen=60):
+    """获取腾讯港股日K线数据。
+    港股K线API返回额外字段: index[7]=换手率(%), index[8]=成交额(万港元)
+    返回: [{date, open, close, high, low, volume, amount, pct, turnover}, ...]
+    """
+    url = f"https://web.ifzq.gtimg.cn/appstock/app/hkfqkline/get?param={symbol},day,,,{datalen},qfq"
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        kline_data = (data.get("data") or {}).get(symbol, {})
+        day_data = kline_data.get("day") or kline_data.get("qfqday") or []
+        if not day_data:
+            return []
+
+        result = []
+        prev_close = None
+        for k in day_data:
+            # [date, open, close, high, low, volume, {}, turnover, amount_wan]
+            close = safe_float(k[2]) if len(k) > 2 else 0
+            open_p = safe_float(k[1]) if len(k) > 1 else 0
+            high = safe_float(k[3]) if len(k) > 3 else 0
+            low = safe_float(k[4]) if len(k) > 4 else 0
+            volume = safe_float(k[5]) if len(k) > 5 else 0
+            dt = k[0] if len(k) > 0 else ""
+            turnover = safe_float(k[7]) if len(k) > 7 else 0  # 换手率(%)
+            amount_wan = safe_float(k[8]) if len(k) > 8 else 0  # 成交额(万港元)
+            amount_yi = amount_wan / 1e4  # 万港元 → 亿港元
+
+            if prev_close and prev_close > 0 and close > 0:
+                pct = round((close - prev_close) / prev_close * 100, 2)
+            else:
+                pct = 0.0
+
+            result.append({
+                "date": dt,
+                "open": open_p,
+                "close": close,
+                "high": high,
+                "low": low,
+                "volume": volume,
+                "amount": amount_yi if amount_yi > 0 else volume * close * 1e-8,  # 亿港元
+                "amplitude": round((high - low) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0,
+                "pct": pct,
+                "change": round(close - prev_close, 4) if prev_close else 0,
+                "turnover": turnover,
+            })
+            prev_close = close
+        return result
+    except Exception as e:
+        print(f"  [WARN] 腾讯港股K线请求异常 {symbol}: {e}")
+        return []
+
 # ============================================================
 # 东方财富 API — 板块/资金流向 (GitHub Actions可能不可用)
 # ============================================================
@@ -617,10 +670,15 @@ def get_kline_em(secid, days=60):
 
 def get_kline(tencent_symbol, days=60, secid=None, sina_code=None):
     """获取K线数据: 腾讯优先，Sina备用，EM最后兜底。
-    tencent_symbol: 腾讯格式代码 (sh000001, sz000426 等)
+    tencent_symbol: 腾讯格式代码 (sh000001, sz000426, hk00883 等)
+    自动识别港股(hk前缀)并使用港股专用K线API。
     """
-    # 腾讯 K线
-    klines = get_kline_tencent(tencent_symbol, days)
+    is_hk = tencent_symbol.startswith("hk")
+    # 腾讯 K线 (港股用专用API)
+    if is_hk:
+        klines = get_kline_tencent_hk(tencent_symbol, days)
+    else:
+        klines = get_kline_tencent(tencent_symbol, days)
     if len(klines) >= 20:
         return klines
     # Sina 备用
@@ -951,13 +1009,46 @@ def get_watchlist_data():
     return result
 
 # ============================================================
-# 新闻获取 — 多源备用
+# 新闻获取 — 多源备用 (同花顺优先, 东方财富/Sina备用)
 # ============================================================
 def get_market_news():
-    """获取市场重要新闻，多源备用。"""
+    """获取24小时内市场重要新闻，多源备用。
+    优先使用同花顺实时新闻API（返回24小时内的滚动新闻），
+    其次东方财富要闻，最后Sina财经滚动。
+    """
     print("    获取要闻...")
 
-    # 方案 A: 东方财富市场要闻
+    # 方案 A: 同花顺实时财经新闻 (24小时滚动)
+    try:
+        resp = SESSION.get(
+            "https://news.10jqka.com.cn/tapp/news/push/stock",
+            params={"page": "1", "tag": "", "track": "website", "num": "20"},
+            timeout=10,
+            headers={"User-Agent": "Mozilla/5.0", "Referer": "https://news.10jqka.com.cn/"}
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        items = data.get("data", {}).get("list", [])
+        if items:
+            print(f"  [新闻] 同花顺来源: {len(items)} 条")
+            news = []
+            for it in items[:12]:
+                ctime = it.get("ctime", "")
+                if ctime:
+                    try:
+                        ctime = datetime.fromtimestamp(int(ctime)).strftime("%m-%d %H:%M")
+                    except Exception:
+                        pass
+                news.append({
+                    "title": it.get("title", ""),
+                    "time": ctime,
+                    "source": "同花顺",
+                })
+            return news
+    except Exception as e:
+        print(f"  [新闻] 同花顺来源失败: {e}")
+
+    # 方案 B: 东方财富市场要闻
     try:
         url = "https://np-listapi.eastmoney.com/comm/web/getNewsList"
         params = {
@@ -976,7 +1067,7 @@ def get_market_news():
     except Exception as e:
         print(f"  [新闻] 东方财富来源失败: {e}")
 
-    # 方案 B: Sina 财经滚动新闻 (lid=2510 股票频道)
+    # 方案 C: Sina 财经滚动新闻 (lid=2510 股票频道)
     for lid_name, lid in [("股票", "2510"), ("财经", "1686"), ("7x24", "1687")]:
         try:
             url = "https://feed.mix.sina.com.cn/api/roll/get"
@@ -1143,9 +1234,123 @@ def analyze_technicals(kline_data):
         "chg_20d": chg_20d,
     }
 
+def _calc_amount_change_pct(klines):
+    """从K线数据计算成交额/成交量环比变化率(%)。
+    比较最后两天: klines[-1] vs klines[-2]。
+    返回: 变化百分比(正=放大, 负=缩小), 或None如果数据不足。
+    """
+    if not klines or len(klines) < 2:
+        return None
+    today_vol = klines[-1].get("volume", 0)
+    yest_vol = klines[-2].get("volume", 0)
+    if yest_vol > 0 and today_vol > 0:
+        return round((today_vol / yest_vol - 1) * 100, 1)
+    return None
+
+def generate_tech_summary(klines, tech_data, name=""):
+    """生成技术分析文字总结。
+    包含: K线形态、布林带位置、成交量变化、均线状态、MACD/KDJ信号。
+    """
+    if not klines or len(klines) < 5 or not tech_data:
+        return ""
+
+    parts = []
+    last = klines[-1]
+    prev = klines[-2] if len(klines) >= 2 else {}
+
+    # K线形态
+    open_p = last.get("open", 0)
+    close = last.get("close", 0)
+    high = last.get("high", 0)
+    low = last.get("low", 0)
+    pct = last.get("pct", 0)
+
+    body = close - open_p
+    upper_shadow = high - max(open_p, close)
+    lower_shadow = min(open_p, close) - low
+
+    if abs(body) < (high - low) * 0.1:
+        kline_desc = "十字星"
+    elif body > 0:
+        if lower_shadow > body * 2:
+            kline_desc = "长下影阳线"
+        elif upper_shadow > body * 2:
+            kline_desc = "长上影阳线"
+        elif close > prev.get("close", 0):
+            kline_desc = "放量阳线" if pct > 2 else "小阳线"
+        else:
+            kline_desc = "高开阳线"
+    else:
+        if lower_shadow > abs(body) * 2:
+            kline_desc = "长下影阴线"
+        elif upper_shadow > abs(body) * 2:
+            kline_desc = "长上影阴线"
+        elif pct < -2:
+            kline_desc = "大阴线"
+        else:
+            kline_desc = "小阴线"
+
+    parts.append(f"K线形态为{kline_desc}，涨跌幅{pct:+.2f}%")
+
+    # 布林带
+    boll_sig = tech_data.get("boll_signal", "")
+    boll_upper = tech_data.get("boll_upper")
+    boll_lower = tech_data.get("boll_lower")
+    boll_mid = tech_data.get("boll_mid")
+    if boll_sig:
+        parts.append(f"布林带方面，价格处于「{boll_sig}」")
+        if boll_upper and boll_lower and boll_mid and close > 0:
+            band_width = (boll_upper - boll_lower) / boll_mid * 100 if boll_mid > 0 else 0
+            parts.append(f"带宽{band_width:.1f}%")
+    elif boll_upper and boll_lower and close > 0:
+        pos = (close - boll_lower) / (boll_upper - boll_lower) * 100 if (boll_upper - boll_lower) > 0 else 50
+        parts.append(f"布林带中价格位置约{pos:.0f}%")
+
+    # 成交量
+    vol_ratio = tech_data.get("vol_ratio", "")
+    if vol_ratio:
+        parts.append(f"成交量{vol_ratio}")
+    # 环比变化
+    amt_chg = _calc_amount_change_pct(klines)
+    if amt_chg is not None:
+        direction = "放大" if amt_chg > 0 else "缩小"
+        parts.append(f"较前一交易日{direction}{abs(amt_chg):.1f}%")
+
+    # 均线
+    ma_status = tech_data.get("ma_status", "")
+    if ma_status:
+        parts.append(f"均线{ma_status}")
+
+    # MACD
+    macd_sig = tech_data.get("macd_signal", "")
+    if macd_sig:
+        parts.append(f"MACD{macd_sig}")
+
+    # KDJ
+    kdj_sig = tech_data.get("kdj_signal", "")
+    if kdj_sig:
+        parts.append(f"KDJ{kdj_sig}")
+
+    # RSI
+    rsi_sig = tech_data.get("rsi_signal", "")
+    rsi6 = tech_data.get("rsi6")
+    if rsi_sig and rsi6 is not None:
+        parts.append(f"RSI6={rsi6:.1f}({rsi_sig})")
+
+    # 近期涨跌
+    chg5 = tech_data.get("chg_5d")
+    chg20 = tech_data.get("chg_20d")
+    if chg5 is not None:
+        parts.append(f"5日{chg5:+.1f}%")
+    if chg20 is not None:
+        parts.append(f"20日{chg20:+.1f}%")
+
+    summary = "，".join(parts) + "。"
+    return summary
+
 def fetch_all_data():
     print("=" * 50)
-    print("开始数据采集 v7 (纯腾讯+Sina架构, 不依赖东方财富)...")
+    print("开始数据采集 v7.2 (纯腾讯+Sina架构)...")
     print("=" * 50)
 
     overview = get_market_overview()
@@ -1172,27 +1377,52 @@ def fetch_all_data():
         klines = get_kline(tencent_sym, days=60, secid=idx["secid"], sina_code=tencent_sym)
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
+            # 计算成交额环比变化
+            tech["amount_change"] = _calc_amount_change_pct(klines)
             indices_tech[idx["code"]] = tech
             indices_kline[idx["code"]] = klines
             print(f"  {idx['name']}: MA5={tech.get('ma5')} RSI6={tech.get('rsi6')} | {tech.get('ma_status')} | {tech.get('macd_signal')}")
         else:
             print(f"  {idx['name']}: K线数据不足 ({len(klines)}条)")
 
-    # === 技术分析: 自选股 (用腾讯K线) ===
-    print("\n--- 技术分析: 自选股 ---")
+    # 为指数列表添加成交额变化
+    for idx in indices:
+        tech = indices_tech.get(idx["code"], {})
+        idx["amount_change"] = tech.get("amount_change")
+
+    # === 技术分析: 自选股 (含港股，用腾讯K线) ===
+    print("\n--- 技术分析: 自选股 (含港股) ---")
     watchlist_tech = {}
     watchlist_kline = {}
     for s in WATCHLIST:
-        if s["market"] == "HK":
-            continue  # 港股K线API不同，暂跳过
         klines = get_kline(s["sina"], days=60, secid=s["secid"], sina_code=s["sina"])
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
+            # 计算成交额环比变化
+            tech["amount_change"] = _calc_amount_change_pct(klines)
             watchlist_tech[s["code"]] = tech
             watchlist_kline[s["code"]] = klines
-            print(f"  {s['name']}: {tech.get('ma_status','')} | {tech.get('macd_signal','')} | {tech.get('boll_signal','')}")
+            # 港股: 从K线最后一天提取换手率
+            if s["market"] == "HK" and klines:
+                hk_turnover = klines[-1].get("turnover", 0)
+                if hk_turnover > 0:
+                    # 更新watchlist中对应股票的换手率
+                    for w in watchlist:
+                        if w["code"] == s["code"]:
+                            w["turnover"] = hk_turnover
+                            break
+                    print(f"  {s['name']}: 换手率={hk_turnover:.2f}% | {tech.get('ma_status','')} | {tech.get('macd_signal','')}")
+                else:
+                    print(f"  {s['name']}: {tech.get('ma_status','')} | {tech.get('macd_signal','')} | {tech.get('boll_signal','')}")
+            else:
+                print(f"  {s['name']}: {tech.get('ma_status','')} | {tech.get('macd_signal','')} | {tech.get('boll_signal','')}")
         else:
             print(f"  {s['name']}: K线数据不足 ({len(klines)}条)")
+
+    # 为自选股列表添加成交额变化
+    for w in watchlist:
+        tech = watchlist_tech.get(w["code"], {})
+        w["amount_change"] = tech.get("amount_change")
 
     print(f"\n数据采集完成:")
     print(f"  市场总览: {'OK' if overview else 'EMPTY'}")
@@ -1202,6 +1432,21 @@ def fetch_all_data():
     print(f"  资金流向: {len(fund_flows)} 个")
     print(f"  自选股: {len(watchlist)} 只 | 技术分析: {len(watchlist_tech)} 只")
     print(f"  新闻: {len(news)} 条")
+
+    # === 生成技术分析文字总结 ===
+    indices_summary = {}
+    for idx in INDICES:
+        klines = indices_kline.get(idx["code"], [])
+        tech = indices_tech.get(idx["code"], {})
+        if klines and tech:
+            indices_summary[idx["code"]] = generate_tech_summary(klines, tech, idx["name"])
+
+    watchlist_summary = {}
+    for s in WATCHLIST:
+        klines = watchlist_kline.get(s["code"], [])
+        tech = watchlist_tech.get(s["code"], {})
+        if klines and tech:
+            watchlist_summary[s["code"]] = generate_tech_summary(klines, tech, s["name"])
 
     return {
         "overview": overview,
@@ -1215,6 +1460,8 @@ def fetch_all_data():
         "watchlist_tech": watchlist_tech,
         "indices_kline": indices_kline,
         "watchlist_kline": watchlist_kline,
+        "indices_summary": indices_summary,
+        "watchlist_summary": watchlist_summary,
     }
 
 # ============================================================
@@ -1388,6 +1635,8 @@ def build_html_report(all_data, date_str):
     watchlist_tech = all_data.get("watchlist_tech", {})
     indices_kline = all_data.get("indices_kline", {})
     watchlist_kline = all_data.get("watchlist_kline", {})
+    indices_summary = all_data.get("indices_summary", {})
+    watchlist_summary = all_data.get("watchlist_summary", {})
 
     up_count = overview.get("up", 0)
     down_count = overview.get("down", 0)
@@ -1438,6 +1687,9 @@ tr:hover td{{background:#fafbfc}}
 .news-list li{{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}}
 .news-list li .time{{color:#999;font-size:11px;margin-right:8px}}
 .news-list li .source-tag{{display:inline-block;background:#f0f0f0;color:#888;padding:1px 6px;border-radius:3px;font-size:10px;margin-left:6px}}
+.tech-summary{{background:#f8f9fa;border-left:3px solid #c0392b;padding:12px 16px;margin:12px 0;border-radius:6px;font-size:13px;line-height:1.8;color:#444}}
+.stock-chart-block{{margin-bottom:24px}}
+.stock-chart-title{{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:8px;border-left:3px solid #c0392b}}
 .source{{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}}
 </style>
 </head>
@@ -1445,7 +1697,7 @@ tr:hover td{{background:#fafbfc}}
 <div class="container">
 <div class="hero">
   <h1>A股收盘复盘报告</h1>
-  <div class="date">{display_date} | 数据来源：腾讯财经 & Sina财经 | 含技术指标分析</div>
+  <div class="date">{display_date} | 数据来源：腾讯财经 & Sina财经 & 同花顺 | 含技术指标分析</div>
   <div class="summary">
     <div class="summary-item">
       <div class="num up">{up_count}</div>
@@ -1468,7 +1720,7 @@ tr:hover td{{background:#fafbfc}}
 <div class="section">
   <div class="section-title">一、主要指数表现</div>
   <table>
-    <thead><tr><th>指数</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">涨跌额</th><th class="num">成交额(亿)</th></tr></thead>
+    <thead><tr><th>指数</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">涨跌额</th><th class="num">成交额(亿)</th><th class="num">成交额变化</th></tr></thead>
     <tbody>
 '''
     for idx in indices:
@@ -1476,7 +1728,13 @@ tr:hover td{{background:#fafbfc}}
         cls = "up" if pct > 0 else ("down" if pct < 0 else "flat")
         amt = idx.get("amount", 0)
         chg = idx.get("change", 0)
-        html += f'      <tr><td>{idx["name"]}</td><td class="num">{idx.get("price",0):.2f}</td><td class="num {cls}">{pct:+.2f}%</td><td class="num {cls}">{chg:+.2f}</td><td class="num">{amt:.2f}</td></tr>\n'
+        amt_chg = idx.get("amount_change")
+        if amt_chg is not None:
+            amt_chg_cls = "up" if amt_chg > 0 else "down"
+            amt_chg_str = f'<td class="num {amt_chg_cls}">{amt_chg:+.1f}%</td>'
+        else:
+            amt_chg_str = '<td class="num">-</td>'
+        html += f'      <tr><td>{idx["name"]}</td><td class="num">{idx.get("price",0):.2f}</td><td class="num {cls}">{pct:+.2f}%</td><td class="num {cls}">{chg:+.2f}</td><td class="num">{amt:.2f}</td>{amt_chg_str}</tr>\n'
 
     html += '''    </tbody></table></div>
 
@@ -1500,10 +1758,30 @@ tr:hover td{{background:#fafbfc}}
   </div>
 '''
     if fund_flows:
+        # 分为流入前五和流出前五
+        inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
+        outflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"])[:5]
         html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">三、行业资金流向</div>
-    <div class="chart-box" id="chart-fundflow" style="height:350px"></div>
-    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入 TOP/BOTTOM 5（亿元）</div>
+    <div class="board-grid">
+      <div class="board-col">
+        <h4 style="color:#c0392b">资金流入前五</h4>
+'''
+        for f in inflow_top5:
+            net = f["main_net"]
+            cls = "up" if net > 0 else "down"
+            html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+        html += '''      </div>
+      <div class="board-col">
+        <h4 style="color:#27ae60">资金流出前五</h4>
+'''
+        for f in outflow_top5:
+            net = f["main_net"]
+            cls = "up" if net > 0 else "down"
+            html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+        html += '''      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
   </div>
 '''
     else:
@@ -1546,19 +1824,25 @@ tr:hover td{{background:#fafbfc}}
     html += '''<div class="section">
   <div class="section-title">五、自选股表现</div>
   <table>
-    <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th></tr></thead>
+    <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th><th class="num">成交额变化</th></tr></thead>
     <tbody>
 '''
     for s in watchlist:
         pct = s.get("pct", 0)
         cls = "up" if pct > 0 else ("down" if pct < 0 else "flat")
         amt = s.get("amount", 0)
+        amt_chg = s.get("amount_change")
+        if amt_chg is not None:
+            amt_chg_cls = "up" if amt_chg > 0 else "down"
+            amt_chg_str = f'<td class="num {amt_chg_cls}">{amt_chg:+.1f}%</td>'
+        else:
+            amt_chg_str = '<td class="num">-</td>'
         html += f'''      <tr><td>{s["name"]} <span style="color:#999;font-size:11px">({s["code"]})</span></td>
         <td class="num">{s.get("price",0):.2f}</td>
         <td class="num {cls}">{pct:+.2f}%</td>
         <td class="num">{s.get("turnover",0):.2f}%</td>
         <td class="num">{s.get("volume_ratio",0):.2f}</td>
-        <td class="num">{amt:.2f}</td></tr>
+        <td class="num">{amt:.2f}</td>{amt_chg_str}</tr>
 '''
 
     html += '''    </tbody></table></div>
@@ -1569,8 +1853,13 @@ tr:hover td{{background:#fafbfc}}
   <div class="section-title">六、上证指数 K线 + 布林带 + 成交量（大盘参考）</div>
 '''
     sh_kline = indices_kline.get("000001", [])
+    sh_tech = indices_tech.get("000001", {})
     if sh_kline:
         html += build_kline_chart_placeholder("chart-sh-kline", "上证指数", sh_kline)
+        # 技术分析文字总结
+        sh_summary = indices_summary.get("000001", "")
+        if sh_summary:
+            html += f'<div class="tech-summary"><strong>技术分析：</strong>{sh_summary}</div>\n'
     else:
         html += '<p style="color:#999">K线数据获取失败</p>'
     html += '</div>\n'
@@ -1578,29 +1867,38 @@ tr:hover td{{background:#fafbfc}}
     # 指数技术指标表格
     html += build_tech_table_section("七、指数技术指标", indices, indices_tech)
 
-    # === 八、自选股 K线图（全部A股）===
+    # === 八、自选股 K线图（含港股，技术分析）===
     html += '<div class="section"><div class="section-title">八、自选股 K线图（技术分析）</div>\n'
-    html += '<p style="color:#999;font-size:12px;margin-bottom:16px">每只自选股60日K线，含BOLL上/中/下轨 + MA5/MA20均线 + 成交量，MACD/KDJ信号标注在标题中</p>\n'
+    html += '<p style="color:#999;font-size:12px;margin-bottom:16px">每只自选股60日K线，含BOLL上/中/下轨 + MA5/MA20均线 + 成交量，下方附技术分析总结</p>\n'
 
-    # 构建自选股列表，港股跳过（K线API不同）
+    # 构建自选股列表（含港股）
     stock_kline_items = []
     for s in watchlist:
         klines = watchlist_kline.get(s["code"], [])
         t = watchlist_tech.get(s["code"], {})
+        summary = watchlist_summary.get(s["code"], "")
         if klines and len(klines) >= 20:
             sig_parts = []
             if t.get("macd_signal"): sig_parts.append(t["macd_signal"])
             if t.get("kdj_signal"): sig_parts.append(t["kdj_signal"])
             sig_str = " ".join(sig_parts)
-            title = f'{s["name"]} ({sig_str})' if sig_str else s["name"]
-            stock_kline_items.append((title, klines))
+            stock_kline_items.append((s, klines, t, summary, sig_str))
 
     if stock_kline_items:
         # 两列网格排列
         html += '<div class="chart-row">\n'
-        for title, klines in stock_kline_items:
+        for s, klines, t, summary, sig_str in stock_kline_items:
             cid = _next_chart_id()
-            html += f'<div>{build_kline_chart_placeholder(cid, title, klines)}</div>\n'
+            market_tag = " [港股]" if s["market"] == "HK" else ""
+            title = f'{s["name"]}{market_tag} ({s["code"]})'
+            if sig_str:
+                title += f' — {sig_str}'
+            html += f'<div class="stock-chart-block">\n'
+            html += f'<div class="stock-chart-title">{title}</div>\n'
+            html += build_kline_chart_placeholder(cid, s["name"], klines)
+            if summary:
+                html += f'<div class="tech-summary" style="font-size:12px">{summary}</div>\n'
+            html += '</div>\n'
         html += '</div>\n'
     else:
         html += '<p style="color:#999">自选股K线数据获取失败</p>\n'
@@ -1616,6 +1914,7 @@ tr:hover td{{background:#fafbfc}}
 '''
     for n in news:
         time_str = n.get("time", "")
+        # 兼容多种时间格式: "2026-07-21 16:05:30" / "07-21 16:05" / "16:05"
         if time_str and len(time_str) >= 16:
             time_str = time_str[11:16]  # HH:MM
         source_str = n.get("source", "")
@@ -1642,27 +1941,6 @@ tr:hover td{{background:#fafbfc}}
     series: [{{ type: 'bar', data: {json.dumps([round(p,2) for p in industry_pcts[::-1]])},
       itemStyle: {{ color: function(p) {{ return p.value > 0 ? '#c0392b' : '#27ae60'; }} }},
       label: {{ show: true, position: 'right', formatter: '{{c}}%', fontSize: 11 }}
-    }}]
-  }});
-  window.addEventListener('resize', function() {{ chart.resize(); }});
-}})();
-
-// 资金流向图表
-(function() {{
-  var dom = document.getElementById('chart-fundflow');
-  if (!dom) return;
-  var chart = echarts.init(dom);
-  var flowData = {json.dumps([{"name": f["name"], "value": round(f["main_net"], 2)} for f in (fund_flows[:5] + fund_flows[-5:])])};
-  var names = flowData.map(function(d) {{ return d.name; }});
-  var values = flowData.map(function(d) {{ return d.value; }});
-  chart.setOption({{
-    tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'shadow' }} }},
-    grid: {{ left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true }},
-    xAxis: {{ type: 'value', axisLabel: {{ formatter: '{{value}}亿' }} }},
-    yAxis: {{ type: 'category', data: names.reverse(), axisLabel: {{ fontSize: 11 }} }},
-    series: [{{ type: 'bar', data: values.reverse(),
-      itemStyle: {{ color: function(p) {{ return p.value > 0 ? '#c0392b' : '#27ae60'; }} }},
-      label: {{ show: true, position: 'right', formatter: '{{c}}亿', fontSize: 11 }}
     }}]
   }});
   window.addEventListener('resize', function() {{ chart.resize(); }});
@@ -1694,6 +1972,8 @@ def build_summary_md(all_data):
     watchlist = all_data.get("watchlist", [])
     indices_tech = all_data.get("indices_tech", {})
     watchlist_tech = all_data.get("watchlist_tech", {})
+    indices_summary = all_data.get("indices_summary", {})
+    fund_flows = all_data.get("fund_flows", [])
     news = all_data.get("news", [])
 
     up = overview.get("up", 0)
@@ -1707,7 +1987,7 @@ def build_summary_md(all_data):
     weekdays = ["一", "二", "三", "四", "五", "六", "日"]
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
-    md = f"### A股收盘复盘 v7\n**{display_date}**\n\n---\n\n"
+    md = f"### A股收盘复盘 v7.2\n**{display_date}**\n\n---\n\n"
     md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿\n\n"
 
     md += "**主要指数：**\n"
@@ -1716,31 +1996,40 @@ def build_summary_md(all_data):
         emoji = "🔴" if pct > 0 else ("🟢" if pct < 0 else "⚪")
         t = indices_tech.get(idx.get("code", ""), {})
         rsi_str = f" RSI6:{t.get('rsi6','-')}" if t else ""
-        md += f"- {emoji} **{idx['name']}**: {idx.get('price',0):.2f} ({pct:+.2f}%){rsi_str}\n"
+        amt_chg = idx.get("amount_change")
+        amt_str = f" 成交额{amt_chg:+.1f}%" if amt_chg is not None else ""
+        md += f"- {emoji} **{idx['name']}**: {idx.get('price',0):.2f} ({pct:+.2f}%){rsi_str}{amt_str}\n"
 
-    # 上证指数技术信号
-    sh_tech = indices_tech.get("000001", {})
-    if sh_tech:
-        md += f"\n**上证指数技术信号：** {sh_tech.get('ma_status','')} | {sh_tech.get('macd_signal','')} | {sh_tech.get('boll_signal','')}\n"
+    # 上证指数技术分析总结
+    sh_summary = indices_summary.get("000001", "")
+    if sh_summary:
+        md += f"\n**上证指数技术分析：** {sh_summary}\n"
 
-    # 自选股涨跌幅前三
-    a_stocks = [s for s in watchlist if s["market"] == "A"]
-    a_stocks.sort(key=lambda x: x.get("pct", 0), reverse=True)
-    if a_stocks:
+    # 行业资金流向
+    if fund_flows:
+        inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
+        outflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"])[:5]
+        md += "\n**资金流入前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in inflow_top5]) + "\n"
+        md += "**资金流出前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in outflow_top5]) + "\n"
+
+    # 自选股涨跌幅前三 (含港股)
+    all_stocks = list(watchlist)
+    all_stocks.sort(key=lambda x: x.get("pct", 0), reverse=True)
+    if all_stocks:
         md += f"\n**自选股涨幅前三：**\n"
-        for s in a_stocks[:3]:
+        for s in all_stocks[:3]:
             st = watchlist_tech.get(s["code"], {})
             sig = f" — {st.get('macd_signal','')}" if st.get("macd_signal") else ""
             md += f"- {s['name']}: {s.get('pct',0):+.2f}%{sig}\n"
         md += f"\n**自选股跌幅前三：**\n"
-        for s in a_stocks[-3:]:
+        for s in all_stocks[-3:]:
             st = watchlist_tech.get(s["code"], {})
             sig = f" — {st.get('macd_signal','')}" if st.get("macd_signal") else ""
             md += f"- {s['name']}: {s.get('pct',0):+.2f}%{sig}\n"
 
     # 技术预警
     alerts = []
-    for s in a_stocks:
+    for s in all_stocks:
         st = watchlist_tech.get(s["code"], {})
         if st:
             macd = st.get("macd_signal", "")
@@ -1755,8 +2044,9 @@ def build_summary_md(all_data):
     # 要闻
     if news:
         md += "\n**今日要闻：**\n"
-        for n in news[:3]:
-            md += f"- {n['title']}\n"
+        for n in news[:5]:
+            time_str = n.get("time", "")
+            md += f"- [{time_str}] {n['title']}\n"
 
     report_url = get_report_url()
     md += f"\n[查看完整复盘报告]({report_url})\n"
