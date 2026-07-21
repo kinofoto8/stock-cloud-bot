@@ -1,6 +1,12 @@
 """
-收盘复盘报告生成器 v4 — Sina 财经 + 东方财富混合方案
-带 K线/BOLL/MACD/KDJ/RSI 技术分析 + ECharts 图表
+收盘复盘报告生成器 v6 — 全新数据架构
+核心改进:
+  1. 市场总览: ulist.np 批量获取指数涨跌家数 + 成交额 (1次调用)
+  2. 涨停跌停: push2ex ZTPool/DTPool API
+  3. 自选股: Sina价格 + ulist.np批量获取换手率/量比 (2次调用)
+  4. K线: Sina K线API (替代EM kline)
+  5. 新闻: Sina lid=2510 股票新闻
+  6. 板块/资金: EM clist 多ut token重试
 """
 import json
 import time
@@ -229,7 +235,7 @@ def fetch_sina_quotes(sina_codes):
                 change = safe_float(data[2])
                 pct = safe_float(data[3])
                 volume = safe_float(data[4])
-                amount = safe_float(data[5]) / 1e4
+                amount = safe_float(data[5]) / 1e8  # 元 → 亿
                 result[code] = {
                     "name": name, "price": price, "change": change,
                     "pct": pct, "volume": volume, "amount": amount,
@@ -273,24 +279,29 @@ EM_SESSION.headers.update({
     "Referer": "https://quote.eastmoney.com/",
 })
 
-EM_UT = "fa5fd1943c7b386f172d6893dbfba10b"
+# 多个 ut 令牌，轮换使用避免限流
+EM_UT_LIST = [
+    "fa5fd1943c7b386f172d6893dbfba10b",
+    "b587f3c7b386f172d6893dbfba10b",
+    "7c8a9a3c7b386f172d6893dbfba10b",
+]
+EM_UT = EM_UT_LIST[0]
 
 def em_fetch_json(url, params):
-    """请求东方财富 JSON 接口，自动添加 ut 令牌。"""
-    params["ut"] = EM_UT
-    for attempt in range(3):
+    """请求东方财富 JSON 接口，自动添加 ut 令牌，多 token 轮换重试。"""
+    for ut_idx, ut in enumerate(EM_UT_LIST):
+        p = dict(params)
+        p["ut"] = ut
         try:
-            resp = EM_SESSION.get(url, params=params, timeout=15)
+            resp = EM_SESSION.get(url, params=p, timeout=15)
             resp.raise_for_status()
             data = resp.json()
             if data.get("data") is not None:
                 return data
-            if attempt == 2:
-                print(f"  [DEBUG] EM API returned null data: {params.get('fs','?')[:60]}")
         except Exception as e:
-            if attempt == 2:
-                print(f"  [WARN] EM 请求失败: {e}")
-            time.sleep(1 * (attempt + 1))
+            if ut_idx == len(EM_UT_LIST) - 1:
+                print(f"  [WARN] EM 请求失败(所有ut): {type(e).__name__}")
+            time.sleep(0.5)
     return {}
 
 def em_fetch_raw(url, params):
@@ -304,14 +315,125 @@ def em_fetch_raw(url, params):
         print(f"  [WARN] EM raw 请求失败: {e}")
         return ""
 
+def em_ulist_get(secids, fields):
+    """批量获取多个证券的行情数据 (ulist.np API)。
+    使用 clist 字段编号: f2=价格, f3=涨跌幅, f6=成交额, f7=振幅, f8=换手率,
+    f10=量比, f12=代码, f14=名称, f104=上涨家数, f105=下跌家数, f106=平盘家数
+    """
+    url = "https://push2.eastmoney.com/api/qt/ulist.np/get"
+    params = {
+        "secids": secids,
+        "fields": fields,
+        "fltt": "2",
+        "invt": "2",
+    }
+    for ut_idx, ut in enumerate(EM_UT_LIST):
+        p = dict(params)
+        p["ut"] = ut
+        try:
+            resp = EM_SESSION.get(url, params=p, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("data") is not None:
+                return (data.get("data") or {}).get("diff", [])
+        except Exception:
+            if ut_idx == len(EM_UT_LIST) - 1:
+                print(f"  [WARN] ulist.np 请求失败: secids={secids[:40]}")
+            time.sleep(0.5)
+    return []
+
+def em_get_zt_dt_pool(pool_type, date_str):
+    """获取涨停/跌停池数据。
+    pool_type: 'ZT' for 涨停, 'DT' for 跌停
+    date_str: YYYYMMDD
+    """
+    url = f"https://push2ex.eastmoney.com/getTopic{pool_type}Pool"
+    params = {
+        "dpt": "wz.ztzt",
+        "Pageindex": "0",
+        "pagesize": "500",
+        "sort": "fbt:asc",
+        "date": date_str,
+    }
+    for ut_idx, ut in enumerate(EM_UT_LIST):
+        p = dict(params)
+        p["ut"] = ut
+        try:
+            resp = EM_SESSION.get(url, params=p, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("data") is not None:
+                pool = (data.get("data") or {}).get("pool", [])
+                return len(pool)
+        except Exception:
+            if ut_idx == len(EM_UT_LIST) - 1:
+                print(f"  [WARN] {pool_type}Pool 请求失败")
+            time.sleep(0.5)
+    return 0
+
 # ============================================================
-# K 线数据获取
+# K 线数据获取 — Sina API (主) + 东方财富 (备)
 # ============================================================
-def get_kline_em(secid, days=60):
-    """获取东方财富日K线数据。
+def get_kline_sina(sina_code, datalen=60):
+    """获取 Sina 日K线数据。
     返回: [{date, open, close, high, low, volume, amount, pct}, ...]
     """
-    # 计算起止日期
+    url = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData"
+    params = {
+        "symbol": sina_code,
+        "scale": "240",      # 日K
+        "datalen": str(datalen),
+    }
+    try:
+        resp = SESSION.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        if not resp.text or resp.text.strip() == "[]" or len(resp.text) < 10:
+            return []
+        raw = json.loads(resp.text)
+        if not raw:
+            return []
+
+        result = []
+        prev_close = None
+        for k in raw:
+            close = safe_float(k.get("close"))
+            open_p = safe_float(k.get("open"))
+            high = safe_float(k.get("high"))
+            low = safe_float(k.get("low"))
+            volume = safe_float(k.get("volume"))
+            dt = k.get("day", "")
+
+            if prev_close and prev_close > 0 and close > 0:
+                pct = round((close - prev_close) / prev_close * 100, 2)
+            else:
+                pct = 0.0
+
+            # Sina 不提供 amount，用 volume 估算 (volume 是股数)
+            amount = volume * close  # 估算
+
+            result.append({
+                "date": dt,
+                "open": open_p,
+                "close": close,
+                "high": high,
+                "low": low,
+                "volume": volume,
+                "amount": amount,
+                "amplitude": round((high - low) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0,
+                "pct": pct,
+                "change": round(close - prev_close, 4) if prev_close else 0,
+                "turnover": 0,
+            })
+            prev_close = close
+        return result
+    except Exception as e:
+        print(f"  [WARN] Sina K线请求异常 {sina_code}: {e}")
+        return []
+
+def get_kline_em(secid, days=60):
+    """获取东方财富日K线数据（备用）。
+    返回: [{date, open, close, high, low, volume, amount, pct}, ...]
+    """
     beijing_tz = timezone(timedelta(hours=8))
     end_date = datetime.now(beijing_tz).strftime("%Y%m%d")
     start_date = (datetime.now(beijing_tz) - timedelta(days=days + 10)).strftime("%Y%m%d")
@@ -332,7 +454,6 @@ def get_kline_em(secid, days=60):
         data = em_fetch_json(url, params)
         klines_raw = (data.get("data") or {}).get("klines", [])
         if not klines_raw:
-            print(f"  [WARN] K线数据为空: {secid}")
             return []
 
         result = []
@@ -340,11 +461,8 @@ def get_kline_em(secid, days=60):
             parts = line.split(",")
             if len(parts) < 8:
                 continue
-            # fields2: f51(日期),f52(开盘),f53(收盘),f54(最高),f55(最低)
-            # f56(成交量),f57(成交额),f58(振幅),f59(涨跌幅),f60(涨跌额),f61(换手率)
-            dt = parts[0]
             result.append({
-                "date": dt,
+                "date": parts[0],
                 "open": safe_float(parts[1]),
                 "close": safe_float(parts[2]),
                 "high": safe_float(parts[3]),
@@ -361,78 +479,108 @@ def get_kline_em(secid, days=60):
         print(f"  [WARN] K线请求异常 {secid}: {e}")
         return []
 
+def get_kline(secid, sina_code, days=60):
+    """获取K线数据: 先试Sina，失败再试EM。"""
+    klines = get_kline_sina(sina_code, days)
+    if len(klines) >= 20:
+        return klines
+    # Sina 失败，尝试 EM
+    print(f"  [INFO] Sina K线不足({len(klines)}条)，尝试EM: {sina_code}")
+    klines = get_kline_em(secid, days)
+    return klines
+
 # ============================================================
 # 常规数据获取（复用 V3 逻辑）
 # ============================================================
 def get_market_overview():
-    """市场总览：涨跌家数、成交额。分两次获取：一次统计涨跌，一次统计成交额。"""
+    """市场总览：涨跌家数、成交额、涨停跌停。
+    用 ulist.np 获取上证+深证的涨跌家数和成交额 (1次API调用)。
+    用 push2ex 获取涨停/跌停池。
+    """
     print("  [1/5] 获取市场总览...")
-    url = "https://push2.eastmoney.com/api/qt/clist/get"
+    beijing_tz = timezone(timedelta(hours=8))
+    today_str = datetime.now(beijing_tz).strftime("%Y%m%d")
 
-    # 第一次：获取全部 A 股，统计涨跌停
-    params_all = {
-        "pn": "1", "pz": "6000", "po": "0", "np": "1",
-        "fltt": "2", "invt": "2", "fid": "f3",
-        "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23",
-        "fields": "f3,f20",
-    }
-    data = em_fetch_json(url, params_all)
-    items = (data.get("data") or {}).get("diff", [])
-    total_stocks = (data.get("data") or {}).get("total", len(items))
+    # 一次调用获取上证指数 + 深证成指的涨跌家数和成交额
+    # ulist.np 字段: f104=上涨家数, f105=下跌家数, f106=平盘家数, f6=成交额(元)
+    items = em_ulist_get("1.000001,0.399001", "f6,f12,f14,f104,f105,f106")
 
-    up = down = flat = limit_up = limit_down = 0
+    up = down = flat = 0
+    total_amount = 0.0
+
     for it in items:
-        pct = safe_float(it.get("f3"))
-        if pct > 0: up += 1
-        elif pct < 0: down += 1
-        else: flat += 1
-        if pct >= 9.8: limit_up += 1
-        if pct <= -9.8: limit_down += 1
+        code = it.get("f12", "")
+        up += safe_int(it.get("f104"))
+        down += safe_int(it.get("f105"))
+        flat += safe_int(it.get("f106"))
+        total_amount += safe_float(it.get("f6"))
 
-    # 第二次：获取真实成交额（取两市之和，pz=1 只取 header 里的 total）
-    # 用上证 + 深证的指数成交额求和
-    total_amount = 0
-    for mkt_code in ("1.000001", "0.399001"):  # 上证指数、深证成指
+    total_stocks = up + down + flat
+
+    # 涨停/跌停: 用 push2ex ZTPool/DTPool
+    limit_up = em_get_zt_dt_pool("ZT", today_str)
+    limit_down = em_get_zt_dt_pool("DT", today_str)
+
+    # 如果 push2ex 失败，用 clist 估算 (取涨幅最大的100只和最小的100只)
+    if limit_up == 0 and limit_down == 0:
+        print("  [INFO] push2ex 无数据，用 clist 估算涨跌停...")
         try:
-            r = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get", params={
-                "secid": mkt_code, "ut": EM_UT, "fltt": "2", "invt": "2",
-                "fields": "f48",
-            }, timeout=10)
-            d = r.json().get("data", {}) or {}
-            total_amount += safe_float(d.get("f48", 0))
+            url = "https://push2.eastmoney.com/api/qt/clist/get"
+            # 涨停估算: 取涨幅最大的100只
+            params_up = {
+                "pn": "1", "pz": "100", "po": "1", "np": "1",
+                "fltt": "2", "invt": "2", "fid": "f3",
+                "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23",
+                "fields": "f3,f12",
+            }
+            data = em_fetch_json(url, params_up)
+            items_up = (data.get("data") or {}).get("diff", [])
+            for it in items_up:
+                pct = safe_float(it.get("f3"))
+                if pct >= 9.8:
+                    limit_up += 1
+
+            # 跌停估算: 取涨幅最小的100只
+            params_dn = dict(params_up)
+            params_dn["po"] = "0"
+            data = em_fetch_json(url, params_dn)
+            items_dn = (data.get("data") or {}).get("diff", [])
+            for it in items_dn:
+                pct = safe_float(it.get("f3"))
+                if pct <= -9.8:
+                    limit_down += 1
         except Exception:
             pass
 
-    print(f"  [总览] 上涨{up} 下跌{down} 平盘{flat} 涨停{limit_up} 跌停{limit_down} 成交额{total_amount/1e8:.0f}亿 (共{total_stocks}只)")
+    total_amount_yi = round(total_amount / 1e8, 2)  # 元 → 亿
+
+    print(f"  [总览] 上涨{up} 下跌{down} 平盘{flat} 涨停{limit_up} 跌停{limit_down} 成交额{total_amount_yi:.0f}亿 (共{total_stocks}只)")
 
     return {
         "up": up, "down": down, "flat": flat,
         "limit_up": limit_up, "limit_down": limit_down,
-        "total_amount": round(total_amount / 1e8, 2),
+        "total_amount": total_amount_yi,
         "total_stocks": total_stocks,
     }
 
 def get_index_data():
-    """指数行情 — Sina 获取价格/涨跌幅，东方财富补成交额。"""
+    """指数行情 — ulist.np 批量获取 (1次API调用替代7次)。"""
     print("  [2/5] 获取指数行情...")
+    # Sina 获取价格/涨跌幅
     sina_codes = [idx["sina"] for idx in INDICES]
     quotes = fetch_sina_quotes(sina_codes)
+
+    # ulist.np 批量获取成交额 (clist字段: f6=成交额)
+    secids = ",".join([idx["secid"] for idx in INDICES])
+    em_items = em_ulist_get(secids, "f6,f12")
+    em_amounts = {}
+    for it in em_items:
+        code = it.get("f12", "")
+        em_amounts[code] = safe_float(it.get("f6", 0)) / 1e8  # 元 → 亿
 
     result = []
     for idx in INDICES:
         q = quotes.get(idx["sina"], {})
-        # 东方财富补成交额（更准确）
-        em_amount = 0
-        try:
-            r = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get", params={
-                "secid": idx["secid"], "ut": EM_UT, "fltt": "2", "invt": "2",
-                "fields": "f48",
-            }, timeout=10)
-            d = r.json().get("data", {}) or {}
-            em_amount = safe_float(d.get("f48", 0)) / 1e8
-        except Exception:
-            pass
-
         result.append({
             "name": idx["name"],
             "code": idx["code"],
@@ -441,7 +589,7 @@ def get_index_data():
             "pct": q.get("pct", 0),
             "change": q.get("change", 0),
             "volume": q.get("volume", 0),
-            "amount": em_amount or q.get("amount", 0),
+            "amount": em_amounts.get(idx["code"], q.get("amount", 0)),
         })
     return result
 
@@ -525,82 +673,52 @@ def get_industry_fund_flow():
     return flows
 
 def get_watchlist_data():
-    """自选股行情 — Sina API 批量获取，东方财富补换手率/量比。"""
+    """自选股行情 — Sina 获取价格 + ulist.np 批量获取换手率/量比/成交额。
+    只需2次API调用(Sina批量+EM批量)，替代之前12次调用。
+    """
     print("    获取自选股行情...")
     all_sina = [s["sina"] for s in WATCHLIST]
     quotes = fetch_sina_quotes(all_sina)
 
+    # ulist.np 批量获取A股的换手率/量比/成交额/振幅
+    # clist字段: f6=成交额(元), f7=振幅, f8=换手率(%), f10=量比, f12=代码, f14=名称
+    a_secids = ",".join([s["secid"] for s in WATCHLIST if s["market"] == "A"])
+    em_data = {}
+    if a_secids:
+        em_items = em_ulist_get(a_secids, "f2,f3,f6,f7,f8,f10,f12,f14")
+        for it in em_items:
+            code = it.get("f12", "")
+            em_data[code] = {
+                "turnover": safe_float(it.get("f8", 0)),
+                "volume_ratio": safe_float(it.get("f10", 0)),
+                "amplitude": safe_float(it.get("f7", 0)),
+                "amount_em": safe_float(it.get("f6", 0)) / 1e8,  # 元 → 亿
+            }
+
     result = []
     for s in WATCHLIST:
         q = quotes.get(s["sina"], {})
-        if not q:
-            result.append({
-                "name": s["name"], "code": s["code"], "market": s["market"],
-                "secid": s["secid"],
-                "price": 0, "pct": 0, "change": 0,
-                "high": 0, "low": 0, "volume": 0, "amount": 0,
-                "turnover": 0, "volume_ratio": 0, "amplitude": 0,
-            })
-            continue
+        em = em_data.get(s["code"], {})
 
         result.append({
             "name": s["name"],
             "code": s["code"],
             "market": s["market"],
             "secid": s["secid"],
+            "sina": s["sina"],
             "price": q.get("price", 0),
             "pct": q.get("pct", 0),
             "change": q.get("change", 0),
             "high": q.get("high", 0),
             "low": q.get("low", 0),
             "volume": q.get("volume_hand", 0),
-            "amount": q.get("amount", 0),
-            "turnover": 0,
-            "volume_ratio": 0,
-            "amplitude": 0,
+            "amount": em.get("amount_em", q.get("amount", 0)),
+            "turnover": em.get("turnover", 0),
+            "volume_ratio": em.get("volume_ratio", 0),
+            "amplitude": em.get("amplitude", 0),
         })
 
-    _enrich_with_turnover(result)
     return result
-
-def _enrich_with_turnover(result):
-    """用东方财富 API 补充 A股换手率、量比、振幅、真实成交额。
-    EastMoney 字段说明（不需要除以100）:
-      f168 = 换手率(%)      e.g. 3.5 = 3.5%
-      f50  = 振幅(%)        e.g. 8.2 = 8.2%
-      f51  = 量比           e.g. 1.05 = 1.05x
-      f48  = 成交额(元)     需要 / 1e8 → 亿
-    """
-    for s in WATCHLIST:
-        if s["market"] != "A":
-            continue
-        try:
-            params = {
-                "secid": s["secid"],
-                "fields": "f48,f168,f50,f51",
-                "ut": EM_UT,
-                "fltt": "2",
-                "invt": "2",
-            }
-            resp = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get",
-                                   params=params, timeout=10)
-            d = (resp.json().get("data") or {})
-            if not d:
-                continue
-            turnover = safe_float(d.get("f168"))        # 已是 %，不需要 /100
-            amplitude = safe_float(d.get("f50"))         # 已是 %，不需要 /100
-            vol_ratio = safe_float(d.get("f51"))         # 已是比率，不需要 /100
-            amount_em = safe_float(d.get("f48")) / 1e8   # 元 → 亿
-
-            for r in result:
-                if r["code"] == s["code"]:
-                    r["turnover"] = turnover
-                    r["amplitude"] = amplitude
-                    r["volume_ratio"] = vol_ratio
-                    r["amount"] = amount_em  # 用东方财富的成交额替代 Sina 的
-                    break
-        except Exception:
-            continue
 
 # ============================================================
 # 新闻获取 — 多源备用
@@ -628,53 +746,37 @@ def get_market_news():
     except Exception as e:
         print(f"  [新闻] 东方财富来源失败: {e}")
 
-    # 方案 B: Sina 财经滚动新闻
-    try:
-        url = "https://feed.mix.sina.com.cn/api/roll/get"
-        params = {
-            "pageid": "153", "lid": "2512",
-            "k": "", "num": "10", "page": "1",
-            "r": str(time.time())[:13],
-        }
-        resp = SESSION.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        items = data.get("result", {}).get("data", [])
-        if items:
-            print(f"  [新闻] Sina 来源: {len(items)} 条")
-            news = []
-            for it in items[:10]:
-                news.append({
-                    "title": it.get("title", ""),
-                    "time": it.get("ctime", ""),
-                    "source": it.get("media_name", ""),
-                })
-            return news
-    except Exception as e:
-        print(f"  [新闻] Sina 来源失败: {e}")
-
-    # 方案 C: cls 财联社电报
-    try:
-        url = "https://www.cls.cn/api/sw?app=CailianpressWeb"
-        params = {"os": "web", "sv": "8.4.6"}
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://www.cls.cn/",
-        }
-        resp = requests.get(url, params=params, headers=headers, timeout=10)
-        data = resp.json()
-        items = data.get("data", {}).get("roll_data", [])
-        if items:
-            news = []
-            for it in items[:10]:
-                news.append({
-                    "title": it.get("title", ""),
-                    "time": datetime.fromtimestamp(it.get("ctime", 0)).strftime("%H:%M") if it.get("ctime") else "",
-                    "source": "财联社",
-                })
-            return news
-    except Exception as e:
-        print(f"  [新闻] 财联社来源失败: {e}")
+    # 方案 B: Sina 财经滚动新闻 (lid=2510 股票频道)
+    for lid_name, lid in [("股票", "2510"), ("财经", "1686"), ("7x24", "1687")]:
+        try:
+            url = "https://feed.mix.sina.com.cn/api/roll/get"
+            params = {
+                "pageid": "153", "lid": lid,
+                "k": "", "num": "10", "page": "1",
+                "r": str(time.time())[:13],
+            }
+            resp = SESSION.get(url, params=params, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            items = data.get("result", {}).get("data", [])
+            if items:
+                print(f"  [新闻] Sina[{lid_name}] 来源: {len(items)} 条")
+                news = []
+                for it in items[:10]:
+                    ctime = it.get("ctime", "")
+                    if ctime and ctime.isdigit():
+                        try:
+                            ctime = datetime.fromtimestamp(int(ctime)).strftime("%H:%M")
+                        except Exception:
+                            pass
+                    news.append({
+                        "title": it.get("title", ""),
+                        "time": ctime,
+                        "source": it.get("media_name", ""),
+                    })
+                return news
+        except Exception as e:
+            print(f"  [新闻] Sina[{lid_name}] 来源失败: {e}")
 
     print("  [新闻] 所有来源均失败")
     return []
@@ -813,7 +915,7 @@ def analyze_technicals(kline_data):
 
 def fetch_all_data():
     print("=" * 50)
-    print("开始数据采集 v4 (Sina + 东方财富 + 技术分析)...")
+    print("开始数据采集 v6 (Sina K线 + ulist.np + 技术分析)...")
     print("=" * 50)
 
     overview = get_market_overview()
@@ -824,15 +926,15 @@ def fetch_all_data():
     watchlist = get_watchlist_data()
     news = get_market_news()
 
-    # === 技术分析: 指数 ===
+    # === 技术分析: 指数 (用 Sina K线) ===
     print("\n--- 技术分析: 指数 ---")
     indices_tech = {}
     indices_kline = {}
-    for idx in indices:
-        secid = idx.get("secid", "")
-        if not secid:
-            continue
-        klines = get_kline_em(secid, days=60)
+    for idx in INDICES:
+        secid = idx["secid"]
+        # Sina K线用不带 s_ 前缀的代码
+        sina_code = idx["sina"].replace("s_", "")
+        klines = get_kline(secid, sina_code, days=60)
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
             indices_tech[idx["code"]] = tech
@@ -841,19 +943,19 @@ def fetch_all_data():
         else:
             print(f"  {idx['name']}: K线数据不足 ({len(klines)}条)")
 
-    # === 技术分析: 自选股 ===
+    # === 技术分析: 自选股 (用 Sina K线) ===
     print("\n--- 技术分析: 自选股 ---")
     watchlist_tech = {}
     watchlist_kline = {}
     for s in WATCHLIST:
-        secid = s.get("secid", "")
-        if not secid or s["market"] == "HK":
-            continue  # 港股 K 线 API 不同，暂时跳过
-        klines = get_kline_em(secid, days=60)
+        if s["market"] == "HK":
+            continue  # Sina K线不支持港股
+        klines = get_kline(s["secid"], s["sina"], days=60)
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
             watchlist_tech[s["code"]] = tech
             watchlist_kline[s["code"]] = klines
+            print(f"  {s['name']}: {tech.get('ma_status','')} | {tech.get('macd_signal','')} | {tech.get('boll_signal','')}")
         else:
             print(f"  {s['name']}: K线数据不足 ({len(klines)}条)")
 
@@ -1342,7 +1444,7 @@ def build_summary_md(all_data):
     weekdays = ["一", "二", "三", "四", "五", "六", "日"]
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
-    md = f"### A股收盘复盘 v4\n**{display_date}**\n\n---\n\n"
+    md = f"### A股收盘复盘 v6\n**{display_date}**\n\n---\n\n"
     md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿\n\n"
 
     md += "**主要指数：**\n"
