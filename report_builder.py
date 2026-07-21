@@ -155,7 +155,7 @@ def get_index_data():
             "high": safe_float(d.get("f44")) / 100,
             "low": safe_float(d.get("f45")) / 100,
             "volume": safe_float(d.get("f48")),
-            "amount": safe_float(d.get("f57")),
+            "amount": safe_float(d.get("f48")) / 1e8 if d.get("f48") else 0,
         })
     return result
 
@@ -170,10 +170,11 @@ def get_industry_boards():
         "pn": "1", "pz": "100", "po": "1", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f3",
         "fs": "m:90+t:2",
-        "fields": "f2,f3,f4,f12,f14,f104,f105,f106",
+        "fields": "f2,f3,f12,f14",
     }
     data = fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
+    print(f"  [DEBUG] industry: got {len(items)} items, data keys: {list(data.keys())[:5]}")
     boards = []
     for it in items:
         boards.append({
@@ -181,9 +182,9 @@ def get_industry_boards():
             "code": it.get("f12", ""),
             "pct": safe_float(it.get("f3")),
             "price": safe_float(it.get("f2")),
-            "rise_count": safe_int(it.get("f104")),
-            "fall_count": safe_int(it.get("f105")),
-            "flat_count": safe_int(it.get("f106")),
+            "rise_count": 0,
+            "fall_count": 0,
+            "flat_count": 0,
         })
     return boards
 
@@ -198,10 +199,11 @@ def get_concept_boards():
         "pn": "1", "pz": "500", "po": "1", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f3",
         "fs": "m:90+t:3",
-        "fields": "f2,f3,f4,f12,f14,f104,f105,f106",
+        "fields": "f2,f3,f12,f14",
     }
     data = fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
+    print(f"  [DEBUG] concepts: got {len(items)} items")
     boards = []
     for it in items:
         boards.append({
@@ -224,10 +226,11 @@ def get_industry_fund_flow():
         "pn": "1", "pz": "100", "po": "1", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f62",
         "fs": "m:90+t:2",
-        "fields": "f12,f14,f2,f3,f62,f184,f66,f69,f72,f75,f78,f81,f84,f87,f204,f205",
+        "fields": "f2,f3,f12,f14,f62",
     }
     data = fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
+    print(f"  [DEBUG] fund_flows: got {len(items)} items")
     flows = []
     for it in items:
         main_net = safe_float(it.get("f62"))
@@ -235,11 +238,11 @@ def get_industry_fund_flow():
             "name": it.get("f14", ""),
             "pct": safe_float(it.get("f3")),
             "main_net": main_net / 1e8,
-            "super_large_net": safe_float(it.get("f66")) / 1e8,
-            "large_net": safe_float(it.get("f72")) / 1e8,
-            "medium_net": safe_float(it.get("f78")) / 1e8,
-            "small_net": safe_float(it.get("f84")) / 1e8,
-            "main_pct": safe_float(it.get("f184")),
+            "super_large_net": 0,
+            "large_net": 0,
+            "medium_net": 0,
+            "small_net": 0,
+            "main_pct": 0,
         })
     flows.sort(key=lambda x: x["main_net"], reverse=True)
     return flows
@@ -256,12 +259,12 @@ def get_watchlist_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f47,f48,f50,f51,f168,f169,f170",
+            "fields": "f43,f44,f45,f48,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
         if not debug_printed:
-            print(f"  [DEBUG] {s['name']}({s['code']}) secid={s['secid']} raw_response: {json.dumps(data, ensure_ascii=False)[:300]}")
+            print(f"  [DEBUG] {s['name']}({s['code']}) secid={s['secid']} raw: {json.dumps(data, ensure_ascii=False)[:300]}")
             debug_printed = True
         result.append({
             "name": s["name"],
@@ -272,11 +275,11 @@ def get_watchlist_data():
             "change": safe_float(d.get("f169")) / 100,
             "high": safe_float(d.get("f44")) / 100,
             "low": safe_float(d.get("f45")) / 100,
-            "volume": safe_float(d.get("f47")),
-            "amount": safe_float(d.get("f48")),
-            "turnover": safe_float(d.get("f168")) / 100,
-            "amplitude": safe_float(d.get("f50")) / 100,
-            "volume_ratio": safe_float(d.get("f51")) / 100,
+            "volume": safe_float(d.get("f48")) / 1e8 if d.get("f48") else 0,
+            "amount": safe_float(d.get("f48")) / 1e8 if d.get("f48") else 0,
+            "turnover": 0,
+            "amplitude": 0,
+            "volume_ratio": 0,
         })
     
     # 港股
@@ -284,7 +287,7 @@ def get_watchlist_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f47,f48,f50,f51,f168,f169,f170",
+            "fields": "f43,f44,f45,f48,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
@@ -297,11 +300,11 @@ def get_watchlist_data():
             "change": safe_float(d.get("f169")) / 1000,
             "high": safe_float(d.get("f44")) / 1000,
             "low": safe_float(d.get("f45")) / 1000,
-            "volume": safe_float(d.get("f47")),
-            "amount": safe_float(d.get("f48")),
-            "turnover": safe_float(d.get("f168")) / 100,
-            "amplitude": safe_float(d.get("f50")) / 1000,
-            "volume_ratio": safe_float(d.get("f51")) / 100,
+            "volume": safe_float(d.get("f48")) / 1e8 if d.get("f48") else 0,
+            "amount": safe_float(d.get("f48")) / 1e8 if d.get("f48") else 0,
+            "turnover": 0,
+            "amplitude": 0,
+            "volume_ratio": 0,
         })
     return result
 
@@ -499,7 +502,7 @@ tr:hover td{{background:#fafbfc}}
     for idx in indices:
         pct = idx.get("pct", 0)
         cls = "up" if pct > 0 else ("down" if pct < 0 else "flat")
-        amt = idx.get("amount", 0) / 1e8 if idx.get("amount") else 0
+        amt = idx.get("amount", 0)
         html += f'      <tr><td>{idx["name"]}</td><td class="num">{idx.get("price",0):.2f}</td><td class="num {cls}">{pct:+.2f}%</td><td class="num">{amt:.2f}</td></tr>\n'
     
     html += '''    </tbody>
@@ -560,7 +563,7 @@ tr:hover td{{background:#fafbfc}}
         pct = s.get("pct", 0)
         cls = "up" if pct > 0 else ("down" if pct < 0 else "flat")
         pct_disp = f"**{pct:+.2f}%**" if abs(pct) >= 3 else f"{pct:+.2f}%"
-        amt = s.get("amount", 0) / 1e8 if s.get("amount") else 0
+        amt = s.get("amount", 0)
         html += f'''      <tr><td>{s["name"]} <span style="color:#999;font-size:11px">({s["code"]})</span></td>
         <td class="num">{s.get("price",0):.2f}</td>
         <td class="num {cls}">{pct_disp}</td>
