@@ -142,7 +142,7 @@ def get_index_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": ind["secid"],
-            "fields": "f43,f44,f45,f46,f47,f48,f50,f51,f52,f57,f58,f60,f116,f117,f170",
+            "fields": "f43,f44,f45,f48,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
@@ -251,14 +251,18 @@ def get_watchlist_data():
     """自选股收盘行情。"""
     print("  [6/7] 获取自选股行情...")
     result = []  # A 股
+    debug_printed = False
     for s in WATCHLIST_A:
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f46,f47,f48,f50,f51,f52,f55,f57,f58,f60,f116,f117,f169,f170",
+            "fields": "f43,f44,f45,f47,f48,f50,f168,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
+        if not debug_printed and d:
+            print(f"  [DEBUG] {s['name']}({s['code']}) raw data sample: {json.dumps(d, ensure_ascii=False)[:200]}")
+            debug_printed = True
         result.append({
             "name": s["name"],
             "code": s["code"],
@@ -280,7 +284,7 @@ def get_watchlist_data():
         url = "https://push2.eastmoney.com/api/qt/stock/get"
         params = {
             "secid": s["secid"],
-            "fields": "f43,f44,f45,f46,f47,f48,f50,f51,f52,f55,f57,f58,f60,f116,f117,f169,f170",
+            "fields": "f43,f44,f45,f47,f48,f50,f168,f169,f170",
         }
         data = fetch_json(url, params)
         d = data.get("data", {}) or {}
