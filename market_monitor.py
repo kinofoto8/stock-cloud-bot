@@ -206,7 +206,26 @@ def run_monitor() -> dict:
     if not alerts:
         msg = f"{now_str()} 盘中扫描完成，{len(normal)}只自选股暂无异常信号。"
         print(msg)
-        # 没有预警时不推钉钉，避免打扰
+
+        # 构建简洁状态推送
+        status_md = f"### 📊 自选股盘中扫描\n**时间：** {now_str()}\n\n---\n\n"
+        status_md += "✅ **无异常信号** — 全部自选股运行正常\n\n"
+        status_md += "| 股票 | 当前价 | 涨跌幅 |\n|------|--------|--------|\n"
+        for n in normal:
+            status_md += f"| {n['name']}({n['code']}) | {n['price']} | {n['pct']} |\n"
+        if errors:
+            status_md += "\n⚠️ 数据获取异常:\n"
+            for e in errors:
+                status_md += f"- {e}\n"
+
+        try:
+            result = send_markdown("自选股盘中扫描", status_md)
+            print(f"钉钉推送结果: {result}")
+            if result.get("errcode") != 0:
+                print(f"钉钉推送失败: {result}")
+        except Exception as e:
+            print(f"钉钉推送异常: {e}")
+
         return {"status": "ok", "alerts": 0, "msg": msg}
 
     # 有预警 —— 构建 Markdown 消息
