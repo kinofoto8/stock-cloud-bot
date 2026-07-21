@@ -1667,6 +1667,9 @@ def build_html_report(all_data, date_str):
             amt_chg_str = f"较前日+{total_amount_change_abs:.0f}亿({total_amount_change_pct:+.1f}%)"
         else:
             amt_chg_str = f"较前日{total_amount_change_abs:.0f}亿({total_amount_change_pct:+.1f}%)"
+        total_amt_change_html = f' <span class="{amt_chg_cls}">{amt_chg_str}</span>'
+    else:
+        total_amt_change_html = ""
 
     html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1733,7 +1736,7 @@ tr:hover td{{background:#fafbfc}}
     </div>
     <div class="summary-item">
       <div class="num">{total_amount/10000:.2f}万亿</div>
-      <div class="label">两市成交额{f' <span class=\"{amt_chg_cls}\">{amt_chg_str}</span>' if total_amount_change_pct is not None else ''}</div>
+      <div class="label">两市成交额{total_amt_change_html}</div>
     </div>
     <div class="summary-item">
       <div class="num up">{limit_up}</div>
