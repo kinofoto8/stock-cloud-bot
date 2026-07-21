@@ -2,7 +2,8 @@ name: A股每日收盘复盘
 
 on:
   schedule:
-    - cron: "30 7 * * 1-5"
+      # 北京时间 16:20 → UTC 8:20
+    - cron: "20 8 * * 1-5"
   workflow_dispatch:
 
 jobs:
