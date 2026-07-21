@@ -1390,6 +1390,21 @@ def fetch_all_data():
         tech = indices_tech.get(idx["code"], {})
         idx["amount_change"] = tech.get("amount_change")
 
+    # === 计算两市成交额环比变化 (用上证+深证K线成交量) ===
+    sh_klines = indices_kline.get("000001", [])
+    sz_klines = indices_kline.get("399001", [])
+    if len(sh_klines) >= 2 and len(sz_klines) >= 2:
+        today_vol = sh_klines[-1].get("volume", 0) + sz_klines[-1].get("volume", 0)
+        yest_vol = sh_klines[-2].get("volume", 0) + sz_klines[-2].get("volume", 0)
+        if yest_vol > 0 and today_vol > 0:
+            ratio = today_vol / yest_vol
+            total_amt = overview.get("total_amount", 0)
+            yest_total = total_amt / ratio if ratio > 0 else 0
+            abs_change = total_amt - yest_total
+            overview["total_amount_change_pct"] = round((ratio - 1) * 100, 1)
+            overview["total_amount_change_abs"] = round(abs_change, 2)
+            print(f"  [两市成交额] 今日:{total_amt:.0f}亿 昨日估算:{yest_total:.0f}亿 变化:{(ratio-1)*100:+.1f}%")
+
     # === 技术分析: 自选股 (含港股，用腾讯K线) ===
     print("\n--- 技术分析: 自选股 (含港股) ---")
     watchlist_tech = {}
@@ -1644,6 +1659,14 @@ def build_html_report(all_data, date_str):
     limit_up = overview.get("limit_up", 0)
     limit_down = overview.get("limit_down", 0)
     total_amount = overview.get("total_amount", 0)
+    total_amount_change_pct = overview.get("total_amount_change_pct")
+    total_amount_change_abs = overview.get("total_amount_change_abs", 0)
+    if total_amount_change_pct is not None:
+        amt_chg_cls = "up" if total_amount_change_pct > 0 else "down"
+        if total_amount_change_abs > 0:
+            amt_chg_str = f"较前日+{total_amount_change_abs:.0f}亿({total_amount_change_pct:+.1f}%)"
+        else:
+            amt_chg_str = f"较前日{total_amount_change_abs:.0f}亿({total_amount_change_pct:+.1f}%)"
 
     html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1665,6 +1688,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Mic
 .hero .summary-item .num.up{{color:#ff6b6b}}
 .hero .summary-item .num.down{{color:#51cf66}}
 .hero .summary-item .label{{font-size:12px;color:#a0a0b8;margin-top:4px}}
+.hero .summary-item .label .up,.hero .summary-item .label .down{{font-size:11px;font-weight:600}}
 .section{{background:#fff;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}}
 .section-title{{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:20px;padding-left:12px;border-left:4px solid #c0392b}}
 table{{width:100%;border-collapse:collapse;font-size:13px}}
@@ -1709,7 +1733,7 @@ tr:hover td{{background:#fafbfc}}
     </div>
     <div class="summary-item">
       <div class="num">{total_amount/10000:.2f}万亿</div>
-      <div class="label">两市成交额</div>
+      <div class="label">两市成交额{f' <span class=\"{amt_chg_cls}\">{amt_chg_str}</span>' if total_amount_change_pct is not None else ''}</div>
     </div>
     <div class="summary-item">
       <div class="num up">{limit_up}</div>
@@ -1981,6 +2005,12 @@ def build_summary_md(all_data):
     limit_up = overview.get("limit_up", 0)
     limit_down = overview.get("limit_down", 0)
     total_amount = overview.get("total_amount", 0)
+    total_amt_chg_pct = overview.get("total_amount_change_pct")
+    total_amt_chg_abs = overview.get("total_amount_change_abs", 0)
+    if total_amt_chg_pct is not None:
+        amt_chg_md = f" (较前日{'+' if total_amt_chg_abs > 0 else ''}{total_amt_chg_abs:.0f}亿, {total_amt_chg_pct:+.1f}%)"
+    else:
+        amt_chg_md = ""
 
     beijing_tz = timezone(timedelta(hours=8))
     now = datetime.now(beijing_tz)
@@ -1988,7 +2018,7 @@ def build_summary_md(all_data):
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
     md = f"### A股收盘复盘 v7.2\n**{display_date}**\n\n---\n\n"
-    md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿\n\n"
+    md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿{amt_chg_md}\n\n"
 
     md += "**主要指数：**\n"
     for idx in indices:
