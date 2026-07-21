@@ -1787,7 +1787,9 @@ tr:hover td{{background:#fafbfc}}
     if fund_flows:
         # 分为流入前五和流出前五
         inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
-        outflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"])[:5]
+        # 流出前五：只取真正净流出(负数)的行业，按净流出金额从大到小排序
+        outflow_list = [f for f in fund_flows if f["main_net"] < 0]
+        outflow_top5 = sorted(outflow_list, key=lambda x: x["main_net"])[:5]
         html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">三、行业资金流向</div>
     <div class="board-grid">
@@ -1802,10 +1804,13 @@ tr:hover td{{background:#fafbfc}}
       <div class="board-col">
         <h4 style="color:#27ae60">资金流出前五</h4>
 '''
-        for f in outflow_top5:
-            net = f["main_net"]
-            cls = "up" if net > 0 else "down"
-            html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+        if outflow_top5:
+            for f in outflow_top5:
+                net = f["main_net"]
+                cls = "up" if net > 0 else "down"
+                html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+        else:
+            html += '        <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日全行业资金净流入，无净流出行业</div>\n'
         html += '''      </div>
     </div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
@@ -2041,9 +2046,13 @@ def build_summary_md(all_data):
     # 行业资金流向
     if fund_flows:
         inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
-        outflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"])[:5]
+        outflow_list = [f for f in fund_flows if f["main_net"] < 0]
+        outflow_top5 = sorted(outflow_list, key=lambda x: x["main_net"])[:5]
         md += "\n**资金流入前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in inflow_top5]) + "\n"
-        md += "**资金流出前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in outflow_top5]) + "\n"
+        if outflow_top5:
+            md += "**资金流出前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in outflow_top5]) + "\n"
+        else:
+            md += "**资金流出前五：** 今日全行业资金净流入，无净流出行业\n"
 
     # 自选股涨跌幅前三 (含港股)
     all_stocks = list(watchlist)
