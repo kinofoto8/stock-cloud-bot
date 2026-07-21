@@ -1,0 +1,20 @@
+name: 自选股盘中监控
+
+on:
+  schedule:
+    - cron: "30 1,2,3,5,6,7 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python market_monitor.py
+        env:
+          TZ: Asia/Shanghai
