@@ -242,7 +242,7 @@ def fetch_sina_quotes(sina_codes):
                 high = safe_float(data[4])
                 low = safe_float(data[5])
                 volume_hand = safe_float(data[8])
-                amount = safe_float(data[9]) / 1e4
+                amount = safe_float(data[9]) / 1e8  # 元 → 亿
 
                 if prev_close > 0 and price > 0:
                     pct = round((price - prev_close) / prev_close * 100, 2)
@@ -365,41 +365,55 @@ def get_kline_em(secid, days=60):
 # 常规数据获取（复用 V3 逻辑）
 # ============================================================
 def get_market_overview():
-    """市场总览：涨跌家数、成交额。"""
+    """市场总览：涨跌家数、成交额。分两次获取：一次统计涨跌，一次统计成交额。"""
     print("  [1/5] 获取市场总览...")
     url = "https://push2.eastmoney.com/api/qt/clist/get"
-    params = {
-        "pn": "1", "pz": "100", "po": "0", "np": "1",
+
+    # 第一次：获取全部 A 股，统计涨跌停
+    params_all = {
+        "pn": "1", "pz": "6000", "po": "0", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f3",
         "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23",
-        "fields": "f2,f3,f12,f14,f15,f16,f17,f18,f20",
+        "fields": "f3,f20",
     }
-    data = em_fetch_json(url, params)
+    data = em_fetch_json(url, params_all)
     items = (data.get("data") or {}).get("diff", [])
+    total_stocks = (data.get("data") or {}).get("total", len(items))
 
-    if not items:
-        return {}
-
-    up = down = flat = limit_up = limit_down = total_vol = 0
+    up = down = flat = limit_up = limit_down = 0
     for it in items:
         pct = safe_float(it.get("f3"))
-        vol = safe_float(it.get("f20"))
-        total_vol += vol
         if pct > 0: up += 1
         elif pct < 0: down += 1
         else: flat += 1
         if pct >= 9.8: limit_up += 1
         if pct <= -9.8: limit_down += 1
 
+    # 第二次：获取真实成交额（取两市之和，pz=1 只取 header 里的 total）
+    # 用上证 + 深证的指数成交额求和
+    total_amount = 0
+    for mkt_code in ("1.000001", "0.399001"):  # 上证指数、深证成指
+        try:
+            r = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get", params={
+                "secid": mkt_code, "ut": EM_UT, "fltt": "2", "invt": "2",
+                "fields": "f48",
+            }, timeout=10)
+            d = r.json().get("data", {}) or {}
+            total_amount += safe_float(d.get("f48", 0))
+        except Exception:
+            pass
+
+    print(f"  [总览] 上涨{up} 下跌{down} 平盘{flat} 涨停{limit_up} 跌停{limit_down} 成交额{total_amount/1e8:.0f}亿 (共{total_stocks}只)")
+
     return {
         "up": up, "down": down, "flat": flat,
         "limit_up": limit_up, "limit_down": limit_down,
-        "total_volume": round(total_vol / 1e8, 2),
-        "total_stocks": len(items),
+        "total_amount": round(total_amount / 1e8, 2),
+        "total_stocks": total_stocks,
     }
 
 def get_index_data():
-    """指数行情 — 用 Sina API。"""
+    """指数行情 — Sina 获取价格/涨跌幅，东方财富补成交额。"""
     print("  [2/5] 获取指数行情...")
     sina_codes = [idx["sina"] for idx in INDICES]
     quotes = fetch_sina_quotes(sina_codes)
@@ -407,6 +421,18 @@ def get_index_data():
     result = []
     for idx in INDICES:
         q = quotes.get(idx["sina"], {})
+        # 东方财富补成交额（更准确）
+        em_amount = 0
+        try:
+            r = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get", params={
+                "secid": idx["secid"], "ut": EM_UT, "fltt": "2", "invt": "2",
+                "fields": "f48",
+            }, timeout=10)
+            d = r.json().get("data", {}) or {}
+            em_amount = safe_float(d.get("f48", 0)) / 1e8
+        except Exception:
+            pass
+
         result.append({
             "name": idx["name"],
             "code": idx["code"],
@@ -415,7 +441,7 @@ def get_index_data():
             "pct": q.get("pct", 0),
             "change": q.get("change", 0),
             "volume": q.get("volume", 0),
-            "amount": q.get("amount", 0),
+            "amount": em_amount or q.get("amount", 0),
         })
     return result
 
@@ -538,14 +564,20 @@ def get_watchlist_data():
     return result
 
 def _enrich_with_turnover(result):
-    """用东方财富 API 补充 A股换手率和量比。"""
+    """用东方财富 API 补充 A股换手率、量比、振幅、真实成交额。
+    EastMoney 字段说明（不需要除以100）:
+      f168 = 换手率(%)      e.g. 3.5 = 3.5%
+      f50  = 振幅(%)        e.g. 8.2 = 8.2%
+      f51  = 量比           e.g. 1.05 = 1.05x
+      f48  = 成交额(元)     需要 / 1e8 → 亿
+    """
     for s in WATCHLIST:
         if s["market"] != "A":
             continue
         try:
             params = {
                 "secid": s["secid"],
-                "fields": "f168,f50,f51",
+                "fields": "f48,f168,f50,f51",
                 "ut": EM_UT,
                 "fltt": "2",
                 "invt": "2",
@@ -553,15 +585,19 @@ def _enrich_with_turnover(result):
             resp = EM_SESSION.get("https://push2.eastmoney.com/api/qt/stock/get",
                                    params=params, timeout=10)
             d = (resp.json().get("data") or {})
-            turnover = safe_float(d.get("f168")) / 100
-            amplitude = safe_float(d.get("f50")) / 100
-            vol_ratio = safe_float(d.get("f51")) / 100
+            if not d:
+                continue
+            turnover = safe_float(d.get("f168"))        # 已是 %，不需要 /100
+            amplitude = safe_float(d.get("f50"))         # 已是 %，不需要 /100
+            vol_ratio = safe_float(d.get("f51"))         # 已是比率，不需要 /100
+            amount_em = safe_float(d.get("f48")) / 1e8   # 元 → 亿
 
             for r in result:
                 if r["code"] == s["code"]:
                     r["turnover"] = turnover
                     r["amplitude"] = amplitude
                     r["volume_ratio"] = vol_ratio
+                    r["amount"] = amount_em  # 用东方财富的成交额替代 Sina 的
                     break
         except Exception:
             continue
@@ -1021,7 +1057,7 @@ def build_html_report(all_data, date_str):
     total_stocks = overview.get("total_stocks", 0)
     limit_up = overview.get("limit_up", 0)
     limit_down = overview.get("limit_down", 0)
-    total_vol = overview.get("total_volume", 0)
+    total_amount = overview.get("total_amount", 0)
 
     html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1083,7 +1119,7 @@ tr:hover td{{background:#fafbfc}}
       <div class="label">下跌 / 平盘 {overview.get("flat",0)}</div>
     </div>
     <div class="summary-item">
-      <div class="num">{(total_vol/10000):.2f}万亿</div>
+      <div class="num">{total_amount/10000:.2f}万亿</div>
       <div class="label">两市成交额</div>
     </div>
     <div class="summary-item">
@@ -1137,9 +1173,10 @@ tr:hover td{{background:#fafbfc}}
 
     html += '''    </div>
     <div class="board-col">
-      <h4>跌幅 Top 10</h4>
+      <h4>表现最弱 Top 10</h4>
 '''
-    for b in concepts[-10:]:
+    weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
+    for b in weakest:
         cls = "up" if b["pct"] > 0 else "down"
         html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
 
@@ -1166,9 +1203,9 @@ tr:hover td{{background:#fafbfc}}
     html += '''    </tbody></table></div>
 '''
 
-    # === 六、指数K线+技术分析 ===
+    # === 六、上证指数K线（大盘参考）===
     html += '''<div class="section">
-  <div class="section-title">六、上证指数 K线 + 布林带 + 成交量</div>
+  <div class="section-title">六、上证指数 K线 + 布林带 + 成交量（大盘参考）</div>
 '''
     sh_kline = indices_kline.get("000001", [])
     if sh_kline:
@@ -1180,40 +1217,33 @@ tr:hover td{{background:#fafbfc}}
     # 指数技术指标表格
     html += build_tech_table_section("七、指数技术指标", indices, indices_tech)
 
-    # === 自选股K线（Top 3 信号最突出的） ===
-    stock_tech_items = []
+    # === 八、自选股 K线图（全部A股）===
+    html += '<div class="section"><div class="section-title">八、自选股 K线图（技术分析）</div>\n'
+    html += '<p style="color:#999;font-size:12px;margin-bottom:16px">每只自选股60日K线，含BOLL上/中/下轨 + MA5/MA20均线 + 成交量，MACD/KDJ信号标注在标题中</p>\n'
+
+    # 构建自选股列表，港股跳过（K线API不同）
+    stock_kline_items = []
     for s in watchlist:
-        t = watchlist_tech.get(s.get("code", ""), {})
-        if t and s["market"] == "A":
-            stock_tech_items.append((s, t))
+        klines = watchlist_kline.get(s["code"], [])
+        t = watchlist_tech.get(s["code"], {})
+        if klines and len(klines) >= 20:
+            sig_parts = []
+            if t.get("macd_signal"): sig_parts.append(t["macd_signal"])
+            if t.get("kdj_signal"): sig_parts.append(t["kdj_signal"])
+            sig_str = " ".join(sig_parts)
+            title = f'{s["name"]} ({sig_str})' if sig_str else s["name"]
+            stock_kline_items.append((title, klines))
 
-    if stock_tech_items:
-        # 选 3 只最有信号价值的：有金叉/死叉/超买/超卖的优先
-        def signal_priority(item):
-            _, t = item
-            score = 0
-            sig = t.get("macd_signal", "") + t.get("kdj_signal", "")
-            if "金叉" in sig or "死叉" in sig: score += 3
-            if "超买" in sig or "超卖" in sig: score += 2
-            if "多头" in sig or "空头" in sig: score += 1
-            # 涨跌幅大的也优先
-            return score
-
-        stock_tech_items.sort(key=signal_priority, reverse=True)
-
-        html += '<div class="section"><div class="section-title">八、自选股 K线图（信号突出个股）</div>\n'
+    if stock_kline_items:
+        # 两列网格排列
         html += '<div class="chart-row">\n'
-        for item in stock_tech_items[:4]:
-            s, t = item
-            klines = watchlist_kline.get(s["code"], [])
+        for title, klines in stock_kline_items:
             cid = _next_chart_id()
-            sig_str = f"{t.get('macd_signal','')} {t.get('kdj_signal','')}".strip()
-            title = f"{s['name']} ({sig_str})" if sig_str else s['name']
-            if klines:
-                html += f'<div>{build_kline_chart_placeholder(cid, title, klines)}</div>\n'
-            else:
-                html += f'<div><div class="chart-box" id="{cid}" style="height:200px"></div></div>\n'
-        html += '</div></div>\n'
+            html += f'<div>{build_kline_chart_placeholder(cid, title, klines)}</div>\n'
+        html += '</div>\n'
+    else:
+        html += '<p style="color:#999">自选股K线数据获取失败</p>\n'
+    html += '</div>\n'
 
     # === 自选股技术指标表格 ===
     html += build_tech_table_section("九、自选股技术指标扫描", watchlist, watchlist_tech)
@@ -1305,7 +1335,7 @@ def build_summary_md(all_data):
     down = overview.get("down", 0)
     limit_up = overview.get("limit_up", 0)
     limit_down = overview.get("limit_down", 0)
-    total_vol = overview.get("total_volume", 0)
+    total_amount = overview.get("total_amount", 0)
 
     beijing_tz = timezone(timedelta(hours=8))
     now = datetime.now(beijing_tz)
@@ -1313,7 +1343,7 @@ def build_summary_md(all_data):
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
     md = f"### A股收盘复盘 v4\n**{display_date}**\n\n---\n\n"
-    md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_vol:.0f}** 亿\n\n"
+    md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿\n\n"
 
     md += "**主要指数：**\n"
     for idx in indices:
