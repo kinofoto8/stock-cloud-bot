@@ -1,12 +1,13 @@
 """
-收盘复盘报告生成器 v6 — 全新数据架构
+收盘复盘报告生成器 v7 — 纯腾讯+Sina架构 (不依赖东方财富API)
 核心改进:
-  1. 市场总览: ulist.np 批量获取指数涨跌家数 + 成交额 (1次调用)
-  2. 涨停跌停: push2ex ZTPool/DTPool API
-  3. 自选股: Sina价格 + ulist.np批量获取换手率/量比 (2次调用)
-  4. K线: Sina K线API (替代EM kline)
-  5. 新闻: Sina lid=2510 股票新闻
-  6. 板块/资金: EM clist 多ut token重试
+  1. 市场总览: Sina分页统计涨跌家数 + 腾讯获取成交额
+  2. 涨停跌停: Sina分页统计 (区分ST/科创/创业板不同涨跌停限制)
+  3. 自选股: 腾讯批量行情 (1次调用获取全部含换手率/量比/成交额)
+  4. 指数行情: 腾讯批量行情 (1次调用)
+  5. K线: 腾讯K线API (主) + Sina K线 (备)
+  6. 新闻: Sina lid=2510 股票新闻
+  7. 板块/资金: EM clist 尝试 (GitHub Actions可能不可用)
 """
 import json
 import time
@@ -271,7 +272,142 @@ def fetch_sina_quotes(sina_codes):
     return result
 
 # ============================================================
-# 东方财富 API — 板块/资金流向/换手率/K线
+# 腾讯财经 API — 批量获取个股/指数行情 (含换手率/量比/成交额)
+# ============================================================
+TENCENT_QUOTE_URL = "https://qt.gtimg.cn/q="
+
+def fetch_tencent_quotes(symbols):
+    """批量获取腾讯行情数据。symbols: ["sh601899", "sz000426", ...]
+    返回: {symbol: {name, code, price, open, prev_close, high, low,
+                    change, pct, volume_hand, amount(亿), turnover(%),
+                    volume_ratio, amplitude(%)}, ...}
+    """
+    if not symbols:
+        return {}
+
+    url = TENCENT_QUOTE_URL + ",".join(symbols)
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+        resp.encoding = "gbk"
+        raw = resp.text
+    except Exception as e:
+        print(f"  [WARN] 腾讯API请求失败: {e}")
+        return {}
+
+    result = {}
+    for line in raw.strip().split(";"):
+        line = line.strip()
+        if not line:
+            continue
+        m = re.match(r'v_(\w+)="(.+)"', line)
+        if not m:
+            continue
+        symbol = m.group(1)
+        parts = m.group(2).split("~")
+        if len(parts) < 50:
+            continue
+
+        try:
+            name = parts[1]
+            code = parts[2]
+            price = safe_float(parts[3])
+            prev_close = safe_float(parts[4])
+            open_p = safe_float(parts[5])
+            volume_hand = safe_float(parts[6])      # 成交量(A股:手, 港股:股)
+            change = safe_float(parts[31])           # 涨跌额
+            pct = safe_float(parts[32])              # 涨跌幅(%)
+            high = safe_float(parts[33])             # 最高
+            low = safe_float(parts[34])              # 最低
+            amplitude = safe_float(parts[43])        # 振幅(%)
+
+            # HK stocks have different field layout (78 fields vs 88 for A-share)
+            is_hk = symbol.startswith("hk")
+            if is_hk:
+                # 港股: parts[37] 是成交额(港元)，parts[38]/[49]无意义
+                amount_hkd = safe_float(parts[37])
+                amount_yi = amount_hkd / 1e8  # 港元 → 亿港元
+                turnover = 0.0
+                vol_ratio = 0.0
+            else:
+                # A股: parts[37] 是成交额(万元)
+                amount_wan = safe_float(parts[37])
+                amount_yi = amount_wan / 1e4  # 万元 → 亿元
+                turnover = safe_float(parts[38])         # 换手率(%)
+                vol_ratio = safe_float(parts[49])        # 量比
+
+            result[symbol] = {
+                "name": name, "code": code, "price": price,
+                "open": open_p, "prev_close": prev_close,
+                "high": high, "low": low,
+                "change": change, "pct": pct,
+                "volume_hand": volume_hand,
+                "amount": amount_yi,           # A股:亿元 / 港股:亿港元
+                "turnover": turnover,           # %
+                "volume_ratio": vol_ratio,
+                "amplitude": amplitude,         # %
+                "is_hk": is_hk,
+            }
+        except Exception as e:
+            print(f"  [WARN] 腾讯解析 {symbol} 失败: {e}")
+            continue
+
+    return result
+
+# ============================================================
+# 腾讯 K 线 API
+# ============================================================
+def get_kline_tencent(symbol, datalen=60):
+    """获取腾讯日K线数据。
+    返回: [{date, open, close, high, low, volume, amount, pct}, ...]
+    """
+    url = f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={symbol},day,,,{datalen},qfq"
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        kline_data = (data.get("data") or {}).get(symbol, {})
+        day_data = kline_data.get("day") or kline_data.get("qfqday") or []
+        if not day_data:
+            return []
+
+        result = []
+        prev_close = None
+        for k in day_data:
+            # [date, open, close, high, low, volume]
+            close = safe_float(k[2]) if len(k) > 2 else 0
+            open_p = safe_float(k[1]) if len(k) > 1 else 0
+            high = safe_float(k[3]) if len(k) > 3 else 0
+            low = safe_float(k[4]) if len(k) > 4 else 0
+            volume = safe_float(k[5]) if len(k) > 5 else 0
+            dt = k[0] if len(k) > 0 else ""
+
+            if prev_close and prev_close > 0 and close > 0:
+                pct = round((close - prev_close) / prev_close * 100, 2)
+            else:
+                pct = 0.0
+
+            result.append({
+                "date": dt,
+                "open": open_p,
+                "close": close,
+                "high": high,
+                "low": low,
+                "volume": volume,
+                "amount": volume * close,  # 估算
+                "amplitude": round((high - low) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0,
+                "pct": pct,
+                "change": round(close - prev_close, 4) if prev_close else 0,
+                "turnover": 0,
+            })
+            prev_close = close
+        return result
+    except Exception as e:
+        print(f"  [WARN] 腾讯K线请求异常 {symbol}: {e}")
+        return []
+
+# ============================================================
+# 东方财富 API — 板块/资金流向 (GitHub Actions可能不可用)
 # ============================================================
 EM_SESSION = requests.Session()
 EM_SESSION.headers.update({
@@ -479,14 +615,24 @@ def get_kline_em(secid, days=60):
         print(f"  [WARN] K线请求异常 {secid}: {e}")
         return []
 
-def get_kline(secid, sina_code, days=60):
-    """获取K线数据: 先试Sina，失败再试EM。"""
-    klines = get_kline_sina(sina_code, days)
+def get_kline(tencent_symbol, days=60, secid=None, sina_code=None):
+    """获取K线数据: 腾讯优先，Sina备用，EM最后兜底。
+    tencent_symbol: 腾讯格式代码 (sh000001, sz000426 等)
+    """
+    # 腾讯 K线
+    klines = get_kline_tencent(tencent_symbol, days)
     if len(klines) >= 20:
         return klines
-    # Sina 失败，尝试 EM
-    print(f"  [INFO] Sina K线不足({len(klines)}条)，尝试EM: {sina_code}")
-    klines = get_kline_em(secid, days)
+    # Sina 备用
+    sc = sina_code or tencent_symbol
+    print(f"  [INFO] 腾讯K线不足({len(klines)}条)，尝试Sina: {sc}")
+    klines = get_kline_sina(sc, days)
+    if len(klines) >= 20:
+        return klines
+    # EM 最后兜底
+    if secid:
+        print(f"  [INFO] Sina K线也不足({len(klines)}条)，尝试EM: {secid}")
+        klines = get_kline_em(secid, days)
     return klines
 
 # ============================================================
@@ -494,102 +640,116 @@ def get_kline(secid, sina_code, days=60):
 # ============================================================
 def get_market_overview():
     """市场总览：涨跌家数、成交额、涨停跌停。
-    用 ulist.np 获取上证+深证的涨跌家数和成交额 (1次API调用)。
-    用 push2ex 获取涨停/跌停池。
+    用 Sina 分页遍历全部A股统计涨跌家数和涨停跌停。
+    用腾讯获取上证+深证成交额。
     """
-    print("  [1/5] 获取市场总览...")
-    beijing_tz = timezone(timedelta(hours=8))
-    today_str = datetime.now(beijing_tz).strftime("%Y%m%d")
+    print("  [1/5] 获取市场总览 (Sina分页统计)...")
 
-    # 一次调用获取上证指数 + 深证成指的涨跌家数和成交额
-    # ulist.np 字段: f104=上涨家数, f105=下跌家数, f106=平盘家数, f6=成交额(元)
-    items = em_ulist_get("1.000001,0.399001", "f6,f12,f14,f104,f105,f106")
-
+    # === Sina 分页统计涨跌家数 ===
     up = down = flat = 0
-    total_amount = 0.0
+    limit_up = limit_down = 0
+    total_stocks = 0
 
-    for it in items:
-        code = it.get("f12", "")
-        up += safe_int(it.get("f104"))
-        down += safe_int(it.get("f105"))
-        flat += safe_int(it.get("f106"))
-        total_amount += safe_float(it.get("f6"))
-
-    total_stocks = up + down + flat
-
-    # 涨停/跌停: 用 push2ex ZTPool/DTPool
-    limit_up = em_get_zt_dt_pool("ZT", today_str)
-    limit_down = em_get_zt_dt_pool("DT", today_str)
-
-    # 如果 push2ex 失败，用 clist 估算 (取涨幅最大的100只和最小的100只)
-    if limit_up == 0 and limit_down == 0:
-        print("  [INFO] push2ex 无数据，用 clist 估算涨跌停...")
+    sina_api = "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData"
+    for page in range(1, 80):  # 最多80页
         try:
-            url = "https://push2.eastmoney.com/api/qt/clist/get"
-            # 涨停估算: 取涨幅最大的100只
-            params_up = {
-                "pn": "1", "pz": "100", "po": "1", "np": "1",
-                "fltt": "2", "invt": "2", "fid": "f3",
-                "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23",
-                "fields": "f3,f12",
+            params = {
+                "page": str(page), "num": "100",
+                "sort": "symbol", "asc": "1", "node": "hs_a",
             }
-            data = em_fetch_json(url, params_up)
-            items_up = (data.get("data") or {}).get("diff", [])
-            for it in items_up:
-                pct = safe_float(it.get("f3"))
-                if pct >= 9.8:
+            resp = SESSION.get(sina_api, params=params, timeout=15)
+            if resp.status_code != 200 or not resp.text.strip():
+                break
+            stocks = json.loads(resp.text)
+            if not stocks:
+                break
+
+            for s in stocks:
+                pct = safe_float(s.get("changepercent", 0))
+                code = s.get("code", "")
+                name = s.get("name", "") or s.get("symbol", "")
+
+                if pct > 0: up += 1
+                elif pct < 0: down += 1
+                else: flat += 1
+                total_stocks += 1
+
+                # 涨停跌停判断 (区分不同板块的涨跌停限制)
+                if "ST" in name or "*ST" in name:
+                    limit = 5.0
+                elif code.startswith("688") or code.startswith("30"):
+                    limit = 20.0
+                elif code.startswith("8") or code.startswith("4"):
+                    limit = 30.0
+                else:
+                    limit = 10.0
+
+                if pct >= limit - 0.3:
                     limit_up += 1
-
-            # 跌停估算: 取涨幅最小的100只
-            params_dn = dict(params_up)
-            params_dn["po"] = "0"
-            data = em_fetch_json(url, params_dn)
-            items_dn = (data.get("data") or {}).get("diff", [])
-            for it in items_dn:
-                pct = safe_float(it.get("f3"))
-                if pct <= -9.8:
+                if pct <= -limit + 0.3:
                     limit_down += 1
-        except Exception:
-            pass
 
-    total_amount_yi = round(total_amount / 1e8, 2)  # 元 → 亿
+            if page % 10 == 0:
+                print(f"    已扫描 {total_stocks} 只 (第{page}页)...")
+        except Exception as e:
+            print(f"    [WARN] Sina分页第{page}页失败: {e}")
+            break
 
-    print(f"  [总览] 上涨{up} 下跌{down} 平盘{flat} 涨停{limit_up} 跌停{limit_down} 成交额{total_amount_yi:.0f}亿 (共{total_stocks}只)")
+    # === 腾讯获取两市成交额 ===
+    tq = fetch_tencent_quotes(["sh000001", "sz399001"])
+    total_amount = tq.get("sh000001", {}).get("amount", 0) + tq.get("sz399001", {}).get("amount", 0)
+
+    # 如果腾讯也失败，用Sina指数成交额
+    if total_amount == 0:
+        sq = fetch_sina_quotes(["s_sh000001", "s_sz399001"])
+        total_amount = sq.get("s_sh000001", {}).get("amount", 0) + sq.get("s_sz399001", {}).get("amount", 0)
+
+    print(f"  [总览] 上涨{up} 下跌{down} 平盘{flat} 涨停{limit_up} 跌停{limit_down} 成交额{total_amount:.0f}亿 (共{total_stocks}只)")
 
     return {
         "up": up, "down": down, "flat": flat,
         "limit_up": limit_up, "limit_down": limit_down,
-        "total_amount": total_amount_yi,
+        "total_amount": round(total_amount, 2),
         "total_stocks": total_stocks,
     }
 
 def get_index_data():
-    """指数行情 — ulist.np 批量获取 (1次API调用替代7次)。"""
-    print("  [2/5] 获取指数行情...")
-    # Sina 获取价格/涨跌幅
-    sina_codes = [idx["sina"] for idx in INDICES]
-    quotes = fetch_sina_quotes(sina_codes)
+    """指数行情 — 腾讯批量获取 (1次API调用)。"""
+    print("  [2/5] 获取指数行情 (腾讯批量)...")
+    # 腾讯用 sh/sz 前缀，去掉 sina 的 s_ 前缀
+    tencent_symbols = [idx["sina"].replace("s_", "") for idx in INDICES]
+    tq = fetch_tencent_quotes(tencent_symbols)
 
-    # ulist.np 批量获取成交额 (clist字段: f6=成交额)
-    secids = ",".join([idx["secid"] for idx in INDICES])
-    em_items = em_ulist_get(secids, "f6,f12")
-    em_amounts = {}
-    for it in em_items:
-        code = it.get("f12", "")
-        em_amounts[code] = safe_float(it.get("f6", 0)) / 1e8  # 元 → 亿
+    # 如果腾讯全部失败，用Sina兜底
+    if not tq:
+        print("  [WARN] 腾讯行情全部失败，尝试Sina...")
+        sina_codes = [idx["sina"] for idx in INDICES]
+        sq = fetch_sina_quotes(sina_codes)
+    else:
+        sq = {}
 
     result = []
     for idx in INDICES:
-        q = quotes.get(idx["sina"], {})
+        sym = idx["sina"].replace("s_", "")
+        q = tq.get(sym, {})
+        s = sq.get(idx["sina"], {})
+
+        price = q.get("price", 0) or s.get("price", 0)
+        pct = q.get("pct", 0) or s.get("pct", 0)
+        change = q.get("change", 0) or s.get("change", 0)
+        amount = q.get("amount", 0) or s.get("amount", 0)
+        volume = q.get("volume_hand", 0) or s.get("volume", 0)
+
         result.append({
             "name": idx["name"],
             "code": idx["code"],
             "secid": idx["secid"],
-            "price": q.get("price", 0),
-            "pct": q.get("pct", 0),
-            "change": q.get("change", 0),
-            "volume": q.get("volume", 0),
-            "amount": em_amounts.get(idx["code"], q.get("amount", 0)),
+            "sina": idx["sina"],
+            "price": price,
+            "pct": pct,
+            "change": change,
+            "volume": volume,
+            "amount": amount,
         })
     return result
 
@@ -673,32 +833,36 @@ def get_industry_fund_flow():
     return flows
 
 def get_watchlist_data():
-    """自选股行情 — Sina 获取价格 + ulist.np 批量获取换手率/量比/成交额。
-    只需2次API调用(Sina批量+EM批量)，替代之前12次调用。
+    """自选股行情 — 腾讯批量获取 (1次API调用获取全部含换手率/量比/成交额)。
+    腾讯API支持A股和港股，sina格式代码(sh601899/hk00883)直接复用。
     """
-    print("    获取自选股行情...")
-    all_sina = [s["sina"] for s in WATCHLIST]
-    quotes = fetch_sina_quotes(all_sina)
+    print("    获取自选股行情 (腾讯批量)...")
+    # 腾讯和Sina共用相同的代码格式 (sh601899, sz000426, hk00883)
+    all_symbols = [s["sina"] for s in WATCHLIST]
+    tq = fetch_tencent_quotes(all_symbols)
 
-    # ulist.np 批量获取A股的换手率/量比/成交额/振幅
-    # clist字段: f6=成交额(元), f7=振幅, f8=换手率(%), f10=量比, f12=代码, f14=名称
-    a_secids = ",".join([s["secid"] for s in WATCHLIST if s["market"] == "A"])
-    em_data = {}
-    if a_secids:
-        em_items = em_ulist_get(a_secids, "f2,f3,f6,f7,f8,f10,f12,f14")
-        for it in em_items:
-            code = it.get("f12", "")
-            em_data[code] = {
-                "turnover": safe_float(it.get("f8", 0)),
-                "volume_ratio": safe_float(it.get("f10", 0)),
-                "amplitude": safe_float(it.get("f7", 0)),
-                "amount_em": safe_float(it.get("f6", 0)) / 1e8,  # 元 → 亿
-            }
+    # Sina兜底（如果腾讯失败）
+    if not tq:
+        print("  [WARN] 腾讯行情失败，尝试Sina...")
+        sq = fetch_sina_quotes(all_symbols)
+    else:
+        sq = {}
 
     result = []
     for s in WATCHLIST:
-        q = quotes.get(s["sina"], {})
-        em = em_data.get(s["code"], {})
+        q = tq.get(s["sina"], {})
+        sin = sq.get(s["sina"], {})
+
+        price = q.get("price", 0) or sin.get("price", 0)
+        pct = q.get("pct", 0) or sin.get("pct", 0)
+        change = q.get("change", 0) or sin.get("change", 0)
+        high = q.get("high", 0) or sin.get("high", 0)
+        low = q.get("low", 0) or sin.get("low", 0)
+        volume = q.get("volume_hand", 0) or sin.get("volume_hand", 0)
+        amount = q.get("amount", 0) or sin.get("amount", 0)
+        turnover = q.get("turnover", 0)
+        vol_ratio = q.get("volume_ratio", 0)
+        amplitude = q.get("amplitude", 0)
 
         result.append({
             "name": s["name"],
@@ -706,16 +870,16 @@ def get_watchlist_data():
             "market": s["market"],
             "secid": s["secid"],
             "sina": s["sina"],
-            "price": q.get("price", 0),
-            "pct": q.get("pct", 0),
-            "change": q.get("change", 0),
-            "high": q.get("high", 0),
-            "low": q.get("low", 0),
-            "volume": q.get("volume_hand", 0),
-            "amount": em.get("amount_em", q.get("amount", 0)),
-            "turnover": em.get("turnover", 0),
-            "volume_ratio": em.get("volume_ratio", 0),
-            "amplitude": em.get("amplitude", 0),
+            "price": price,
+            "pct": pct,
+            "change": change,
+            "high": high,
+            "low": low,
+            "volume": volume,
+            "amount": amount,
+            "turnover": turnover,
+            "volume_ratio": vol_ratio,
+            "amplitude": amplitude,
         })
 
     return result
@@ -915,7 +1079,7 @@ def analyze_technicals(kline_data):
 
 def fetch_all_data():
     print("=" * 50)
-    print("开始数据采集 v6 (Sina K线 + ulist.np + 技术分析)...")
+    print("开始数据采集 v7 (纯腾讯+Sina架构, 不依赖东方财富)...")
     print("=" * 50)
 
     overview = get_market_overview()
@@ -926,15 +1090,20 @@ def fetch_all_data():
     watchlist = get_watchlist_data()
     news = get_market_news()
 
-    # === 技术分析: 指数 (用 Sina K线) ===
+    if not industries:
+        print("  [WARN] 行业板块数据为空 (EM API可能被封锁)")
+    if not concepts:
+        print("  [WARN] 概念板块数据为空 (EM API可能被封锁)")
+    if not fund_flows:
+        print("  [WARN] 资金流向数据为空 (EM API可能被封锁)")
+
+    # === 技术分析: 指数 (用腾讯K线) ===
     print("\n--- 技术分析: 指数 ---")
     indices_tech = {}
     indices_kline = {}
     for idx in INDICES:
-        secid = idx["secid"]
-        # Sina K线用不带 s_ 前缀的代码
-        sina_code = idx["sina"].replace("s_", "")
-        klines = get_kline(secid, sina_code, days=60)
+        tencent_sym = idx["sina"].replace("s_", "")
+        klines = get_kline(tencent_sym, days=60, secid=idx["secid"], sina_code=tencent_sym)
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
             indices_tech[idx["code"]] = tech
@@ -943,14 +1112,14 @@ def fetch_all_data():
         else:
             print(f"  {idx['name']}: K线数据不足 ({len(klines)}条)")
 
-    # === 技术分析: 自选股 (用 Sina K线) ===
+    # === 技术分析: 自选股 (用腾讯K线) ===
     print("\n--- 技术分析: 自选股 ---")
     watchlist_tech = {}
     watchlist_kline = {}
     for s in WATCHLIST:
         if s["market"] == "HK":
-            continue  # Sina K线不支持港股
-        klines = get_kline(s["secid"], s["sina"], days=60)
+            continue  # 港股K线API不同，暂跳过
+        klines = get_kline(s["sina"], days=60, secid=s["secid"], sina_code=s["sina"])
         if len(klines) >= 30:
             tech = analyze_technicals(klines)
             watchlist_tech[s["code"]] = tech
@@ -1210,7 +1379,7 @@ tr:hover td{{background:#fafbfc}}
 <div class="container">
 <div class="hero">
   <h1>A股收盘复盘报告</h1>
-  <div class="date">{display_date} | 数据来源：Sina财经 & 东方财富 | 含技术指标分析</div>
+  <div class="date">{display_date} | 数据来源：腾讯财经 & Sina财经 | 含技术指标分析</div>
   <div class="summary">
     <div class="summary-item">
       <div class="num up">{up_count}</div>
@@ -1251,40 +1420,64 @@ tr:hover td{{background:#fafbfc}}
     industry_names = [b["name"] for b in industries[:10]]
     industry_pcts = [b["pct"] for b in industries[:10]]
 
-    html += f'''  <div class="section" style="margin-bottom:0">
+    if industries:
+        html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">二、行业板块 Top 10</div>
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
   </div>
-  <div class="section" style="margin-bottom:0">
+'''
+    else:
+        html += '''  <div class="section" style="margin-bottom:0">
+    <div class="section-title">二、行业板块 Top 10</div>
+    <p style="color:#999;padding:40px 0;text-align:center">板块数据暂不可用 (东方财富API在云端受限)</p>
+  </div>
+'''
+    if fund_flows:
+        html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">三、行业资金流向</div>
     <div class="chart-box" id="chart-fundflow" style="height:350px"></div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入 TOP/BOTTOM 5（亿元）</div>
   </div>
-</div>
+'''
+    else:
+        html += '''  <div class="section" style="margin-bottom:0">
+    <div class="section-title">三、行业资金流向</div>
+    <p style="color:#999;padding:40px 0;text-align:center">资金流向数据暂不可用 (东方财富API在云端受限)</p>
+  </div>
+'''
+
+    html += '''</div>
 
 <div class="section">
   <div class="section-title">四、概念板块热力图</div>
-  <div class="board-grid">
+'''
+    if concepts:
+        html += '''  <div class="board-grid">
     <div class="board-col">
       <h4>涨幅 Top 10</h4>
 '''
-    for b in concepts[:10]:
-        cls = "up" if b["pct"] > 0 else "down"
-        html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+        for b in concepts[:10]:
+            cls = "up" if b["pct"] > 0 else "down"
+            html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
 
-    html += '''    </div>
+        html += '''    </div>
     <div class="board-col">
       <h4>表现最弱 Top 10</h4>
 '''
-    weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
-    for b in weakest:
-        cls = "up" if b["pct"] > 0 else "down"
-        html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+        weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
+        for b in weakest:
+            cls = "up" if b["pct"] > 0 else "down"
+            html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
 
-    html += '''    </div></div></div>
+        html += '''    </div></div></div>
+'''
+    else:
+        html += '''  <p style="color:#999;padding:40px 0;text-align:center">概念板块数据暂不可用 (东方财富API在云端受限)</p>
+</div>
+'''
 
-<div class="section">
+    html += '''<div class="section">
   <div class="section-title">五、自选股表现</div>
   <table>
     <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th></tr></thead>
@@ -1372,7 +1565,9 @@ tr:hover td{{background:#fafbfc}}
 <script>
 // 行业板块图表
 (function() {{
-  var chart = echarts.init(document.getElementById('chart-industry'));
+  var dom = document.getElementById('chart-industry');
+  if (!dom) return;
+  var chart = echarts.init(dom);
   chart.setOption({{
     tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'shadow' }} }},
     grid: {{ left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true }},
@@ -1388,7 +1583,9 @@ tr:hover td{{background:#fafbfc}}
 
 // 资金流向图表
 (function() {{
-  var chart = echarts.init(document.getElementById('chart-fundflow'));
+  var dom = document.getElementById('chart-fundflow');
+  if (!dom) return;
+  var chart = echarts.init(dom);
   var flowData = {json.dumps([{"name": f["name"], "value": round(f["main_net"], 2)} for f in (fund_flows[:5] + fund_flows[-5:])])};
   var names = flowData.map(function(d) {{ return d.name; }});
   var values = flowData.map(function(d) {{ return d.value; }});
@@ -1444,7 +1641,7 @@ def build_summary_md(all_data):
     weekdays = ["一", "二", "三", "四", "五", "六", "日"]
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
-    md = f"### A股收盘复盘 v6\n**{display_date}**\n\n---\n\n"
+    md = f"### A股收盘复盘 v7\n**{display_date}**\n\n---\n\n"
     md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿\n\n"
 
     md += "**主要指数：**\n"
