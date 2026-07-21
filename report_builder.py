@@ -41,6 +41,27 @@ WATCHLIST_HK = [
 GITHUB_PAGES_BASE = "https://kinofoto8.github.io/stock-cloud-bot"
 
 # ============================================================
+# 类型安全转换工具
+# ============================================================
+def safe_float(val, default=0.0):
+    """安全转换为 float，处理 None/空字符串/数字字符串。"""
+    if val is None:
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+def safe_int(val, default=0):
+    """安全转换为 int。"""
+    if val is None:
+        return default
+    try:
+        return int(float(val))
+    except (ValueError, TypeError):
+        return default
+
+# ============================================================
 # HTTP 请求工具
 # ============================================================
 SESSION = requests.Session()
@@ -89,8 +110,8 @@ def get_market_overview():
     
     up = 0; down = 0; flat = 0; limit_up = 0; limit_down = 0; total_vol = 0
     for it in items:
-        pct = it.get("f3") or 0
-        vol = it.get("f20") or 0
+        pct = safe_float(it.get("f3"))
+        vol = safe_float(it.get("f20"))
         total_vol += vol
         if pct > 0:
             up += 1
@@ -98,9 +119,9 @@ def get_market_overview():
             down += 1
         else:
             flat += 1
-        if pct and pct >= 9.8:
+        if pct >= 9.8:
             limit_up += 1
-        if pct and pct <= -9.8:
+        if pct <= -9.8:
             limit_down += 1
     
     return {
@@ -128,13 +149,13 @@ def get_index_data():
         result.append({
             "name": ind["name"],
             "code": ind["code"],
-            "price": d.get("f43", 0) / 100 if d.get("f43") else 0,
-            "change": d.get("f169", 0) / 100 if d.get("f169") else 0,
-            "pct": d.get("f170", 0) / 100 if d.get("f170") else 0,
-            "high": d.get("f44", 0) / 100 if d.get("f44") else 0,
-            "low": d.get("f45", 0) / 100 if d.get("f45") else 0,
-            "volume": d.get("f48", 0) if d.get("f48") else 0,
-            "amount": d.get("f57", 0) if d.get("f57") else 0,
+            "price": safe_float(d.get("f43")) / 100,
+            "change": safe_float(d.get("f169")) / 100,
+            "pct": safe_float(d.get("f170")) / 100,
+            "high": safe_float(d.get("f44")) / 100,
+            "low": safe_float(d.get("f45")) / 100,
+            "volume": safe_float(d.get("f48")),
+            "amount": safe_float(d.get("f57")),
         })
     return result
 
@@ -158,11 +179,11 @@ def get_industry_boards():
         boards.append({
             "name": it.get("f14", ""),
             "code": it.get("f12", ""),
-            "pct": it.get("f3", 0),
-            "price": it.get("f2", 0),
-            "rise_count": it.get("f104", 0),
-            "fall_count": it.get("f105", 0),
-            "flat_count": it.get("f106", 0),
+            "pct": safe_float(it.get("f3")),
+            "price": safe_float(it.get("f2")),
+            "rise_count": safe_int(it.get("f104")),
+            "fall_count": safe_int(it.get("f105")),
+            "flat_count": safe_int(it.get("f106")),
         })
     return boards
 
@@ -186,8 +207,8 @@ def get_concept_boards():
         boards.append({
             "name": it.get("f14", ""),
             "code": it.get("f12", ""),
-            "pct": it.get("f3", 0),
-            "price": it.get("f2", 0),
+            "pct": safe_float(it.get("f3")),
+            "price": safe_float(it.get("f2")),
         })
     boards.sort(key=lambda x: x["pct"], reverse=True)
     return boards
@@ -209,16 +230,16 @@ def get_industry_fund_flow():
     items = (data.get("data") or {}).get("diff", [])
     flows = []
     for it in items:
-        main_net = it.get("f62", 0)  # 主力净流入
+        main_net = safe_float(it.get("f62"))
         flows.append({
             "name": it.get("f14", ""),
-            "pct": it.get("f3", 0),
-            "main_net": main_net / 1e8 if main_net else 0,  # 亿
-            "super_large_net": (it.get("f66", 0) or 0) / 1e8,
-            "large_net": (it.get("f72", 0) or 0) / 1e8,
-            "medium_net": (it.get("f78", 0) or 0) / 1e8,
-            "small_net": (it.get("f84", 0) or 0) / 1e8,
-            "main_pct": it.get("f184", 0),
+            "pct": safe_float(it.get("f3")),
+            "main_net": main_net / 1e8,
+            "super_large_net": safe_float(it.get("f66")) / 1e8,
+            "large_net": safe_float(it.get("f72")) / 1e8,
+            "medium_net": safe_float(it.get("f78")) / 1e8,
+            "small_net": safe_float(it.get("f84")) / 1e8,
+            "main_pct": safe_float(it.get("f184")),
         })
     flows.sort(key=lambda x: x["main_net"], reverse=True)
     return flows
@@ -242,16 +263,16 @@ def get_watchlist_data():
             "name": s["name"],
             "code": s["code"],
             "market": "A",
-            "price": d.get("f43", 0) / 100 if d.get("f43") else 0,
-            "pct": d.get("f170", 0) / 100 if d.get("f170") else 0,
-            "change": d.get("f169", 0) / 100 if d.get("f169") else 0,
-            "high": d.get("f44", 0) / 100 if d.get("f44") else 0,
-            "low": d.get("f45", 0) / 100 if d.get("f45") else 0,
-            "volume": d.get("f47", 0) if d.get("f47") else 0,
-            "amount": d.get("f48", 0) if d.get("f48") else 0,
-            "turnover": d.get("f168", 0) / 100 if d.get("f168") else 0,
-            "amplitude": d.get("f50", 0) / 100 if d.get("f50") else 0,
-            "volume_ratio": d.get("f51", 0) / 100 if d.get("f51") else 0,
+            "price": safe_float(d.get("f43")) / 100,
+            "pct": safe_float(d.get("f170")) / 100,
+            "change": safe_float(d.get("f169")) / 100,
+            "high": safe_float(d.get("f44")) / 100,
+            "low": safe_float(d.get("f45")) / 100,
+            "volume": safe_float(d.get("f47")),
+            "amount": safe_float(d.get("f48")),
+            "turnover": safe_float(d.get("f168")) / 100,
+            "amplitude": safe_float(d.get("f50")) / 100,
+            "volume_ratio": safe_float(d.get("f51")) / 100,
         })
     
     # 港股
@@ -267,16 +288,16 @@ def get_watchlist_data():
             "name": s["name"],
             "code": s["code"],
             "market": "HK",
-            "price": d.get("f43", 0) / 1000 if d.get("f43") else 0,  # HK price divisor
-            "pct": d.get("f170", 0) / 100 if d.get("f170") else 0,
-            "change": d.get("f169", 0) / 1000 if d.get("f169") else 0,
-            "high": d.get("f44", 0) / 1000 if d.get("f44") else 0,
-            "low": d.get("f45", 0) / 1000 if d.get("f45") else 0,
-            "volume": d.get("f47", 0) if d.get("f47") else 0,
-            "amount": d.get("f48", 0) if d.get("f48") else 0,
-            "turnover": d.get("f168", 0) / 100 if d.get("f168") else 0,
-            "amplitude": d.get("f50", 0) / 1000 if d.get("f50") else 0,
-            "volume_ratio": d.get("f51", 0) / 100 if d.get("f51") else 0,
+            "price": safe_float(d.get("f43")) / 1000,
+            "pct": safe_float(d.get("f170")) / 100,
+            "change": safe_float(d.get("f169")) / 1000,
+            "high": safe_float(d.get("f44")) / 1000,
+            "low": safe_float(d.get("f45")) / 1000,
+            "volume": safe_float(d.get("f47")),
+            "amount": safe_float(d.get("f48")),
+            "turnover": safe_float(d.get("f168")) / 100,
+            "amplitude": safe_float(d.get("f50")) / 1000,
+            "volume_ratio": safe_float(d.get("f51")) / 100,
         })
     return result
 
