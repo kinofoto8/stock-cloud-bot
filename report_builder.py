@@ -209,7 +209,7 @@ def fetch_sina_quotes(sina_codes):
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-        resp.encoding = "gb2312"
+        resp.encoding = resp.apparent_encoding or 'gbk'
         raw = resp.text
     except Exception as e:
         print(f"  [WARN] Sina API 请求失败: {e}")
@@ -484,6 +484,7 @@ def em_fetch_json(url, params):
         try:
             resp = EM_SESSION.get(url, params=p, timeout=15)
             resp.raise_for_status()
+            resp.encoding = 'utf-8'
             data = resp.json()
             if data.get("data") is not None:
                 return data
@@ -499,6 +500,7 @@ def em_fetch_raw(url, params):
     try:
         resp = EM_SESSION.get(url, params=params, timeout=15)
         resp.raise_for_status()
+        resp.encoding = 'utf-8'
         return resp.text
     except Exception as e:
         print(f"  [WARN] EM raw 请求失败: {e}")
@@ -522,6 +524,7 @@ def em_ulist_get(secids, fields):
         try:
             resp = EM_SESSION.get(url, params=p, timeout=15)
             resp.raise_for_status()
+            resp.encoding = 'utf-8'
             data = resp.json()
             if data.get("data") is not None:
                 return (data.get("data") or {}).get("diff", [])
@@ -550,6 +553,7 @@ def em_get_zt_dt_pool(pool_type, date_str):
         try:
             resp = EM_SESSION.get(url, params=p, timeout=15)
             resp.raise_for_status()
+            resp.encoding = 'utf-8'
             data = resp.json()
             if data.get("data") is not None:
                 pool = (data.get("data") or {}).get("pool", [])
@@ -816,7 +820,7 @@ def _parse_sina_boards(url, var_name):
     返回 [{"name","code","pct","price","rise_count","fall_count","flat_count"}, ...]
     """
     resp = SESSION.get(url, timeout=15)
-    resp.encoding = "utf-8"
+    resp.encoding = resp.apparent_encoding or 'gbk'
     text = resp.text
     start = text.find("{")
     end = text.rfind("}") + 1
@@ -2032,7 +2036,6 @@ def build_html_report(all_data, date_str):
     concepts = all_data.get("concepts", [])
     fund_flows = all_data.get("fund_flows", [])
     watchlist = all_data.get("watchlist", [])
-    news = all_data.get("news", [])
     indices_tech = all_data.get("indices_tech", {})
     watchlist_tech = all_data.get("watchlist_tech", {})
     indices_kline = all_data.get("indices_kline", {})
@@ -2097,10 +2100,6 @@ tr:hover td{{background:#fafbfc}}
 .board-item{{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}}
 .board-item .name{{flex:1}}
 .board-item .pct{{font-weight:600}}
-.news-list{{list-style:none;padding:0}}
-.news-list li{{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}}
-.news-list li .time{{color:#999;font-size:11px;margin-right:8px}}
-.news-list li .source-tag{{display:inline-block;background:#f0f0f0;color:#888;padding:1px 6px;border-radius:3px;font-size:10px;margin-left:6px}}
 .tech-summary{{background:#f8f9fa;border-left:3px solid #c0392b;padding:12px 16px;margin:12px 0;border-radius:6px;font-size:13px;line-height:1.8;color:#444}}
 .stock-chart-block{{margin-bottom:24px}}
 .stock-chart-title{{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:8px;border-left:3px solid #c0392b}}
@@ -2202,16 +2201,19 @@ tr:hover td{{background:#fafbfc}}
     </div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
   </div>
+</div>
 '''
     else:
-        html += '''  <div class="section" style="margin-bottom:0">
-    <div class="section-title">三、行业资金流向</div>
-    <p style="color:#999;padding:40px 0;text-align:center">资金流向数据暂不可用 (东方财富API在云端受限)</p>
-  </div>
+        # 资金流向数据不可用，关闭 chart-row，独立显示为全宽 section
+        html += '''</div>
+
+<div class="section">
+  <div class="section-title">三、行业资金流向</div>
+  <p style="color:#999;padding:40px 0;text-align:center">东方财富API在GitHub Actions环境受限，暂无实时资金流向数据。<br>建议通过本地环境运行获取完整数据。</p>
+</div>
 '''
 
-    html += '''</div>
-
+    html += '''
 <div class="section">
   <div class="section-title">四、概念板块热力图</div>
 '''
@@ -2326,23 +2328,7 @@ tr:hover td{{background:#fafbfc}}
     # === 自选股技术指标表格 ===
     html += build_tech_table_section("九、自选股技术指标扫描", watchlist, watchlist_tech)
 
-    # === 要闻 ===
-    html += '''<div class="section">
-  <div class="section-title">十、今日要闻</div>
-  <ul class="news-list">
-'''
-    for n in news:
-        time_str = n.get("time", "")
-        # 兼容多种时间格式: "2026-07-21 16:05:30" / "07-21 16:05" / "16:05"
-        if time_str and len(time_str) >= 16:
-            time_str = time_str[11:16]  # HH:MM
-        source_str = n.get("source", "")
-        html += f'    <li><span class="time">{time_str}</span>{n["title"]}<span class="source-tag">{source_str}</span></li>\n'
-    if not news:
-        html += '    <li style="color:#999">暂无重要新闻（API 限流，建议晚间刷新查看）</li>\n'
-
-    html += f'''  </ul></div>
-<div class="source">
+    html += f'''<div class="source">
   以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：{now.strftime("%Y-%m-%d %H:%M:%S")} | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
 </div></div>
 
@@ -2576,26 +2562,17 @@ def build_summary_md(all_data):
     md += "\n---\n\n"
 
     # ================================================================
-    # 四、今日要闻
+    # 四、中期板块展望
     # ================================================================
-    if news:
-        md += "**四、今日要闻**\n"
-        for i, n in enumerate(news[:5], 1):
-            md += f"{i}.  {n['title']}\n"
-        md += "\n---\n\n"
-
-    # ================================================================
-    # 五、中期板块展望
-    # ================================================================
-    md += "**五、中期板块展望**\n\n"
+    md += "**四、中期板块展望**\n\n"
     md += "基于近期走势、资金动向、政策面和基本面，分析中期（1-3个月）最看好的板块：\n\n"
     md += _mid_term_outlook(industries, fund_flows)
     md += "\n\n---\n\n"
 
     # ================================================================
-    # 六、明日关注
+    # 五、明日关注
     # ================================================================
-    md += "**六、明日关注**\n\n"
+    md += "**五、明日关注**\n\n"
     md += _tomorrow_watch(indices_kline, indices_tech, overview, news)
 
     report_url = get_report_url()
@@ -2609,6 +2586,10 @@ def build_summary_md(all_data):
 
 def _sanitize_dingtalk(text):
     """替换钉钉 markdown 不支持的 emoji 和特殊符号为纯文本。"""
+    # 第一步: 先清理变体选择器 (让后续 emoji 匹配不受干扰)
+    text = text.replace('\ufe0f', '')
+    text = text.replace('\ufe0e', '')
+
     replacements = {
         # 彩色圆点 emoji (钉钉不渲染)
         '\U0001f534': '[涨]',   # 🔴
@@ -2626,14 +2607,14 @@ def _sanitize_dingtalk(text):
         '\u2193': '降',          # ↓
         '\u2197': '+',           # ↗
         '\u2198': '-',           # ↘
-        # 警告符号 (含变体选择器)
-        '\u26a0\ufe0f': '',      # ⚠️
-        '\u26a0': '',            # ⚠ (不带变体选择器)
+        # 警告符号
+        '\u26a0': '',            # ⚠
         # 三角符号
         '\u25b2': '',            # ▲ → 删除
         '\u25bc': '',            # ▼ → 删除
         # 标点
         '\u00d7': 'x',           # ×
+        '\u2014': '--',          # — (em dash)
         '\u201c': '"',           # "
         '\u201d': '"',           # "
         '\u300c': '[',           # 「
