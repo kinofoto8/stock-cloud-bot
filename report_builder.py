@@ -1019,15 +1019,18 @@ def get_concept_boards():
         print(f"  [OK] EM概念板块: {len(all_boards)}个 → 过滤后 {len(filtered)}个 (排除{filtered_count}个技术形态/风格类)")
         return filtered
 
-    # EM 失败 → 腾讯看板
+    # EM 失败 → 腾讯看板 (也经过概念过滤)
     print("  [INFO] EM概念API不可用, 尝试腾讯看板...")
     tencent_boards = _parse_tencent_boards("concept")
     if tencent_boards:
         tencent_boards.sort(key=lambda x: x["pct"], reverse=True)
-        print(f"  [INFO] 腾讯概念板块: {len(tencent_boards)}个")
-        return tencent_boards
+        # 对腾讯回退数据也应用概念过滤
+        filtered_t = [b for b in tencent_boards if _is_valid_concept(b.get("name", ""))]
+        filtered_t_count = len(tencent_boards) - len(filtered_t)
+        print(f"  [INFO] 腾讯概念板块: {len(tencent_boards)}个 → 过滤后 {len(filtered_t)}个 (排除{filtered_t_count}个)")
+        return filtered_t
 
-    # 腾讯失败 → Sina
+    # 腾讯失败 → Sina (也经过概念过滤)
     print("  [INFO] 腾讯概念也失败, 切换Sina备用源...")
     try:
         boards = _parse_sina_boards(
@@ -1035,8 +1038,11 @@ def get_concept_boards():
             "S_Finance_bankuai_class"
         )
         if boards:
-            print(f"  [INFO] Sina概念板块: {len(boards)}个")
-        return boards
+            filtered_s = [b for b in boards if _is_valid_concept(b.get("name", ""))]
+            filtered_s_count = len(boards) - len(filtered_s)
+            print(f"  [INFO] Sina概念板块: {len(boards)}个 → 过滤后 {len(filtered_s)}个 (排除{filtered_s_count}个)")
+            return filtered_s
+        return []
     except Exception as e:
         print(f"  [WARN] Sina概念板块也失败: {e}")
         return []
