@@ -2601,4 +2601,44 @@ def build_summary_md(all_data):
     report_url = get_report_url()
     md += f"\n\n[查看完整复盘报告]({report_url})\n"
 
+    # 钉钉 markdown 不支持 emoji 和特殊 Unicode 符号，做清理
+    md = _sanitize_dingtalk(md)
+
     return md
+
+
+def _sanitize_dingtalk(text):
+    """替换钉钉 markdown 不支持的 emoji 和特殊符号为纯文本。"""
+    replacements = {
+        # 彩色圆点 emoji (钉钉不渲染)
+        '\U0001f534': '[涨]',   # 🔴
+        '\U0001f7e2': '[跌]',   # 🟢
+        '\U0001f7e0': '[注意]', # 🟠
+        '\U0001f7e1': '[信号]', # 🟡
+        '\U0001f535': '[超跌]', # 🔵
+        '\u26aa': '',            # ⚪ → 删除
+        # 其他 emoji
+        '\U0001f4ca': '',        # 📊
+        '\U0001f4cc': '',        # 📌
+        '\u2705': '',            # ✅
+        # 箭头符号
+        '\u2191': '升',          # ↑
+        '\u2193': '降',          # ↓
+        '\u2197': '+',           # ↗
+        '\u2198': '-',           # ↘
+        # 警告符号 (含变体选择器)
+        '\u26a0\ufe0f': '',      # ⚠️
+        '\u26a0': '',            # ⚠ (不带变体选择器)
+        # 三角符号
+        '\u25b2': '',            # ▲ → 删除
+        '\u25bc': '',            # ▼ → 删除
+        # 标点
+        '\u00d7': 'x',           # ×
+        '\u201c': '"',           # "
+        '\u201d': '"',           # "
+        '\u300c': '[',           # 「
+        '\u300d': ']',           # 」
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text

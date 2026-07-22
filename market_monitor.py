@@ -694,7 +694,41 @@ def build_dingtalk_md(alerts, normal, index_quotes):
     md += "\n---\n\n#### 📌 综合研判\n"
     md += _generate_comprehensive_analysis(alerts, normal, index_quotes)
 
+    # 钉钉 markdown 不支持 emoji 和特殊 Unicode 符号，做清理
+    md = _sanitize_dingtalk(md)
+
     return md
+
+
+def _sanitize_dingtalk(text):
+    """替换钉钉 markdown 不支持的 emoji 和特殊符号为纯文本。"""
+    replacements = {
+        '\U0001f534': '',        # 🔴
+        '\U0001f7e2': '',        # 🟢
+        '\U0001f7e0': '',        # 🟠
+        '\U0001f7e1': '',        # 🟡
+        '\U0001f535': '',        # 🔵
+        '\u26aa': '',            # ⚪
+        '\U0001f4ca': '',        # 📊
+        '\U0001f4cc': '',        # 📌
+        '\u2705': '',            # ✅
+        '\u26a0\ufe0f': '',      # ⚠️
+        '\u26a0': '',            # ⚠
+        '\u2191': '升',          # ↑
+        '\u2193': '降',          # ↓
+        '\u2197': '+',           # ↗
+        '\u2198': '-',           # ↘
+        '\u25b2': '',            # ▲
+        '\u25bc': '',            # ▼
+        '\u00d7': 'x',           # ×
+        '\u201c': '"',           # "
+        '\u201d': '"',           # "
+        '\u300c': '[',           # 「
+        '\u300d': ']',           # 」
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
 
 
 # 直接运行入口
