@@ -29,6 +29,8 @@ jobs:
         run: python market_review.py
         env:
           TZ: Asia/Shanghai
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
 
       - name: 部署报告到 Pages
         uses: peaceiris/actions-gh-pages@v4
