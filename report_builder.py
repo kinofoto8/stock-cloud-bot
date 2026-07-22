@@ -932,8 +932,15 @@ def get_industry_boards():
                 "fall_count": safe_int(it.get("f105")),
                 "flat_count": safe_int(it.get("f106")),
             })
-        print(f"  [OK] EM申万一级行业: {len(boards)}个")
-        return boards
+        # 检测地区板块污染: EM m:90+t:1 有时返回"青海板块""宁夏板块"等地区板块
+        regional_count = sum(1 for b in boards if "板块" in b["name"])
+        if regional_count > 3:
+            print(f"  [WARN] EM返回地区板块({regional_count}个含'板块'), 回退腾讯/Sina...")
+            bad_names = [b["name"] for b in boards if "板块" in b["name"]]
+            print(f"  [WARN] 地区板块示例: {bad_names[:5]}")
+        else:
+            print(f"  [OK] EM申万一级行业: {len(boards)}个")
+            return boards
 
     # EM 失败 → 腾讯看板 (申万二级, top 6)
     print("  [INFO] EM行业API不可用, 尝试腾讯看板...")
