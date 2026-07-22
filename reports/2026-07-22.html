@@ -37,10 +37,6 @@ tr:hover td{background:#fafbfc}
 .board-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
 .board-item .name{flex:1}
 .board-item .pct{font-weight:600}
-.news-list{list-style:none;padding:0}
-.news-list li{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
-.news-list li .time{color:#999;font-size:11px;margin-right:8px}
-.news-list li .source-tag{display:inline-block;background:#f0f0f0;color:#888;padding:1px 6px;border-radius:3px;font-size:10px;margin-left:6px}
 .tech-summary{background:#f8f9fa;border-left:3px solid #c0392b;padding:12px 16px;margin:12px 0;border-radius:6px;font-size:13px;line-height:1.8;color:#444}
 .stock-chart-block{margin-bottom:24px}
 .stock-chart-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:8px;border-left:3px solid #c0392b}
@@ -91,10 +87,11 @@ tr:hover td{background:#fafbfc}
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
   </div>
-  <div class="section" style="margin-bottom:0">
-    <div class="section-title">三、行业资金流向</div>
-    <p style="color:#999;padding:40px 0;text-align:center">资金流向数据暂不可用 (东方财富API在云端受限)</p>
-  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">三、行业资金流向</div>
+  <p style="color:#999;padding:40px 0;text-align:center">东方财富API在GitHub Actions环境受限，暂无实时资金流向数据。<br>建议通过本地环境运行获取完整数据。</p>
 </div>
 
 <div class="section">
@@ -102,29 +99,29 @@ tr:hover td{background:#fafbfc}
   <div class="board-grid">
     <div class="board-col">
       <h4>涨幅 Top 10</h4>
-      <div class="board-item"><span class="name">�ƽ����</span><span class="pct up">+0.65%</span></div>
-      <div class="board-item"><span class="name">�۰���</span><span class="pct up">+0.47%</span></div>
-      <div class="board-item"><span class="name">������</span><span class="pct up">+0.41%</span></div>
-      <div class="board-item"><span class="name">��Ϊ��˼</span><span class="pct up">+0.36%</span></div>
-      <div class="board-item"><span class="name">�׾Ƹ���</span><span class="pct up">+0.30%</span></div>
-      <div class="board-item"><span class="name">����ҩ</span><span class="pct up">+0.24%</span></div>
-      <div class="board-item"><span class="name">�ֲ�����</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">�����ز�</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">﮿�</span><span class="pct up">+0.21%</span></div>
-      <div class="board-item"><span class="name">ϡȱ��Դ</span><span class="pct up">+0.20%</span></div>
+      <div class="board-item"><span class="name">黄金概念</span><span class="pct up">+0.65%</span></div>
+      <div class="board-item"><span class="name">聚氨酯</span><span class="pct up">+0.47%</span></div>
+      <div class="board-item"><span class="name">超大盘</span><span class="pct up">+0.41%</span></div>
+      <div class="board-item"><span class="name">华为海思</span><span class="pct up">+0.36%</span></div>
+      <div class="board-item"><span class="name">白酒概念</span><span class="pct up">+0.30%</span></div>
+      <div class="board-item"><span class="name">仿制药</span><span class="pct up">+0.24%</span></div>
+      <div class="board-item"><span class="name">分拆上市</span><span class="pct up">+0.22%</span></div>
+      <div class="board-item"><span class="name">基金重仓</span><span class="pct up">+0.22%</span></div>
+      <div class="board-item"><span class="name">锂矿</span><span class="pct up">+0.21%</span></div>
+      <div class="board-item"><span class="name">稀缺资源</span><span class="pct up">+0.20%</span></div>
     </div>
     <div class="board-col">
       <h4>表现最弱 Top 10</h4>
-      <div class="board-item"><span class="name">�ƴ�50</span><span class="pct down">-1.34%</span></div>
-      <div class="board-item"><span class="name">HIT���</span><span class="pct down">-1.29%</span></div>
-      <div class="board-item"><span class="name">ר������</span><span class="pct down">-1.16%</span></div>
-      <div class="board-item"><span class="name">�Ƶ��</span><span class="pct down">-1.12%</span></div>
-      <div class="board-item"><span class="name">��Ϊ����</span><span class="pct down">-0.94%</span></div>
-      <div class="board-item"><span class="name">���ܴ���</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">BC���</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">��̬���</span><span class="pct down">-0.89%</span></div>
-      <div class="board-item"><span class="name">�ƺ�����</span><span class="pct down">-0.84%</span></div>
-      <div class="board-item"><span class="name">���߶���</span><span class="pct down">-0.82%</span></div>
+      <div class="board-item"><span class="name">科创50</span><span class="pct down">-1.34%</span></div>
+      <div class="board-item"><span class="name">HIT电池</span><span class="pct down">-1.29%</span></div>
+      <div class="board-item"><span class="name">专精特新</span><span class="pct down">-1.16%</span></div>
+      <div class="board-item"><span class="name">钠电池</span><span class="pct down">-1.12%</span></div>
+      <div class="board-item"><span class="name">华为概念</span><span class="pct down">-0.94%</span></div>
+      <div class="board-item"><span class="name">智能穿戴</span><span class="pct down">-0.92%</span></div>
+      <div class="board-item"><span class="name">BC电池</span><span class="pct down">-0.92%</span></div>
+      <div class="board-item"><span class="name">固态电池</span><span class="pct down">-0.89%</span></div>
+      <div class="board-item"><span class="name">黄河三角</span><span class="pct down">-0.84%</span></div>
+      <div class="board-item"><span class="name">无线耳机</span><span class="pct down">-0.82%</span></div>
     </div></div></div>
 <div class="section">
   <div class="section-title">五、自选股表现</div>
@@ -1225,24 +1222,8 @@ tr:hover td{background:#fafbfc}
         <td class="num up">+18.7%</td>
       </tr>
     </tbody></table></div>
-<div class="section">
-  <div class="section-title">十、今日要闻</div>
-  <ul class="news-list">
-    <li><span class="time">07-22 18:04</span>中国人民银行：2026年6月，同业拆借日均成交3292.2亿元，同比减少21.9%；银行间市场债券回购日均成交6.2万亿元，同比减少21.0%<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 18:02</span>两部门联合印发《口岸现代化“十五五”规划》<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 18:00</span>海关总署署长孙梅君：我国实施零关税的国家已达63个<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 18:00</span>北方股份：特沃上海减持期满，已协议转让3%<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:59</span>Momenta已切入无人配送赛道Robovan车型已开展场景运营<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:58</span>上海：推进海洋传感器、海洋智能机器人、潜水器等关键装备研发应用<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:58</span>习近平对基础教育工作作出重要指示<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:57</span>上海：到2030年海洋生产总值年均增长率不低于全市经济增长目标，海洋产业增加值不低于3500亿元<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:52</span>WTI原油大涨5%<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:51</span>工信部：要坚持发展向智 大力发展新一代智能制造<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:46</span>美国国务卿鲁比奥表示，非常希望与伊朗达成外交解决方案<span class="source-tag">同花顺</span></li>
-    <li><span class="time">07-22 17:45</span>展鹏科技：多名股东已减持股份<span class="source-tag">同花顺</span></li>
-  </ul></div>
 <div class="source">
-  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:06:59 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:27:45 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
 </div></div>
 
 <script>
@@ -1255,7 +1236,7 @@ tr:hover td{background:#fafbfc}
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
-    yAxis: { type: 'category', data: ["\ufffd\u0574\ufffd\ufffd\ufffd\u04b5", "\ufffd\ufffd\u05bd\ufffd\ufffd\u04b5", "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u04b5", "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd", "\u0169\u04a9\ufffd\ufffd\ufffd\ufffd", "\ufffd\ufffd\u026b\ufffd\ufffd\ufffd\ufffd", "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u04b5", "\u02af\ufffd\ufffd\ufffd\ufffd\u04b5", "\u00fa\u033f\ufffd\ufffd\u04b5", "\ufffd\ufffd\ufffd\ufffd\ufffd\u04b5"], axisLabel: { fontSize: 12 } },
+    yAxis: { type: 'category', data: ["\u9676\u74f7\u884c\u4e1a", "\u9020\u7eb8\u884c\u4e1a", "\u91d1\u878d\u884c\u4e1a", "\u5f00\u53d1\u533a", "\u519c\u836f\u5316\u80a5", "\u6709\u8272\u91d1\u5c5e", "\u7535\u529b\u884c\u4e1a", "\u77f3\u6cb9\u884c\u4e1a", "\u7164\u70ad\u884c\u4e1a", "\u917f\u9152\u884c\u4e1a"], axisLabel: { fontSize: 12 } },
     series: [{ type: 'bar', data: [0.04, 0.07, 0.07, 0.09, 0.14, 0.16, 0.17, 0.25, 0.26, 0.3],
       itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
       label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
