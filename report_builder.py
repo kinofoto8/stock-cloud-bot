@@ -846,8 +846,67 @@ def _parse_sina_boards(url, var_name):
     boards.sort(key=lambda x: x["pct"], reverse=True)
     return boards
 
+# ============================================================
+# 腾讯看板数据 (三级回退：EM → 腾讯 → Sina)
+# ============================================================
+_TENCENT_BOARD_CACHE = None
+
+def _get_tencent_board_data():
+    """获取腾讯看板数据 (带缓存, 一次请求获取行业/概念/资金流向)。"""
+    global _TENCENT_BOARD_CACHE
+    if _TENCENT_BOARD_CACHE is not None:
+        return _TENCENT_BOARD_CACHE
+
+    url = "https://web.ifzq.gtimg.cn/appstock/app/board/index?board=all"
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        _TENCENT_BOARD_CACHE = data.get("data", {})
+        return _TENCENT_BOARD_CACHE
+    except Exception as e:
+        print(f"  [WARN] 腾讯看板API失败: {e}")
+        _TENCENT_BOARD_CACHE = {}
+        return _TENCENT_BOARD_CACHE
+
+def _parse_tencent_boards(rank_key="plate"):
+    """从腾讯看板 rank 数据解析行业/概念板块。
+    rank_key: "plate" (行业) 或 "concept" (概念)
+    返回 [{"name","code","pct","price","rise_count","fall_count"}, ...]
+    腾讯只返回 top 6, 按涨跌幅排序。
+    """
+    data = _get_tencent_board_data()
+    rank = data.get("rank", {})
+    items = rank.get(rank_key, [])
+
+    boards = []
+    for it in items:
+        pct_val = it.get("bd_zdf", "0")
+        try:
+            pct_val = float(pct_val)
+        except (ValueError, TypeError):
+            pct_val = 0
+
+        price_val = it.get("bd_zxj", "0")
+        try:
+            price_val = float(price_val)
+        except (ValueError, TypeError):
+            price_val = 0
+
+        boards.append({
+            "name": it.get("bd_name", ""),
+            "code": it.get("bd_code", ""),
+            "pct": pct_val,
+            "price": price_val,
+            "rise_count": 0,
+            "fall_count": 0,
+            "flat_count": 0,
+        })
+    return boards
+
+
 def get_industry_boards():
-    """行业板块 — EM优先, Sina备用 (确保本地/云端都有数据)。"""
+    """行业板块 — EM(申万一级) > 腾讯(申万二级top6) > Sina(不推荐)"""
     print("  [3/5] 获取行业板块...")
     # 尝试 EM clist (申万一级行业, GitHub Actions可用)
     url = "https://push2.eastmoney.com/api/qt/clist/get"
@@ -872,24 +931,32 @@ def get_industry_boards():
                 "fall_count": safe_int(it.get("f105")),
                 "flat_count": safe_int(it.get("f106")),
             })
+        print(f"  [OK] EM行业板块: {len(boards)}个")
         return boards
 
-    # EM 失败 → Sina 备用 (本地代理/EM封锁时)
-    print("  [INFO] EM板块API不可用, 切换Sina备用源...")
+    # EM 失败 → 腾讯看板 (申万二级, top 6)
+    print("  [INFO] EM行业API不可用, 尝试腾讯看板...")
+    tencent_boards = _parse_tencent_boards("plate")
+    if tencent_boards:
+        print(f"  [INFO] 腾讯行业板块(申万二级): {len(tencent_boards)}个")
+        return tencent_boards
+
+    # 腾讯失败 → Sina (最不可靠, 数值大小和分类都不对)
+    print("  [INFO] 腾讯行业也失败, 切换Sina备用源...")
     try:
         boards = _parse_sina_boards(
             "https://money.finance.sina.com.cn/q/view/newSinaHy.php",
             "S_Finance_bankuai_sinaindustry"
         )
         if boards:
-            print(f"  [INFO] Sina行业板块: {len(boards)}个")
+            print(f"  [INFO] Sina行业板块: {len(boards)}个 (注意: 分类和数值可能与申万不同)")
         return boards
     except Exception as e:
         print(f"  [WARN] Sina行业板块也失败: {e}")
         return []
 
 def get_concept_boards():
-    """概念板块 — EM优先, Sina备用。"""
+    """概念板块 — EM > 腾讯 > Sina"""
     print("  [4/5] 获取概念板块...")
     # 尝试 EM clist
     url = "https://push2.eastmoney.com/api/qt/clist/get"
@@ -912,10 +979,20 @@ def get_concept_boards():
                 "price": safe_float(it.get("f2")),
             })
         boards.sort(key=lambda x: x["pct"], reverse=True)
+        print(f"  [OK] EM概念板块: {len(boards)}个")
         return boards
 
-    # EM 失败 → Sina 备用
-    print("  [INFO] EM概念板块API不可用, 切换Sina备用源...")
+    # EM 失败 → 腾讯看板
+    print("  [INFO] EM概念API不可用, 尝试腾讯看板...")
+    tencent_boards = _parse_tencent_boards("concept")
+    if tencent_boards:
+        # 腾讯概念板块也按 pct 排, 取涨跌 top 6
+        tencent_boards.sort(key=lambda x: x["pct"], reverse=True)
+        print(f"  [INFO] 腾讯概念板块: {len(tencent_boards)}个")
+        return tencent_boards
+
+    # 腾讯失败 → Sina
+    print("  [INFO] 腾讯概念也失败, 切换Sina备用源...")
     try:
         boards = _parse_sina_boards(
             "https://money.finance.sina.com.cn/q/view/newFLJK.php?param=class",
@@ -929,8 +1006,9 @@ def get_concept_boards():
         return []
 
 def get_industry_fund_flow():
-    """行业资金流向 — EM专属 (Sina无替代, 失败时返回空列表)。"""
+    """行业资金流向 — EM > 腾讯 fundflow"""
     print("  [5/5] 获取资金流向...")
+    # 尝试 EM (最全)
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "100", "po": "1", "np": "1",
@@ -941,23 +1019,63 @@ def get_industry_fund_flow():
     data = em_fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
 
-    if not items:
-        print("  [INFO] EM资金流向API不可用 (本地代理/云端封锁)")
+    if items:
+        flows = []
+        for it in items:
+            main_net = safe_float(it.get("f62"))
+            flows.append({
+                "name": it.get("f14", ""),
+                "pct": safe_float(it.get("f3")),
+                "main_net": main_net / 1e8,
+                "super_large_net": safe_float(it.get("f66")) / 1e8,
+                "large_net": safe_float(it.get("f72")) / 1e8,
+                "medium_net": safe_float(it.get("f78")) / 1e8,
+                "small_net": safe_float(it.get("f84")) / 1e8,
+                "main_pct": safe_float(it.get("f184")),
+            })
+        flows.sort(key=lambda x: x["main_net"], reverse=True)
+        print(f"  [OK] EM资金流向: {len(flows)}个行业")
+        return flows
+
+    # EM 失败 → 腾讯 fundflow (top/bottom 各3个)
+    print("  [INFO] EM资金流向不可用, 尝试腾讯 fundflow...")
+    tencent_data = _get_tencent_board_data()
+    ff_plate = tencent_data.get("fundflow", {}).get("plate", {})
+
+    inflow = ff_plate.get("top", [])
+    outflow = ff_plate.get("bottom", [])
 
     flows = []
-    for it in items:
-        main_net = safe_float(it.get("f62"))
+    for it in inflow:
+        zljlr = safe_float(it.get("zljlr")) / 1e4  # 万 → 亿
         flows.append({
-            "name": it.get("f14", ""),
-            "pct": safe_float(it.get("f3")),
-            "main_net": main_net / 1e8,
-            "super_large_net": safe_float(it.get("f66")) / 1e8,
-            "large_net": safe_float(it.get("f72")) / 1e8,
-            "medium_net": safe_float(it.get("f78")) / 1e8,
-            "small_net": safe_float(it.get("f84")) / 1e8,
-            "main_pct": safe_float(it.get("f184")),
+            "name": it.get("name", ""),
+            "pct": safe_float(it.get("zdf")),
+            "main_net": zljlr,
+            "super_large_net": 0,
+            "large_net": 0,
+            "medium_net": 0,
+            "small_net": 0,
+            "main_pct": 0,
         })
-    flows.sort(key=lambda x: x["main_net"], reverse=True)
+    for it in outflow:
+        zljlr = safe_float(it.get("zljlr")) / 1e4
+        flows.append({
+            "name": it.get("name", ""),
+            "pct": safe_float(it.get("zdf")),
+            "main_net": zljlr,
+            "super_large_net": 0,
+            "large_net": 0,
+            "medium_net": 0,
+            "small_net": 0,
+            "main_pct": 0,
+        })
+
+    if flows:
+        flows.sort(key=lambda x: x["main_net"], reverse=True)
+        print(f"  [INFO] 腾讯资金流向: {len(flows)}个 (top/bottom 各3)")
+    else:
+        print("  [INFO] 腾讯资金流向也无数据")
     return flows
 
 def get_watchlist_data():
@@ -2161,7 +2279,7 @@ tr:hover td{{background:#fafbfc}}
         html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">二、行业板块 Top 10</div>
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
-    <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* {'申万一级' if len(industries) > 10 else '申万二级'}行业，按涨跌幅排序 | 数据来源：{'东方财富' if len(industries) > 10 else '腾讯自选股'}</div>
   </div>
 '''
     else:
@@ -2228,9 +2346,14 @@ tr:hover td{{background:#fafbfc}}
 
         html += '''    </div>
     <div class="board-col">
-      <h4>表现最弱 Top 10</h4>
+      <h4>表现最弱</h4>
 '''
-        weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
+        # 取底部概念: 数据多时取10, 数据少时(腾讯fallback)取后一半避免重复
+        if len(concepts) > 10:
+            weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
+        else:
+            mid = max(3, len(concepts) // 2)
+            weakest = sorted(concepts[-mid:], key=lambda x: x["pct"])
         for b in weakest:
             cls = "up" if b["pct"] > 0 else "down"
             html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
@@ -2440,13 +2563,14 @@ def build_summary_md(all_data):
 
     if industries:
         sorted_inds = sorted(industries, key=lambda x: x["pct"], reverse=True)
+        level = "申万一级" if len(industries) > 10 else "申万二级"
 
-        md += "**涨幅前5（申万一级）：**\n"
+        md += f"**涨幅前5（{level}）：**\n"
         for i, ind in enumerate(sorted_inds[:5], 1):
             reason = _get_sector_reason(ind["name"], ind["pct"])
             md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
 
-        md += "\n**跌幅前5（申万一级）：**\n"
+        md += f"\n**跌幅前5（{level}）：**\n"
         bottom5 = list(reversed(sorted_inds[-5:]))  # 跌幅最大排第一
         for i, ind in enumerate(bottom5, 1):
             reason = _get_sector_reason(ind["name"], ind["pct"])

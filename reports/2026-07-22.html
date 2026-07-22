@@ -87,11 +87,26 @@ tr:hover td{background:#fafbfc}
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
   </div>
-</div>
-
-<div class="section">
-  <div class="section-title">三、行业资金流向</div>
-  <p style="color:#999;padding:40px 0;text-align:center">东方财富API在GitHub Actions环境受限，暂无实时资金流向数据。<br>建议通过本地环境运行获取完整数据。</p>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">三、行业资金流向</div>
+    <div class="board-grid">
+      <div class="board-col">
+        <h4 style="color:#c0392b">资金流入前五</h4>
+        <div class="board-item"><span class="name">工业金属 <span style="color:#999;font-size:11px">(+4.33%)</span></span><span class="pct up">+46.96亿</span></div>
+        <div class="board-item"><span class="name">半导体 <span style="color:#999;font-size:11px">(-1.36%)</span></span><span class="pct up">+24.24亿</span></div>
+        <div class="board-item"><span class="name">电力 <span style="color:#999;font-size:11px">(+1.50%)</span></span><span class="pct up">+18.34亿</span></div>
+        <div class="board-item"><span class="name">玻璃玻纤 <span style="color:#999;font-size:11px">(-6.79%)</span></span><span class="pct down">-22.97亿</span></div>
+        <div class="board-item"><span class="name">光学光电子 <span style="color:#999;font-size:11px">(-3.31%)</span></span><span class="pct down">-39.14亿</span></div>
+      </div>
+      <div class="board-col">
+        <h4 style="color:#27ae60">资金流出前五</h4>
+        <div class="board-item"><span class="name">通信设备 <span style="color:#999;font-size:11px">(-5.02%)</span></span><span class="pct down">-93.01亿</span></div>
+        <div class="board-item"><span class="name">光学光电子 <span style="color:#999;font-size:11px">(-3.31%)</span></span><span class="pct down">-39.14亿</span></div>
+        <div class="board-item"><span class="name">玻璃玻纤 <span style="color:#999;font-size:11px">(-6.79%)</span></span><span class="pct down">-22.97亿</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
+  </div>
 </div>
 
 <div class="section">
@@ -99,29 +114,21 @@ tr:hover td{background:#fafbfc}
   <div class="board-grid">
     <div class="board-col">
       <h4>涨幅 Top 10</h4>
-      <div class="board-item"><span class="name">黄金概念</span><span class="pct up">+0.65%</span></div>
-      <div class="board-item"><span class="name">聚氨酯</span><span class="pct up">+0.47%</span></div>
-      <div class="board-item"><span class="name">超大盘</span><span class="pct up">+0.41%</span></div>
-      <div class="board-item"><span class="name">华为海思</span><span class="pct up">+0.36%</span></div>
-      <div class="board-item"><span class="name">白酒概念</span><span class="pct up">+0.30%</span></div>
-      <div class="board-item"><span class="name">仿制药</span><span class="pct up">+0.24%</span></div>
-      <div class="board-item"><span class="name">分拆上市</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">基金重仓</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">锂矿</span><span class="pct up">+0.21%</span></div>
-      <div class="board-item"><span class="name">稀缺资源</span><span class="pct up">+0.20%</span></div>
+      <div class="board-item"><span class="name">昨日连板</span><span class="pct up">+7.05%</span></div>
+      <div class="board-item"><span class="name">白银概念</span><span class="pct up">+4.31%</span></div>
+      <div class="board-item"><span class="name">有色(锡)</span><span class="pct up">+4.19%</span></div>
+      <div class="board-item"><span class="name">主营聚乙烯</span><span class="pct up">+3.43%</span></div>
+      <div class="board-item"><span class="name">铅锌概念</span><span class="pct up">+2.97%</span></div>
+      <div class="board-item"><span class="name">PTA</span><span class="pct up">+2.65%</span></div>
     </div>
     <div class="board-col">
       <h4>表现最弱 Top 10</h4>
-      <div class="board-item"><span class="name">科创50</span><span class="pct down">-1.34%</span></div>
-      <div class="board-item"><span class="name">HIT电池</span><span class="pct down">-1.29%</span></div>
-      <div class="board-item"><span class="name">专精特新</span><span class="pct down">-1.16%</span></div>
-      <div class="board-item"><span class="name">钠电池</span><span class="pct down">-1.12%</span></div>
-      <div class="board-item"><span class="name">华为概念</span><span class="pct down">-0.94%</span></div>
-      <div class="board-item"><span class="name">智能穿戴</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">BC电池</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">固态电池</span><span class="pct down">-0.89%</span></div>
-      <div class="board-item"><span class="name">黄河三角</span><span class="pct down">-0.84%</span></div>
-      <div class="board-item"><span class="name">无线耳机</span><span class="pct down">-0.82%</span></div>
+      <div class="board-item"><span class="name">PTA</span><span class="pct up">+2.65%</span></div>
+      <div class="board-item"><span class="name">铅锌概念</span><span class="pct up">+2.97%</span></div>
+      <div class="board-item"><span class="name">主营聚乙烯</span><span class="pct up">+3.43%</span></div>
+      <div class="board-item"><span class="name">有色(锡)</span><span class="pct up">+4.19%</span></div>
+      <div class="board-item"><span class="name">白银概念</span><span class="pct up">+4.31%</span></div>
+      <div class="board-item"><span class="name">昨日连板</span><span class="pct up">+7.05%</span></div>
     </div></div></div>
 <div class="section">
   <div class="section-title">五、自选股表现</div>
@@ -1223,7 +1230,7 @@ tr:hover td{background:#fafbfc}
       </tr>
     </tbody></table></div>
 <div class="source">
-  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:25:23 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:44:42 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
 </div></div>
 
 <script>
@@ -1236,8 +1243,8 @@ tr:hover td{background:#fafbfc}
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
-    yAxis: { type: 'category', data: ["\u9676\u74f7\u884c\u4e1a", "\u9020\u7eb8\u884c\u4e1a", "\u91d1\u878d\u884c\u4e1a", "\u5f00\u53d1\u533a", "\u519c\u836f\u5316\u80a5", "\u6709\u8272\u91d1\u5c5e", "\u7535\u529b\u884c\u4e1a", "\u77f3\u6cb9\u884c\u4e1a", "\u7164\u70ad\u884c\u4e1a", "\u917f\u9152\u884c\u4e1a"], axisLabel: { fontSize: 12 } },
-    series: [{ type: 'bar', data: [0.04, 0.07, 0.07, 0.09, 0.14, 0.16, 0.17, 0.25, 0.26, 0.3],
+    yAxis: { type: 'category', data: ["\u7126\u70ad\u2161", "\u519c\u5316\u5236\u54c1", "\u70bc\u5316\u53ca\u8d38\u6613", "\u5de5\u4e1a\u91d1\u5c5e", "\u6cb9\u670d\u5de5\u7a0b", "\u8d35\u91d1\u5c5e"], axisLabel: { fontSize: 12 } },
+    series: [{ type: 'bar', data: [2.5, 2.68, 2.79, 4.33, 4.59, 6.43],
       itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
       label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
     }]
