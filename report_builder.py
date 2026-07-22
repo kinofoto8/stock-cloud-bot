@@ -2456,8 +2456,9 @@ tr:hover td{{background:#fafbfc}}
 '''
         for f in inflow_top5:
             net = f["main_net"]
-            cls = "up" if net > 0 else "down"
-            html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+            mp = f.get("main_pct", 0)
+            pct_note = f' <span style="color:#999;font-size:11px">(占比{mp:+.2f}%)</span>' if mp != 0 else ""
+            html += f'        <div class="board-item"><span class="name">{f["name"]}{pct_note}</span><span class="pct up">{net:+.2f}亿</span></div>\n'
         html += f'''      </div>
       <div class="board-col">
         <h4 style="color:#27ae60">{out_label}</h4>
@@ -2465,8 +2466,9 @@ tr:hover td{{background:#fafbfc}}
         if outflow_top5:
             for f in outflow_top5:
                 net = f["main_net"]
-                cls = "up" if net > 0 else "down"
-                html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
+                mp = f.get("main_pct", 0)
+                pct_note = f' <span style="color:#999;font-size:11px">(占比{mp:+.2f}%)</span>' if mp != 0 else ""
+                html += f'        <div class="board-item"><span class="name">{f["name"]}{pct_note}</span><span class="pct down">{net:+.2f}亿</span></div>\n'
         else:
             html += '        <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日全行业资金净流入，无净流出行业</div>\n'
         html += f'''      </div>
@@ -2743,20 +2745,20 @@ def build_summary_md(all_data):
             reason = _get_sector_reason(ind["name"], ind["pct"])
             md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
 
-        md += f"\n**跌幅前5（{level}）：**\n"
         # 分离下跌和上涨板块
         decliners = [ind for ind in sorted_inds if ind["pct"] < 0]
         if decliners:
+            md += f"\n**跌幅前5（{level}）：**\n"
             bottom5 = list(reversed(decliners[-5:]))  # 跌幅最大排第一
             for i, ind in enumerate(bottom5, 1):
                 reason = _get_sector_reason(ind["name"], ind["pct"])
                 md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
         else:
-            # 全线上涨，没有下跌板块——显示涨幅最小的几个
+            # 全线上涨，没有下跌板块——不显示"跌幅前5"误导性标题
             bottom = list(reversed(sorted_inds[-5:]))
-            md += "（今日全行业上涨，无下跌板块。涨幅最小："
-            md += "、".join(f"**{ind['name']}** {ind['pct']:+.2f}%" for ind in bottom)
-            md += "）\n"
+            md += f"\n**今日全行业上涨**（{level}，涨幅最小前5）\n"
+            for i, ind in enumerate(bottom, 1):
+                md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%\n"
     else:
         md += "（板块数据暂不可用，将在后续更新中补充）\n"
 
