@@ -940,6 +940,21 @@ def get_industry_boards():
     tencent_boards = _parse_tencent_boards("plate")
     if tencent_boards:
         print(f"  [INFO] 腾讯行业板块(申万二级): {len(tencent_boards)}个")
+        # 腾讯回退只有 top 6, 不足15个时追加Sina补充
+        if len(tencent_boards) < 15:
+            print(f"  [INFO] 腾讯行业不足15个({len(tencent_boards)}), 尝试Sina补充...")
+            try:
+                sina_boards = _parse_sina_boards(
+                    "https://money.finance.sina.com.cn/q/view/newSinaHy.php",
+                    "S_Finance_bankuai_sinaindustry"
+                )
+                if sina_boards:
+                    existing_names = {b["name"] for b in tencent_boards}
+                    new_from_sina = [b for b in sina_boards if b["name"] not in existing_names]
+                    print(f"  [INFO] Sina补充行业: {len(sina_boards)}个 → 去重后新增 {len(new_from_sina)}个")
+                    tencent_boards.extend(new_from_sina)
+            except Exception as e:
+                print(f"  [WARN] Sina行业补充失败: {e}")
         return tencent_boards
 
     # 腾讯失败 → Sina (最不可靠, 数值大小和分类都不对)
@@ -1022,15 +1037,38 @@ def get_concept_boards():
     # EM 失败 → 腾讯看板 (也经过概念过滤)
     print("  [INFO] EM概念API不可用, 尝试腾讯看板...")
     tencent_boards = _parse_tencent_boards("concept")
+    sina_boards = []  # 用于补充腾讯数据不足时
     if tencent_boards:
         tencent_boards.sort(key=lambda x: x["pct"], reverse=True)
         # 对腾讯回退数据也应用概念过滤
         filtered_t = [b for b in tencent_boards if _is_valid_concept(b.get("name", ""))]
         filtered_t_count = len(tencent_boards) - len(filtered_t)
         print(f"  [INFO] 腾讯概念板块: {len(tencent_boards)}个 → 过滤后 {len(filtered_t)}个 (排除{filtered_t_count}个)")
+
+        # 腾讯回退只有 top 6, 过滤后可能更少; 不足15个时追加Sina补充
+        if len(filtered_t) < 15:
+            print(f"  [INFO] 腾讯概念不足15个({len(filtered_t)}), 尝试Sina补充...")
+            try:
+                sina_boards = _parse_sina_boards(
+                    "https://money.finance.sina.com.cn/q/view/newFLJK.php?param=class",
+                    "S_Finance_bankuai_class"
+                )
+                if sina_boards:
+                    filtered_s = [b for b in sina_boards if _is_valid_concept(b.get("name", ""))]
+                    # 去重: 已存在于腾讯数据中的不再追加
+                    existing_names = {b["name"] for b in filtered_t}
+                    new_from_sina = [b for b in filtered_s if b["name"] not in existing_names]
+                    print(f"  [INFO] Sina补充概念: {len(filtered_s)}个 → 去重后新增 {len(new_from_sina)}个")
+                    filtered_t.extend(new_from_sina)
+                    filtered_t.sort(key=lambda x: x["pct"], reverse=True)
+                else:
+                    print("  [INFO] Sina概念也无数据")
+            except Exception as e:
+                print(f"  [WARN] Sina概念补充失败: {e}")
+        print(f"  [INFO] 最终概念板块: {len(filtered_t)}个")
         return filtered_t
 
-    # 腾讯失败 → Sina (也经过概念过滤)
+    # 腾讯也失败 → Sina (也经过概念过滤)
     print("  [INFO] 腾讯概念也失败, 切换Sina备用源...")
     try:
         boards = _parse_sina_boards(
@@ -2365,15 +2403,20 @@ tr:hover td{{background:#fafbfc}}
 
 <div class="chart-row">
 '''
-    # 行业板块图表
-    industry_names = [b["name"] for b in industries[:10]]
-    industry_pcts = [b["pct"] for b in industries[:10]]
+    # 行业板块图表 — 确保按涨跌幅排序并取合适的数量
+    industries_sorted = sorted(industries, key=lambda x: x["pct"], reverse=True) if industries else []
+    industry_names = [b["name"] for b in industries_sorted[:10]]
+    industry_pcts = [b["pct"] for b in industries_sorted[:10]]
 
     if industries:
+        top_n = min(len(industries_sorted), 10)
+        ind_label = f"行业板块 Top {top_n}"
+        ind_level = "申万一级" if len(industries) > 10 else "申万二级"
+        ind_source = "东方财富" if len(industries) > 10 else "腾讯自选股"
         html += f'''  <div class="section" style="margin-bottom:0">
-    <div class="section-title">二、行业板块 Top 10</div>
+    <div class="section-title">二、{ind_label}</div>
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
-    <div style="margin-top:12px;font-size:12px;color:#999">* {'申万一级' if len(industries) > 10 else '申万二级'}行业，按涨跌幅排序 | 数据来源：{'东方财富' if len(industries) > 10 else '腾讯自选股'}</div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* {ind_level}行业，按涨跌幅排序 | 数据来源：{ind_source}</div>
   </div>
 '''
     else:
@@ -2389,19 +2432,25 @@ tr:hover td{{background:#fafbfc}}
         # 流出前五：只取真正净流出(负数)的行业，按净流出金额从大到小排序
         outflow_list = [f for f in fund_flows if f["main_net"] < 0]
         outflow_top5 = sorted(outflow_list, key=lambda x: x["main_net"])[:5]
+
+        # 动态标签: 根据实际数据量显示
+        in_label = f"资金流入{'前三' if len(inflow_top5) <= 3 else '前五'}"
+        out_label = f"资金流出{'前三' if len(outflow_top5) <= 3 else '前五'}"
+        data_note = "数据来源：东方财富" if len(fund_flows) > 10 else f"数据来源：腾讯自选股 (仅{len(inflow_top5)}流入/{len(outflow_top5)}流出)"
+
         html += f'''  <div class="section" style="margin-bottom:0">
     <div class="section-title">三、行业资金流向</div>
     <div class="board-grid">
       <div class="board-col">
-        <h4 style="color:#c0392b">资金流入前五</h4>
+        <h4 style="color:#c0392b">{in_label}</h4>
 '''
         for f in inflow_top5:
             net = f["main_net"]
             cls = "up" if net > 0 else "down"
             html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
-        html += '''      </div>
+        html += f'''      </div>
       <div class="board-col">
-        <h4 style="color:#27ae60">资金流出前五</h4>
+        <h4 style="color:#27ae60">{out_label}</h4>
 '''
         if outflow_top5:
             for f in outflow_top5:
@@ -2410,9 +2459,9 @@ tr:hover td{{background:#fafbfc}}
                 html += f'        <div class="board-item"><span class="name">{f["name"]} <span style="color:#999;font-size:11px">({f["pct"]:+.2f}%)</span></span><span class="pct {cls}">{net:+.2f}亿</span></div>\n'
         else:
             html += '        <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日全行业资金净流入，无净流出行业</div>\n'
-        html += '''      </div>
+        html += f'''      </div>
     </div>
-    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出（亿元），{data_note}</div>
   </div>
 </div>
 '''
@@ -2452,11 +2501,23 @@ tr:hover td{{background:#fafbfc}}
         else:
             mid = max(3, len(concepts) // 2)
             weakest = sorted(concepts[-mid:], key=lambda x: x["pct"])
-        
+
+        # 检查是否所有概念板块全线飘红(全为正涨幅)
+        all_positive = all(b["pct"] > 0 for b in concepts)
+        has_negative = any(b["pct"] < 0 for b in concepts)
+
         if weakest:
-            for b in weakest:
-                cls = "up" if b["pct"] > 0 else "down"
-                html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+            if all_positive and not has_negative:
+                # 全线上涨：显示涨幅最小的几个，附带说明
+                html += '      <div class="board-item" style="color:#27ae60;font-size:12px;padding:6px 0">今日概念板块全线上涨</div>\n'
+                for b in weakest:
+                    cls = "up" if b["pct"] > 0 else "down"
+                    html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+            else:
+                # 有涨有跌：正常显示最弱板块
+                for b in weakest:
+                    cls = "up" if b["pct"] > 0 else "down"
+                    html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
         else:
             html += '      <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日概念板块全线上涨</div>\n'
 
@@ -2673,10 +2734,19 @@ def build_summary_md(all_data):
             md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
 
         md += f"\n**跌幅前5（{level}）：**\n"
-        bottom5 = list(reversed(sorted_inds[-5:]))  # 跌幅最大排第一
-        for i, ind in enumerate(bottom5, 1):
-            reason = _get_sector_reason(ind["name"], ind["pct"])
-            md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
+        # 分离下跌和上涨板块
+        decliners = [ind for ind in sorted_inds if ind["pct"] < 0]
+        if decliners:
+            bottom5 = list(reversed(decliners[-5:]))  # 跌幅最大排第一
+            for i, ind in enumerate(bottom5, 1):
+                reason = _get_sector_reason(ind["name"], ind["pct"])
+                md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
+        else:
+            # 全线上涨，没有下跌板块——显示涨幅最小的几个
+            bottom = list(reversed(sorted_inds[-5:]))
+            md += "（今日全行业上涨，无下跌板块。涨幅最小："
+            md += "、".join(f"**{ind['name']}** {ind['pct']:+.2f}%" for ind in bottom)
+            md += "）\n"
     else:
         md += "（板块数据暂不可用，将在后续更新中补充）\n"
 
