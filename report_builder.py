@@ -1295,12 +1295,13 @@ MIDTERM_SECTOR_TEMPLATES = {
 }
 
 
-def _generate_stock_note(s):
+def _generate_stock_note(s, tech=None):
     """根据自选股涨跌幅和技术面生成备注。"""
     pct = s.get("pct", 0)
     code = s.get("code", "")
     name = s.get("name", "")
-    tech = s.get("_tech", {})
+    if tech is None:
+        tech = s.get("_tech", {})
 
     # 涨停/接近涨停
     if pct >= 9.5:
@@ -2396,6 +2397,8 @@ def build_summary_md(all_data):
     indices_tech = all_data.get("indices_tech", {})
     indices_kline = all_data.get("indices_kline", {})
     indices_summary = all_data.get("indices_summary", {})
+    watchlist_tech = all_data.get("watchlist_tech", {})
+    watchlist_summary = all_data.get("watchlist_summary", {})
     market_pe = all_data.get("market_pe")
 
     up = overview.get("up", 0)
@@ -2474,21 +2477,101 @@ def build_summary_md(all_data):
     md += "\n---\n\n"
 
     # ================================================================
-    # 三、自选股表现 — 全部列表 + 备注
+    # 三、自选股表现 — 价格表 + 技术面速览 + 技术信号预警
     # ================================================================
     md += "**三、自选股表现**\n\n"
-    md += "| 股票 | 收盘价 | 涨跌幅 | 备注 |\n"
-    md += "|------|--------|--------|------|\n"
 
-    # 按涨跌幅排序
     all_stocks = sorted(watchlist, key=lambda x: x.get("pct", 0), reverse=True)
+
+    # --- 3a. 基本行情表 ---
+    md += "| 股票 | 收盘价 | 涨跌幅 | 成交额 | 换手率 | 备注 |\n"
+    md += "|------|--------|--------|--------|--------|------|\n"
     for s in all_stocks:
         pct = s.get("pct", 0)
         price = s.get("price", 0)
+        amount = s.get("amount", 0)
+        turnover = s.get("turnover", 0)
         is_hk = s.get("market") == "HK"
+        code = s.get("code", "")
         price_sym = "HK$" if is_hk else "¥"
-        note = _generate_stock_note(s)
-        md += f"| {s['name']}{'(HK)' if is_hk else ''} | {price_sym}{price:.2f} | {pct:+.2f}% | {note} |\n"
+        amt_unit = "亿港元" if is_hk else "亿"
+        t = watchlist_tech.get(code, {})
+        note = _generate_stock_note(s, t)
+        amt_str = f"{amount:.2f}{amt_unit}" if amount > 0 else "-"
+        to_str = f"{turnover:.2f}%" if turnover > 0 else "-"
+        md += f"| {s['name']}{'(HK)' if is_hk else ''} | {price_sym}{price:.2f} | {pct:+.2f}% | {amt_str} | {to_str} | {note} |\n"
+
+    # --- 3b. 技术指标速览 ---
+    if watchlist_tech:
+        md += "\n**技术指标速览：**\n\n"
+        md += "| 股票 | MACD | KDJ-J | RSI6 | 布林带 | 均线 | 量能 | 5日 | 20日 |\n"
+        md += "|------|------|-------|------|--------|------|------|-----|-----|\n"
+        for s in all_stocks:
+            code = s.get("code", "")
+            t = watchlist_tech.get(code, {})
+            if not t:
+                continue
+            macd = t.get("macd_signal", "-")
+            kdj_j = t.get("kdj_j")
+            kdj_str = f"{kdj_j:.1f}" if kdj_j is not None else "-"
+            rsi6 = t.get("rsi6")
+            rsi_str = f"{rsi6:.1f}" if rsi6 is not None else "-"
+            boll = t.get("boll_signal", "-")
+            ma = t.get("ma_status", "-")
+            vol = t.get("vol_ratio", "-")
+            chg5 = t.get("chg_5d")
+            chg5_str = f"{chg5:+.1f}%" if chg5 is not None else "-"
+            chg20 = t.get("chg_20d")
+            chg20_str = f"{chg20:+.1f}%" if chg20 is not None else "-"
+            md += f"| {s['name']} | {macd} | {kdj_str} | {rsi_str} | {boll} | {ma} | {vol} | {chg5_str} | {chg20_str} |\n"
+
+    # --- 3c. 技术信号预警 ---
+    alerts = []
+    for s in all_stocks:
+        code = s.get("code", "")
+        t = watchlist_tech.get(code, {})
+        if not t:
+            continue
+        name = s["name"]
+        macd = t.get("macd_signal", "")
+        kdj = t.get("kdj_signal", "")
+        rsi = t.get("rsi_signal", "")
+        boll = t.get("boll_signal", "")
+        if "金叉" in macd:
+            alerts.append(f"🔴 **{name}**：MACD金叉，多头信号")
+        if "死叉" in macd:
+            alerts.append(f"🟢 **{name}**：MACD死叉，空头信号")
+        if "超买" in kdj:
+            alerts.append(f"🟠 **{name}**：KDJ超买（J={t.get('kdj_j','-'):.1f}），短线偏热")
+        if "超卖" in kdj:
+            alerts.append(f"🔵 **{name}**：KDJ超卖，可能超跌反弹")
+        if "超买" in rsi:
+            alerts.append(f"🟠 **{name}**：RSI6={t.get('rsi6','-'):.1f}超买")
+        if "超卖" in rsi:
+            alerts.append(f"🔵 **{name}**：RSI6超卖")
+        if "突破布林上轨" in boll:
+            alerts.append(f"🟡 **{name}**：突破布林上轨，短线偏强")
+        if "跌破布林下轨" in boll:
+            alerts.append(f"🟡 **{name}**：跌破布林下轨，超跌信号")
+
+    if alerts:
+        md += "\n**技术信号预警：**\n"
+        for a in alerts[:8]:
+            md += f"- {a}\n"
+
+    # --- 3d. 个股技术分析文字总结（选取信号最强的3-5只）---
+    sig_stocks = []
+    for s in all_stocks:
+        code = s.get("code", "")
+        summary = watchlist_summary.get(code, "")
+        if summary:
+            sig_stocks.append((s, summary))
+    if sig_stocks:
+        md += "\n**重点个股技术分析：**\n"
+        for s, summary in sig_stocks[:5]:
+            pct = s.get("pct", 0)
+            emoji = "🔴" if pct > 3 else ("🟢" if pct < -3 else "⚪")
+            md += f"- {emoji} **{s['name']}**（{pct:+.2f}%）：{summary}\n"
 
     md += "\n---\n\n"
 
