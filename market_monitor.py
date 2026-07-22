@@ -72,6 +72,78 @@ def _classify_alert_level(pct, reasons, tech_data, fund_summary):
     return "高危" if score >= 3 else "关注"
 
 
+# ---- 走势预测生成 ----
+def _gen_trend_prediction(tech_data, price):
+    """根据技术指标生成走势预测：短期/中期定性 + 阻力位/支撑位。
+    返回: (prediction_str, short_term, mid_term)
+    """
+    if not tech_data or price <= 0:
+        return "数据不足，暂不判断。", "未知", "未知"
+
+    macd_sig = tech_data.get("macd_signal", "")
+    kdj_j = tech_data.get("kdj_j")
+    rsi6 = tech_data.get("rsi6")
+    ma_status = tech_data.get("ma_status", "")
+    boll_upper = tech_data.get("boll_upper")
+    boll_lower = tech_data.get("boll_lower")
+    ma20 = tech_data.get("ma20")
+    chg20 = tech_data.get("chg_20d")
+    klines = tech_data.get("_klines", [])  # optional
+
+    bullish = 0
+    bearish = 0
+    if "金叉" in macd_sig or "多头" in macd_sig:
+        bullish += 1
+    if "死叉" in macd_sig or "空头" in macd_sig:
+        bearish += 1
+    if kdj_j is not None:
+        if kdj_j > 100:
+            bearish += 1
+        elif kdj_j < 0:
+            bullish += 1
+    if rsi6 is not None:
+        if rsi6 > 70:
+            bearish += 1
+        elif rsi6 < 30:
+            bullish += 1
+        elif rsi6 > 50:
+            bullish += 1
+        else:
+            bearish += 1
+    if "多头" in ma_status or "站上" in ma_status:
+        bullish += 1
+    if "空头" in ma_status or "跌破" in ma_status:
+        bearish += 1
+    if chg20 is not None:
+        if chg20 > 5:
+            bullish += 1
+        elif chg20 < -5:
+            bearish += 1
+
+    if bullish > bearish + 1:
+        short_term, mid_term = "偏多", "看多"
+    elif bearish > bullish + 1:
+        short_term, mid_term = "偏空", "看空"
+    else:
+        short_term, mid_term = "震荡", "中性"
+
+    # 阻力位/支撑位
+    resistance = boll_upper
+    support = boll_lower
+    if ma20:
+        if ma20 > price and (resistance is None or ma20 < resistance):
+            resistance = ma20 if resistance is None else min(resistance, ma20)
+        if ma20 < price and (support is None or ma20 > support):
+            support = ma20 if support is None else max(support, ma20)
+
+    parts = [f"短期{short_term}", f"中期{mid_term}"]
+    if resistance:
+        parts.append(f"阻力{resistance:.2f}")
+    if support:
+        parts.append(f"支撑{support:.2f}")
+    return "，".join(parts) + "。", short_term, mid_term
+
+
 # ---- 操作建议生成 ----
 def _generate_suggestion(name, reasons, pct, tech_data, fund_summary):
     """根据预警原因生成操作建议。"""
@@ -264,6 +336,24 @@ def _generate_comprehensive_analysis(alerts, normal, index_quotes):
         p6_parts.append("建议结合晚间COMEX黄金期货收盘价判断明日贵金属板块持续性")
 
     paragraphs.append("**六、后市关注**\n" + "；".join(p6_parts) + "。")
+
+    # ==== 段落7：自选股走势预测 ====
+    pred_lines = []
+    for a in alerts:
+        td = a.get("tech_data") or {}
+        pred, short_t, mid_t = _gen_trend_prediction(td, a.get("price", 0))
+        if pred != "数据不足，暂不判断。":
+            pred_lines.append(f"- {a['name']}（{a['change_pct']:+.2f}%）：{pred}")
+    for n in normal:
+        td = n.get("tech_data") or {}
+        raw_price = n.get("raw_price", 0)
+        raw_pct = n.get("raw_pct", 0)
+        pred, short_t, mid_t = _gen_trend_prediction(td, raw_price)
+        if pred != "数据不足，暂不判断。":
+            pred_lines.append(f"- {n['name']}（{raw_pct:+.2f}%）：{pred}")
+
+    if pred_lines:
+        paragraphs.append("**七、自选股走势预测**\n" + "\n".join(pred_lines))
 
     if not paragraphs:
         return "今日自选股整体运行平稳，未触发预警信号。各品种技术指标正常，可继续按原有策略操作。建议关注晚间消息面及次日开盘走势。"
@@ -497,6 +587,7 @@ def run_monitor():
         if stock_alerts:
             severity = _classify_alert_level(pct, stock_alerts, tech_data, fund_summary)
             suggestion = _generate_suggestion(name, stock_alerts, pct, tech_data, fund_summary)
+            prediction, _, _ = _gen_trend_prediction(tech_data, price)
             alerts.append({
                 "name": name, "code": code, "market": market,
                 "price": price, "change_pct": pct,
@@ -507,6 +598,7 @@ def run_monitor():
                 "reasons": stock_alerts,
                 "severity": severity,
                 "suggestion": suggestion,
+                "prediction": prediction,
                 "tech_data": tech_data,
                 "fund_summary": fund_summary,
                 "is_hk": is_hk,
@@ -521,6 +613,9 @@ def run_monitor():
                 "amount_change": amt_change,
                 "vol_ratio": vol_ratio,
                 "tech_summary": tech_summary,
+                "tech_data": tech_data,
+                "raw_price": price,
+                "raw_pct": pct,
             })
 
     # ---- 4. 构建推送消息 ----
@@ -658,7 +753,10 @@ def build_dingtalk_md(alerts, normal, index_quotes):
             if any(kw in r for kw in ["公告", "新闻", "减持", "增持", "南向", "主力"]):
                 detail += f"。{r}"
 
-        detail += f"。\n- **建议操作：** {a.get('suggestion', '密切关注后续走势。')}\n\n"
+        detail += f"。\n- **建议操作：** {a.get('suggestion', '密切关注后续走势。')}\n"
+        if a.get("prediction"):
+            detail += f"- **走势预测：** {a['prediction']}\n"
+        detail += "\n"
         return detail
 
     # ---- 高危预警 ----
