@@ -1093,12 +1093,22 @@ def get_industry_fund_flow():
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "100", "po": "1", "np": "1",
-        "fltt": "2", "invt": "2", "fid": "f62",
+        "fltt": "2", "invt": "2",
+        "fid": "f3",  # 用涨跌幅排序(非f62), 否则t:1会返回地区板块!
         "fs": "m:90+t:1",  # 申万一级 (t:2会混入"铜""铝"等子类)
         "fields": "f2,f3,f12,f14,f62,f184,f66,f72,f78,f84",
     }
     data = em_fetch_json(url, params)
     items = (data.get("data") or {}).get("diff", [])
+
+    if items:
+        # 安全验证: EM有时会用fid=f62返回地区板块(福建板块/北京板块)而非申万一级
+        # 如果名称含"板块"且数量约31个(省份数), 则是地区数据, 需要回退
+        first_name = items[0].get("f14", "")
+        regional_like = [it for it in items[:5] if "板块" in it.get("f14", "")]
+        if len(regional_like) >= 3:
+            print(f"  [WARN] EM返回地区板块({first_name}等)而非申万一级行业, 切换腾讯备用源")
+            items = []
 
     if items:
         flows = []
