@@ -2383,8 +2383,9 @@ tr:hover td{{background:#fafbfc}}
   </div>
 '''
     if fund_flows:
-        # 分为流入前五和流出前五
-        inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
+        # 资金流入前五: 只取真正净流入(正数)
+        inflow_list = [f for f in fund_flows if f["main_net"] > 0]
+        inflow_top5 = sorted(inflow_list, key=lambda x: x["main_net"], reverse=True)[:5]
         # 流出前五：只取真正净流出(负数)的行业，按净流出金额从大到小排序
         outflow_list = [f for f in fund_flows if f["main_net"] < 0]
         outflow_top5 = sorted(outflow_list, key=lambda x: x["main_net"])[:5]
@@ -2442,15 +2443,22 @@ tr:hover td{{background:#fafbfc}}
     <div class="board-col">
       <h4>表现最弱</h4>
 '''
-        # 取底部概念: 数据多时取10, 数据少时(腾讯fallback)取后一半避免重复
+        # 取末尾概念(涨跌幅最小): 取倒数10个，但避免与涨幅Top10重复
+        weakest_candidates = concepts[-10:]  # 已按pct降序排列，末尾是最弱
+        # 如果概念总数 > 10，则取末尾最多10个最弱的
+        # 如果概念总数 <= 10，取后一半（避免全部重复），但至少取3个
         if len(concepts) > 10:
-            weakest = sorted(concepts[-10:], key=lambda x: x["pct"])
+            weakest = sorted(weakest_candidates, key=lambda x: x["pct"])
         else:
             mid = max(3, len(concepts) // 2)
             weakest = sorted(concepts[-mid:], key=lambda x: x["pct"])
-        for b in weakest:
-            cls = "up" if b["pct"] > 0 else "down"
-            html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+        
+        if weakest:
+            for b in weakest:
+                cls = "up" if b["pct"] > 0 else "down"
+                html += f'      <div class="board-item"><span class="name">{b["name"]}</span><span class="pct {cls}">{b["pct"]:+.2f}%</span></div>\n'
+        else:
+            html += '      <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日概念板块全线上涨</div>\n'
 
         html += '''    </div></div></div>
 '''
