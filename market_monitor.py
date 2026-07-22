@@ -113,56 +113,162 @@ def _generate_suggestion(name, reasons, pct, tech_data, fund_summary):
 
 # ---- 综合研判生成 ----
 def _generate_comprehensive_analysis(alerts, normal, index_quotes):
-    """根据当日扫描结果生成综合研判。"""
-    parts = []
+    """根据当日扫描结果生成丰富的内容综合研判。"""
     now_hour = datetime.now().hour
+    all_stocks = alerts + normal
+    high_risk = [a for a in alerts if a.get("severity") == "高危"]
+    attention = [a for a in alerts if a.get("severity") == "关注"]
 
-    # 大盘概况
+    paragraphs = []
+
+    # ==== 段落1：大盘环境 ====
+    p1_parts = []
     sh = index_quotes.get("sh000001")
     sz = index_quotes.get("sz399001")
+    hsi = index_quotes.get("hkHIS")
+
     if sh and sh["price"] > 0:
         direction = "上涨" if sh["pct"] > 0 else ("下跌" if sh["pct"] < 0 else "平盘")
-        parts.append(f"上证指数{sh['price']:.0f}点，{direction}{sh['pct']:+.2f}%")
+        emoji = "🔴" if sh["pct"] > 0 else ("🟢" if sh["pct"] < 0 else "⚪")
+        strength = "强势" if sh["pct"] > 1 else ("弱势" if sh["pct"] < -1 else "震荡")
+        p1_parts.append(f"今日A股大盘{strength}运行，上证指数报{sh['price']:.0f}点（{sh['pct']:+.2f}%）")
+        if sz and sz["price"] > 0:
+            p1_parts.append(f"深证成指报{sz['price']:.0f}点（{sz['pct']:+.2f}%）")
+    if hsi and hsi["price"] > 0:
+        p1_parts.append(f"恒生指数报{hsi['price']:.0f}点（{hsi['pct']:+.2f}%）")
 
-    # 板块特征
-    up_stocks = sum(1 for a in alerts if a["change_pct"] > 0)
-    down_stocks = sum(1 for a in alerts if a["change_pct"] < 0)
-    if up_stocks > down_stocks + 3:
-        parts.append("自选股多数上涨")
-    elif down_stocks > up_stocks + 3:
-        parts.append("自选股多数下跌")
+    # 自选股涨跌统计
+    up_count = sum(1 for a in all_stocks if isinstance(a.get("change_pct"), (int, float)) and a["change_pct"] > 0)
+    down_count = sum(1 for a in all_stocks if isinstance(a.get("change_pct"), (int, float)) and a["change_pct"] < 0)
+    limit_up = [a for a in alerts if a["change_pct"] >= 9.5]
+    if limit_up:
+        names = "、".join([a["name"] for a in limit_up])
+        p1_parts.append(f"自选股中{limit_up[0]['name']}等触及或接近涨停")
+    if up_count + down_count > 0:
+        p1_parts.append(f"自选股{up_count}涨{down_count}跌，涨跌比{up_count}:{down_count}")
 
-    # 高危统计
-    high_risk = [a for a in alerts if a.get("severity") == "高危"]
-    if high_risk:
-        names = [a["name"] for a in high_risk]
-        parts.append(f"{len(high_risk)}只触发高危预警（{'、'.join(names[:4])}{'等' if len(high_risk) > 4 else ''}）")
+    if p1_parts:
+        paragraphs.append("**一、大盘环境**\n" + "；".join(p1_parts) + "。")
 
-    # 共性预警
+    # ==== 段落2：强势板块/个股分析 ====
+    strong_stocks = [a for a in alerts if a["change_pct"] >= 3]  # 日涨超3%的
+    if strong_stocks:
+        p2_parts = []
+        # 分类：贵金属/有色类 vs 其他
+        gold_metal_names = ["紫金矿业", "赤峰黄金", "中金黄金", "兴业银锡", "藏格矿业",
+                            "宏达股份", "紫金黄金国际", "云铝股份", "神火股份"]
+        gold_stocks = [a for a in strong_stocks if a["name"] in gold_metal_names]
+        other_strong = [a for a in strong_stocks if a["name"] not in gold_metal_names]
+
+        if gold_stocks:
+            max_stock = max(gold_stocks, key=lambda x: x["change_pct"])
+            gold_pcts = [a["change_pct"] for a in gold_stocks]
+            avg_pct = sum(gold_pcts) / len(gold_pcts)
+            p2_parts.append(f"有色/贵金属板块集体爆发：{len(gold_stocks)}只有色/贵金属股全线上涨")
+            p2_parts.append(f"平均涨幅{avg_pct:+.1f}%，其中{max_stock['name']}领涨{max_stock['change_pct']:+.2f}%")
+
+            # 分析触发信号
+            overbought_gold = [a for a in gold_stocks if any("超买" in r for r in a["reasons"])]
+            if overbought_gold:
+                names = "、".join([a["name"] for a in overbought_gold[:4]])
+                max_j = max([a.get("tech_data", {}).get("kdj_j", 0) or 0 for a in overbought_gold])
+                p2_parts.append(f"{names}等同步触发KDJ/RSI超买（J值最高{max_j:.0f}）并突破布林上轨，短线面临技术性回调压力")
+
+            # 资金面
+            inflow_gold = [a for a in gold_stocks if any("净流入" in r for r in a["reasons"])]
+            if inflow_gold:
+                p2_parts.append(f"部分品种获主力资金大幅净流入，机构对贵金属板块短期情绪高涨")
+
+        if other_strong:
+            for a in other_strong:
+                p2_parts.append(f"{a['name']}{a['change_pct']:+.2f}%，但需注意其独立催化因素及持续性")
+
+        paragraphs.append("**二、强势品种分析**\n" + "；".join(p2_parts) + "。")
+
+    # ==== 段落3：弱势/风险品种分析 ====
+    weak_conditions = ["死叉", "持续流出", "跌停", "暴跌", "减持", "定增"]
+    risk_stocks = [a for a in alerts if any(any(kw in r for kw in weak_conditions) for r in a["reasons"])]
+    if risk_stocks:
+        p3_parts = []
+        for a in risk_stocks:
+            td = a.get("tech_data", {}) or {}
+            chg_20d = td.get("chg_20d")
+            reasons_str = "；".join([r for r in a["reasons"]
+                                     if any(kw in r for kw in weak_conditions)])
+            detail = f"{a['name']}（{a['change_pct']:+.2f}%）"
+            if chg_20d is not None:
+                detail += f"，20日累计{chg_20d:+.2f}%"
+            if reasons_str:
+                detail += f"：{reasons_str[:80]}"
+            p3_parts.append(detail)
+
+        paragraphs.append("**三、风险提示品种**\n" + "\n- " + "\n- ".join(p3_parts))
+
+    # ==== 段落4：港股权重分析 ====
+    hk_stocks = [a for a in alerts if a.get("is_hk") or a["market"] == "HK"]
+    if hk_stocks:
+        p4_parts = []
+        for a in hk_stocks:
+            td = a.get("tech_data", {}) or {}
+            kdj_j = td.get("kdj_j")
+            detail = f"{a['name']}（{a['change_pct']:+.2f}%）"
+            if kdj_j and kdj_j > 80:
+                detail += f" J值={kdj_j:.1f}超买"
+            # 南向/北向相关
+            south_reasons = [r for r in a["reasons"] if "南向" in r]
+            if south_reasons:
+                detail += f"，{south_reasons[0]}"
+            p4_parts.append(detail)
+
+        paragraphs.append("**四、港股权重表现**\n" + "；".join(p4_parts) + "。")
+
+    # ==== 段落5：综合操作建议 ====
+    p5_parts = []
+    # 高危过半数 → 风险警示
+    if len(high_risk) >= len(alerts) * 0.5 and len(alerts) > 0:
+        p5_parts.append("目前过半预警为高危级别，整体短线风险偏高")
+        p5_parts.append("对涨停/暴涨品种建议分批止盈锁定利润，避免追高")
+        p5_parts.append("对弱势品种继续控制仓位")
+
+    # 超买大面积
     overbought_count = sum(1 for a in alerts if any("超买" in r for r in a["reasons"]))
-    if overbought_count >= 3:
-        parts.append(f"多只触发KDJ/RSI超买+突破布林上轨，短线回调风险加大")
-    elif overbought_count >= 1:
-        parts.append("部分股票短线超买")
+    if overbought_count >= 5:
+        p5_parts.append(f"大面积超买（{overbought_count}只），短线追高风险极大，耐心等待回调再择机介入")
+    elif overbought_count >= 2:
+        p5_parts.append(f"{overbought_count}只超买，短线偏热，追高需谨慎")
 
+    # 死叉个股
     death_cross_count = sum(1 for a in alerts if any("死叉" in r for r in a["reasons"]))
-    if death_cross_count >= 2:
-        parts.append("仍有品种MACD死叉、趋势偏弱")
+    if death_cross_count >= 1:
+        p5_parts.append(f"{death_cross_count}只MACD死叉品种趋势未扭转，不建议左侧抄底")
 
-    # 弱势品种
-    weak_stocks = [a for a in alerts if any("死叉" in r or "持续流出" in r for r in a["reasons"])]
-    if weak_stocks:
-        names = [a["name"] for a in weak_stocks]
-        parts.append(f"弱势品种{'、'.join(names[:3])}需控制仓位")
+    # 出逃品种
+    outflow_stocks = [a for a in alerts if any("流出" in r or "出逃" in r for r in a["reasons"])]
+    if outflow_stocks:
+        names = "、".join([a["name"] for a in outflow_stocks[:2]])
+        p5_parts.append(f"{names}资金面持续偏空，需等待资金回流信号再考虑")
 
-    # 收盘时段额外提示
+    if p5_parts:
+        paragraphs.append("**五、操作建议**\n" + "；".join(p5_parts) + "。")
+
+    # ==== 段落6：后市关注 ====
+    p6_parts = []
     if now_hour >= 15:
-        parts.append("密切关注晚间美股及大宗商品走势。")
+        p6_parts.append("今晚重点关注美股三大指数及COMEX黄金/白银期货走势，有色板块受海外大宗商品联动明显")
+        p6_parts.append("关注美元指数及美联储政策预期变化对贵金属价格的影响")
+    else:
+        p6_parts.append("午后关注大盘能否维持强势、以及有色金属期货价格走势")
+        hk_trading = any(a.get("is_hk") or a["market"] == "HK" for a in alerts)
+        if hk_trading:
+            p6_parts.append("港股尾盘走势对A股相关品种有先行指标作用")
+        p6_parts.append("建议结合晚间COMEX黄金期货收盘价判断明日贵金属板块持续性")
 
-    if not parts:
-        parts.append("今日整体平稳，无异常信号。")
+    paragraphs.append("**六、后市关注**\n" + "；".join(p6_parts) + "。")
 
-    return "。".join(parts) + "。"
+    if not paragraphs:
+        return "今日自选股整体运行平稳，未触发预警信号。各品种技术指标正常，可继续按原有策略操作。建议关注晚间消息面及次日开盘走势。"
+
+    return "\n\n".join(paragraphs)
 
 
 def is_trade_day_simple(date_str=None):
