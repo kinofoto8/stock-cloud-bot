@@ -1,15 +1,21 @@
 """
 共享配置 — 自选股列表、钉钉 Webhook、关注指数等
+支持从环境变量读取敏感信息（GitHub Actions Secrets），本地回退到硬编码值。
 """
+import os
 
 # ============================================================
-# 钉钉机器人配置
+# 钉钉机器人配置（优先环境变量，兼容本地硬编码）
 # ============================================================
-DINGTALK_WEBHOOK = (
+DINGTALK_WEBHOOK = os.environ.get(
+    "DINGTALK_WEBHOOK",
     "https://oapi.dingtalk.com/robot/send"
-    "?access_token=2464ae3639ee0ebf737361a6a24e9c69bcd2ed5bb023730799520bbaede1cc41"
+    "?access_token=2464ae3639ee0ebf737361a6a24e9c69bcd2ed5bb023730799520bbaede1cc41",
 )
-DINGTALK_SECRET = "SEC63372b026d2692228eecf6dca2b1079206c8819ecba91dd3282408e2c6ffc373"
+DINGTALK_SECRET = os.environ.get(
+    "DINGTALK_SECRET",
+    "SEC63372b026d2692228eecf6dca2b1079206c8819ecba91dd3282408e2c6ffc373",
+)
 
 # ============================================================
 # 自选股列表（A股 + 港股）
