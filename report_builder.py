@@ -1103,6 +1103,382 @@ def get_market_news():
     return []
 
 # ============================================================
+# 市场估值 — PE数据
+# ============================================================
+def get_market_pe():
+    """获取上证指数PE(TTM)，EM API获取。失败时返回None。"""
+    try:
+        url = "https://push2.eastmoney.com/api/qt/stock/get"
+        params = {"secid": "1.000001", "fields": "f162,f167,f170"}
+        resp = SESSION.get(url, params=params, timeout=10)
+        data = resp.json().get("data", {})
+        pe_ttm = safe_float(data.get("f167"))
+        if pe_ttm and pe_ttm > 0:
+            print(f"  [PE] 上证PE(TTM): {pe_ttm:.2f}")
+            return round(pe_ttm, 2)
+        pe_dyn = safe_float(data.get("f162"))
+        if pe_dyn and pe_dyn > 0:
+            print(f"  [PE] 上证PE(动态): {pe_dyn:.2f}")
+            return round(pe_dyn, 2)
+    except Exception as e:
+        print(f"  [PE] 获取失败: {e}")
+    return None
+
+
+# ============================================================
+# 板块逻辑分析引擎 — 自动生成涨跌原因
+# ============================================================
+SECTOR_LOGIC_MAP = {
+    "贵金属": "金价走强+避险情绪升温，资金涌入黄金股",
+    "黄金": "金价走强+避险情绪升温，资金涌入黄金股",
+    "油服工程": "国际油价上涨+中东局势支撑油服景气",
+    "工业金属": "铜铝等基本金属反弹，供需紧平衡预期",
+    "有色金属": "铜铝等基本金属反弹，供需紧平衡预期",
+    "炼化及贸易": "原油产业链联动+炼化盈利改善",
+    "农化制品": "化肥农药旺季需求+粮食安全主题",
+    "种植业": "粮食安全主题+农产品涨价预期",
+    "养殖业": "猪周期回暖+养殖盈利改善",
+    "煤炭开采": "能源保供政策+季节性需求支撑",
+    "电力": "高股息防御属性+夏季用电高峰+电力改革",
+    "保险": "险企集体出手+估值修复+利率企稳",
+    "银行": "高股息防御+资产质量改善+估值修复",
+    "证券": "市场活跃度提升+IPO回暖+自营弹性",
+    "白酒": "消费复苏预期+中秋备货行情+估值修复",
+    "汽车整车": "新能源车销量超预期+政策刺激+出海加速",
+    "半导体": "AI算力需求+国产替代加速+周期复苏",
+    "通信设备": "AI算力硬件+5G-A升级+光通信景气",
+    "元件": "AI服务器PCB+消费电子备货+国产替代",
+    "光学光电子": "AR/VR新品周期+面板涨价+车载光学",
+    "电子化学品": "半导体材料国产化+先进封装需求",
+    "玻璃玻纤": "地产链需求疲弱+行业产能过剩担忧",
+    "装修建材": "地产竣工低迷+需求不振+成本压力",
+    "房地产开发": "销售数据低迷+融资压力+政策效果待观察",
+    "医药商业": "集采政策影响+渠道库存去化+行业整合",
+    "医疗器械": "集采扩面压力+出口不确定性+估值消化",
+    "光伏设备": "产能过剩担忧+价格战持续+海外贸易摩擦",
+    "风电设备": "招标价格下行+并网消纳问题+补贴退坡",
+    "电池": "锂电产能过剩+价格竞争激烈+增速放缓",
+    "能源金属": "锂盐价格低迷+供过于求+需求增速放缓",
+    "航空机场": "暑期出行旺季+国际航线恢复+油价利好",
+    "旅游酒店": "暑期旅游旺季+入境游增长+消费券刺激",
+    "军工": "国防预算增长+装备列装加速+地缘催化",
+    "钢铁": "基建投资发力+限产预期+铁矿石成本支撑",
+    "航运港口": "运费反弹+全球贸易回暖+港口吞吐量增长",
+    "建筑装饰": "基建投资拉动+新型城镇化+一带一路",
+    "环保": "化债政策受益+估值低位+政策催化",
+    "计算机": "信创推进+AI应用落地+数据要素政策",
+    "传媒": "AI赋能内容+游戏版号常态化+短剧出海",
+    "食品饮料": "消费复苏+成本下降+股息率吸引力",
+    "纺织服饰": "出口订单回暖+品牌出海+原材料降价",
+    "家用电器": "出海加速+以旧换新政策+成本改善",
+    "美容护理": "消费升级+国货替代+渠道变革",
+    "社会服务": "服务消费回暖+职业教育政策+灵活用工",
+    "公用事业": "高股息防御+夏季用电高峰+水价改革",
+    "石油石化": "油价高位+炼化盈利+央企估值修复",
+    "基础化工": "化工品涨价+供给收缩+新能源材料需求",
+    "机械设备": "设备更新政策+自动化升级+出海逻辑",
+    "国防军工": "国防预算增长+装备列装加速+地缘催化",
+    "商贸零售": "消费券刺激+线下回暖+即时零售增长",
+    "交通运输": "出行数据向好+物流复苏+高速公路车流增长",
+    "农林牧渔": "猪周期反转+粮价上涨+种业振兴",
+    "非银金融": "资本市场活跃+险企投资改善+券商弹性",
+    "钢铁行业": "基建投资发力+限产预期+铁矿石成本支撑",
+    "有色金属行业": "铜铝等基本金属反弹，供需紧平衡预期",
+}
+
+SECTOR_WEAK_MAP = {
+    "玻璃玻纤": "地产链需求疲弱+行业产能过剩担忧",
+    "通信设备": "AI算力硬件高位回调，资金获利了结",
+    "元件": "电子元器件跟随科技板块调整",
+    "光学光电子": "消费电子需求不确定+估值消化",
+    "电子化学品": "半导体材料板块获利回吐",
+    "半导体": "前期涨幅过大，短线获利回吐",
+    "电池": "锂电产能过剩+价格竞争激烈+下游需求放缓",
+    "能源金属": "锂盐价格低迷+供过于求+新能源车增速放缓",
+    "光伏设备": "产能过剩担忧+价格战加剧+海外贸易壁垒",
+    "风电设备": "招标价格下行+并网消纳困难+补贴退坡",
+    "房地产开发": "销售数据低迷+资金链紧张+市场信心不足",
+    "装修建材": "地产竣工低迷+需求不振+成本压力",
+    "医药商业": "集采政策持续影响+渠道库存高企",
+    "医疗器械": "集采扩面+出口不确定性+估值消化",
+    "食品饮料": "消费复苏不及预期+竞争加剧",
+    "汽车整车": "价格战持续+需求透支+出口不确定性",
+    "计算机": "估值偏高+业绩兑现压力+资金获利了结",
+    "传媒": "前期涨幅过大+AI概念降温+监管趋严",
+    "家用电器": "海外需求走弱+原材料涨价+汇率波动",
+    "纺织服饰": "消费降级+库存压力+品牌竞争加剧",
+    "钢铁": "需求季节性走弱+成本支撑减弱+限产不确定性",
+    "煤炭开采": "煤价回落+季节性需求转淡+新能源替代",
+    "社会服务": "消费复苏低于预期+估值偏高",
+    "商贸零售": "消费疲弱+电商分流+线下客流低迷",
+}
+
+
+def _get_sector_reason(name, pct):
+    """根据板块名称和涨跌幅生成逻辑说明。"""
+    # 精确匹配
+    if pct > 0 and name in SECTOR_LOGIC_MAP:
+        return SECTOR_LOGIC_MAP[name]
+    if pct < 0 and name in SECTOR_WEAK_MAP:
+        return SECTOR_WEAK_MAP[name]
+    # 模糊匹配
+    for key, logic in (SECTOR_LOGIC_MAP if pct > 0 else SECTOR_WEAK_MAP).items():
+        if key in name:
+            return logic
+    # 通用描述
+    if pct > 0:
+        return "资金流入+行业景气度提升"
+    return "行业调整+资金流出"
+
+
+# ============================================================
+# 自选股备注生成 + 中期展望 + 明日关注引擎
+# ============================================================
+STOCK_SECTOR = {
+    "601899": "有色金属龙头大涨",
+    "000426": "白银概念强势",
+    "600489": "黄金股普涨",
+    "000408": "锂矿反弹",
+    "600331": "有色资源强势",
+    "002240": "锂能小幅收涨/承压",
+    "588170": "科技股回调/反弹",
+    "600988": "黄金股领涨自选",
+    "000807": "铝业小幅跟涨",
+    "000933": "煤炭铝业双轮驱动",
+    "00883": "港股油服强势",
+    "09992": "港股消费回调/反弹",
+    "02259": "港股黄金暴涨",
+}
+
+STOCK_SECTOR_LABEL = {
+    "601899": "工业金属/有色金属",
+    "000426": "工业金属/白银",
+    "600489": "贵金属/黄金",
+    "000408": "能源金属/锂矿",
+    "600331": "工业金属/有色金属",
+    "002240": "能源金属/锂电",
+    "588170": "半导体/科技",
+    "600988": "贵金属/黄金",
+    "000807": "工业金属/铝",
+    "000933": "煤炭/铝业",
+    "00883": "油服工程/能源",
+    "09992": "消费/港股",
+    "02259": "贵金属/黄金",
+}
+
+MIDTERM_SECTOR_TEMPLATES = {
+    "贵金属": {
+        "recent": "贵金属连续领涨，资金持续流入",
+        "logic": "美联储降息预期升温推升金价，地缘风险提供避险需求，黄金股业绩弹性大",
+        "stocks": ["赤峰黄金", "中金黄金", "紫金矿业", "紫金黄金国际"],
+    },
+    "工业金属": {
+        "recent": "工业金属轮番活跃，铜铝铅锌表现强势",
+        "logic": "国内稳增长政策托底需求，供给端约束支撑价格，资源股估值修复",
+        "stocks": ["紫金矿业", "云铝股份", "神火股份", "兴业银锡"],
+    },
+    "油服工程": {
+        "recent": "油服工程持续走强，能源股受资金青睐",
+        "logic": "国际油价维持高位，中东局势反复，油服景气周期向上",
+        "stocks": ["中国海洋石油"],
+    },
+    "电力": {
+        "recent": "电力板块持续受资金青睐，表现稳健",
+        "logic": "高股息防御属性+夏季用电高峰+电力改革政策",
+        "stocks": [],
+    },
+    "半导体": {
+        "recent": "半导体板块关注度下降，短期分化回调",
+        "logic": "前期涨幅过大，短期资金获利了结；中长期国产替代和AI算力需求逻辑不变",
+        "stocks": ["科创半导体ETF华夏"],
+    },
+}
+
+
+def _generate_stock_note(s):
+    """根据自选股涨跌幅和技术面生成备注。"""
+    pct = s.get("pct", 0)
+    code = s.get("code", "")
+    name = s.get("name", "")
+    tech = s.get("_tech", {})
+
+    # 涨停/接近涨停
+    if pct >= 9.5:
+        return "涨停" if s.get("market") != "HK" else "暴涨"
+    if pct >= 7:
+        return "强势领涨"
+    if pct >= 5:
+        base = STOCK_SECTOR.get(code, "").split("/")[0]
+        return base if base else "大幅上涨"
+    if pct >= 2:
+        base = STOCK_SECTOR.get(code, "").split("/")[0]
+        return base if base else "温和上涨"
+    if pct >= -1:
+        # 平盘附近，查技术面
+        if tech.get("macd_signal", "").startswith("死叉"):
+            return "弱势震荡"
+        if tech.get("kdj_signal", "").startswith("超买"):
+            return "高位整理"
+        return "窄幅震荡"
+    if pct >= -3:
+        return "小幅回调"
+    if pct >= -5:
+        base = STOCK_SECTOR.get(code, "")
+        if "/" in base:
+            return base.split("/")[0]
+        return "回调"
+    return "大幅下跌"
+
+
+def _mid_term_outlook(industries, fund_flows):
+    """根据当日板块和资金流向生成中期展望。"""
+    if not industries:
+        return "（板块数据暂不可用，中期展望待更新）"
+
+    sorted_inds = sorted(industries, key=lambda x: x["pct"], reverse=True)
+
+    # 找出强势板块（涨幅前5且与自选股相关的）
+    strong_names = [s["name"] for s in sorted_inds[:10]]
+    weak_names = [s["name"] for s in sorted_inds[-5:]]
+
+    # 资金流向强的板块
+    flow_map = {}
+    if fund_flows:
+        for f in fund_flows:
+            flow_map[f["name"]] = f["main_net"]
+
+    # 筛选出与模板匹配的板块
+    outlook_parts = []
+    used_templates = set()
+    idx = 1
+
+    for ind in sorted_inds[:15]:
+        name = ind["name"]
+        for key, tmpl in MIDTERM_SECTOR_TEMPLATES.items():
+            if key in name and key not in used_templates:
+                used_templates.add(key)
+                flow = flow_map.get(name)
+                flow_str = f"，主力净流入{flow:+.1f}亿" if flow and flow > 0 else ""
+                outlook_parts.append(
+                    f"{idx}. **{name}板块**\n"
+                    f"* 近期表现：{tmpl['recent']}{flow_str}\n"
+                    f"* 看好逻辑：{tmpl['logic']}\n"
+                    f"* 代表标的：{'、'.join(tmpl['stocks'])}"
+                )
+                idx += 1
+                break
+        if len(outlook_parts) >= 4:
+            break
+
+    # 补充通用强势板块
+    if len(outlook_parts) < 4:
+        for ind in sorted_inds[:15]:
+            name = ind["name"]
+            if any(name in p for p in outlook_parts):
+                continue
+            flow = flow_map.get(name)
+            flow_str = f"，主力净流入{flow:+.1f}亿" if flow and flow > 0 else ""
+            outlook_parts.append(
+                f"{idx}. **{name}板块**\n"
+                f"* 近期表现：今日涨{ind['pct']:+.2f}%{flow_str}\n"
+                f"* 看好逻辑：板块资金关注度高，短期趋势向好\n"
+                f"* 代表标的：关注板块龙头"
+            )
+            idx += 1
+            if len(outlook_parts) >= 4:
+                break
+
+    # 需回避板块
+    avoid_parts = []
+    avoid_count = 0
+    for ind in reversed(sorted_inds[-10:]):  # 跌幅最大排第一
+        name = ind["name"]
+        pct = ind["pct"]
+        if pct >= -1:
+            continue
+        reason = _get_sector_reason(name, pct)
+        flow = flow_map.get(name)
+        flow_str = f"，主力净流出{abs(flow):.1f}亿" if flow and flow < 0 else ""
+        avoid_parts.append(f"* **{name}**：{reason}{flow_str}")
+        avoid_count += 1
+        if avoid_count >= 3:
+            break
+
+    result = "\n\n".join(outlook_parts)
+    if avoid_parts:
+        result += "\n\n**需回避板块：**\n" + "\n".join(avoid_parts)
+
+    return result if result else "（数据不足，中期展望待更新）"
+
+
+def _tomorrow_watch(indices_kline, indices_tech, overview, news):
+    """生成明日关注内容。"""
+    parts = []
+
+    # 关键点位（上证指数）
+    sh_klines = indices_kline.get("000001", [])
+    if len(sh_klines) >= 3:
+        recent_high = max(k["high"] for k in sh_klines[-5:])
+        recent_low = min(k["low"] for k in sh_klines[-5:])
+        today_low = sh_klines[-1]["low"]
+        today_high = sh_klines[-1]["high"]
+        today_close = sh_klines[-1]["close"]
+        parts.append(
+            f"* **关键点位**：上证支撑 {today_low:.0f}/压力 {today_high:.0f}，"
+            f"5日区间 {recent_low:.0f}-{recent_high:.0f}"
+        )
+
+    # 需关注事件
+    events = []
+    for n in (news or [])[:10]:
+        title = n.get("title", "")
+        for kw in ["美联储", "央行", "MLF", "LPR", "降息", "降准", "政策", "会议",
+                     "数据", "GDP", "CPI", "PMI", "非农", "地缘", "中东",
+                     "俄乌", "关税", "制裁", "减持", "解禁"]:
+            if kw in title:
+                events.append(title)
+                break
+    events = list(dict.fromkeys(events))[:3]  # 去重取前3
+    if events:
+        parts.append(f"* **需关注事件**：{'；'.join(events)}")
+
+    # 操作建议
+    up = overview.get("up", 0)
+    down = overview.get("down", 0)
+    total = up + down
+    up_ratio = up / total if total > 0 else 0.5
+
+    sh_tech = indices_tech.get("000001", {})
+    macd_sig = sh_tech.get("macd_signal", "")
+    kdj_sig = sh_tech.get("kdj_signal", "")
+
+    advice_parts = []
+    if up_ratio > 0.6:
+        advice_parts.append("市场情绪偏暖，可适度参与强势板块低吸机会")
+    elif up_ratio < 0.3:
+        advice_parts.append("市场情绪偏弱，控制仓位，等待企稳信号")
+    else:
+        advice_parts.append("市场分化明显，精选个股，控制仓位")
+
+    if "超买" in kdj_sig:
+        advice_parts.append("上证KDJ超买，短线追高需谨慎")
+    if "死叉" in macd_sig:
+        advice_parts.append("上证MACD死叉，注意回调风险")
+    if "金叉" in macd_sig:
+        advice_parts.append("上证MACD金叉，中线趋势转好")
+
+    parts.append(f"* **操作建议**：{'；'.join(advice_parts)}")
+
+    return "\n".join(parts)
+
+
+def _gen_midterm_with_ai_hint(industries, fund_flows):
+    """如果板块数据不可用，给一个简要说明。"""
+    outlook = _mid_term_outlook(industries, fund_flows)
+    return outlook
+
+
+# ============================================================
 # 技术分析汇总
 # ============================================================
 def analyze_technicals(kline_data):
@@ -1463,6 +1839,15 @@ def fetch_all_data():
         if klines and tech:
             watchlist_summary[s["code"]] = generate_tech_summary(klines, tech, s["name"])
 
+    # === PE估值 ===
+    print("\n--- 市场估值 ---")
+    market_pe = get_market_pe()
+
+    # 将tech数据附加到watchlist（供备注生成用）
+    for w in watchlist:
+        tech = watchlist_tech.get(w["code"], {})
+        w["_tech"] = tech
+
     return {
         "overview": overview,
         "indices": indices,
@@ -1477,6 +1862,7 @@ def fetch_all_data():
         "watchlist_kline": watchlist_kline,
         "indices_summary": indices_summary,
         "watchlist_summary": watchlist_summary,
+        "market_pe": market_pe,
     }
 
 # ============================================================
@@ -1999,24 +2385,27 @@ def get_report_url(date_str=None):
     return f"{GITHUB_PAGES_BASE}/reports/{date_str}.html"
 
 def build_summary_md(all_data):
+    """构建钉钉推送摘要 — 六段式完整复盘 v8。"""
     overview = all_data.get("overview", {})
     indices = all_data.get("indices", [])
     watchlist = all_data.get("watchlist", [])
-    indices_tech = all_data.get("indices_tech", {})
-    watchlist_tech = all_data.get("watchlist_tech", {})
-    indices_summary = all_data.get("indices_summary", {})
+    industries = all_data.get("industries", [])
+    concepts = all_data.get("concepts", [])
     fund_flows = all_data.get("fund_flows", [])
     news = all_data.get("news", [])
+    indices_tech = all_data.get("indices_tech", {})
+    indices_kline = all_data.get("indices_kline", {})
+    indices_summary = all_data.get("indices_summary", {})
+    market_pe = all_data.get("market_pe")
 
     up = overview.get("up", 0)
     down = overview.get("down", 0)
-    limit_up = overview.get("limit_up", 0)
-    limit_down = overview.get("limit_down", 0)
     total_amount = overview.get("total_amount", 0)
     total_amt_chg_pct = overview.get("total_amount_change_pct")
     total_amt_chg_abs = overview.get("total_amount_change_abs", 0)
     if total_amt_chg_pct is not None:
-        amt_chg_md = f" (较前日{'+' if total_amt_chg_abs > 0 else ''}{total_amt_chg_abs:.0f}亿, {total_amt_chg_pct:+.1f}%)"
+        direction = "放量" if total_amt_chg_abs > 0 else "缩量"
+        amt_chg_md = f"（较昨日{direction}约{abs(total_amt_chg_pct):.0f}%）"
     else:
         amt_chg_md = ""
 
@@ -2025,72 +2414,108 @@ def build_summary_md(all_data):
     weekdays = ["一", "二", "三", "四", "五", "六", "日"]
     display_date = f"{now.strftime('%Y-%m-%d')}（周{weekdays[now.weekday()]}）"
 
-    md = f"### A股收盘复盘 v7.2\n**{display_date}**\n\n---\n\n"
-    md += f"**市场概况：** 上涨 **{up}** 家 / 下跌 **{down}** 家 | 涨停 **{limit_up}** / 跌停 **{limit_down}** | 成交 **{total_amount:.0f}** 亿{amt_chg_md}\n\n"
+    md = f"### A股每日收盘复盘\n**日期： {display_date}**\n\n---\n\n"
 
-    md += "**主要指数：**\n"
-    for idx in indices:
+    # ================================================================
+    # 一、大盘概览 — 指数表格 + 成交额 + PE
+    # ================================================================
+    md += "**一、大盘概览**\n\n"
+    md += "| 指数 | 收盘 | 涨跌幅 | 成交额 |\n"
+    md += "|------|------|--------|--------|\n"
+    for idx in indices[:5]:  # 前5个主要指数
         pct = idx.get("pct", 0)
-        emoji = "🔴" if pct > 0 else ("🟢" if pct < 0 else "⚪")
-        t = indices_tech.get(idx.get("code", ""), {})
-        rsi_str = f" RSI6:{t.get('rsi6','-')}" if t else ""
-        amt_chg = idx.get("amount_change")
-        amt_str = f" 成交额{amt_chg:+.1f}%" if amt_chg is not None else ""
-        md += f"- {emoji} **{idx['name']}**: {idx.get('price',0):.2f} ({pct:+.2f}%){rsi_str}{amt_str}\n"
+        price = idx.get("price", 0)
+        amt = idx.get("amount", 0)
+        if idx["code"] in ("399006", "000688"):
+            amt_str = f"{amt:.0f}亿" if amt > 0 else "-"
+        else:
+            amt_str = f"{amt:.0f}亿" if amt > 0 else "-"
+        md += f"| {idx['name']} | {price:.2f} | {pct:+.2f}% | {amt_str} |\n"
 
-    # 上证指数技术分析总结
+    md += f"* 全市场：约**{up}**家上涨 / 超**{down}**家下跌\n"
+    md += f"* 两市成交：约**{total_amount:.0f}**亿{amt_chg_md}\n"
+    if market_pe:
+        md += f"* 市场估值：上证PE **{market_pe:.2f}**\n"
+
+    # 上证技术分析
     sh_summary = indices_summary.get("000001", "")
     if sh_summary:
-        md += f"\n**上证指数技术分析：** {sh_summary}\n"
+        md += f"\n> 上证技术：{sh_summary}\n"
 
-    # 行业资金流向
-    if fund_flows:
-        inflow_top5 = sorted(fund_flows, key=lambda x: x["main_net"], reverse=True)[:5]
-        outflow_list = [f for f in fund_flows if f["main_net"] < 0]
-        outflow_top5 = sorted(outflow_list, key=lambda x: x["main_net"])[:5]
-        md += "\n**资金流入前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in inflow_top5]) + "\n"
-        if outflow_top5:
-            md += "**资金流出前五：** " + " / ".join([f"{f['name']}({f['main_net']:+.1f}亿)" for f in outflow_top5]) + "\n"
-        else:
-            md += "**资金流出前五：** 今日全行业资金净流入，无净流出行业\n"
+    md += "\n---\n\n"
 
-    # 自选股涨跌幅前三 (含港股)
-    all_stocks = list(watchlist)
-    all_stocks.sort(key=lambda x: x.get("pct", 0), reverse=True)
-    if all_stocks:
-        md += f"\n**自选股涨幅前三：**\n"
-        for s in all_stocks[:3]:
-            st = watchlist_tech.get(s["code"], {})
-            sig = f" — {st.get('macd_signal','')}" if st.get("macd_signal") else ""
-            md += f"- {s['name']}: {s.get('pct',0):+.2f}%{sig}\n"
-        md += f"\n**自选股跌幅前三：**\n"
-        for s in all_stocks[-3:]:
-            st = watchlist_tech.get(s["code"], {})
-            sig = f" — {st.get('macd_signal','')}" if st.get("macd_signal") else ""
-            md += f"- {s['name']}: {s.get('pct',0):+.2f}%{sig}\n"
+    # ================================================================
+    # 二、板块表现 — 涨幅/跌幅前5 + 逻辑 + 热门概念
+    # ================================================================
+    md += "**二、板块表现**\n\n"
 
-    # 技术预警
-    alerts = []
+    if industries:
+        sorted_inds = sorted(industries, key=lambda x: x["pct"], reverse=True)
+
+        md += "**涨幅前5（申万一级）：**\n"
+        for i, ind in enumerate(sorted_inds[:5], 1):
+            reason = _get_sector_reason(ind["name"], ind["pct"])
+            md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
+
+        md += "\n**跌幅前5（申万一级）：**\n"
+        bottom5 = list(reversed(sorted_inds[-5:]))  # 跌幅最大排第一
+        for i, ind in enumerate(bottom5, 1):
+            reason = _get_sector_reason(ind["name"], ind["pct"])
+            md += f"{i}.  **{ind['name']}** {ind['pct']:+.2f}%  — {reason}\n"
+    else:
+        md += "（板块数据暂不可用，将在后续更新中补充）\n"
+
+    # 热门概念前5
+    if concepts:
+        md += "\n**热门概念板块：**\n"
+        for i, c in enumerate(concepts[:5], 1):
+            md += f"{i}.  **{c['name']}** {c['pct']:+.2f}%\n"
+
+    md += "\n---\n\n"
+
+    # ================================================================
+    # 三、自选股表现 — 全部列表 + 备注
+    # ================================================================
+    md += "**三、自选股表现**\n\n"
+    md += "| 股票 | 收盘价 | 涨跌幅 | 备注 |\n"
+    md += "|------|--------|--------|------|\n"
+
+    # 按涨跌幅排序
+    all_stocks = sorted(watchlist, key=lambda x: x.get("pct", 0), reverse=True)
     for s in all_stocks:
-        st = watchlist_tech.get(s["code"], {})
-        if st:
-            macd = st.get("macd_signal", "")
-            kdj = st.get("kdj_signal", "")
-            if "金叉" in macd or "死叉" in macd or "超买" in kdj or "超卖" in kdj:
-                alerts.append(f"{s['name']}: {macd} {kdj}".strip())
-    if alerts:
-        md += f"\n**技术信号预警：**\n"
-        for a in alerts[:5]:
-            md += f"- ⚡ {a}\n"
+        pct = s.get("pct", 0)
+        price = s.get("price", 0)
+        is_hk = s.get("market") == "HK"
+        price_sym = "HK$" if is_hk else "¥"
+        note = _generate_stock_note(s)
+        md += f"| {s['name']}{'(HK)' if is_hk else ''} | {price_sym}{price:.2f} | {pct:+.2f}% | {note} |\n"
 
-    # 要闻
+    md += "\n---\n\n"
+
+    # ================================================================
+    # 四、今日要闻
+    # ================================================================
     if news:
-        md += "\n**今日要闻：**\n"
-        for n in news[:5]:
-            time_str = n.get("time", "")
-            md += f"- [{time_str}] {n['title']}\n"
+        md += "**四、今日要闻**\n"
+        for i, n in enumerate(news[:5], 1):
+            md += f"{i}.  {n['title']}\n"
+        md += "\n---\n\n"
+
+    # ================================================================
+    # 五、中期板块展望
+    # ================================================================
+    md += "**五、中期板块展望**\n\n"
+    md += "基于近期走势、资金动向、政策面和基本面，分析中期（1-3个月）最看好的板块：\n\n"
+    md += _mid_term_outlook(industries, fund_flows)
+    md += "\n\n---\n\n"
+
+    # ================================================================
+    # 六、明日关注
+    # ================================================================
+    md += "**六、明日关注**\n\n"
+    md += _tomorrow_watch(indices_kline, indices_tech, overview, news)
 
     report_url = get_report_url()
-    md += f"\n[查看完整复盘报告]({report_url})\n"
+    md += f"\n\n[查看完整复盘报告]({report_url})\n"
 
     return md

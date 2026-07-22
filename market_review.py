@@ -1,5 +1,5 @@
 """
-A 股每日收盘复盘 — 云函数版（v2）
+A 股每日收盘复盘 — 云函数版（v3 - 六段式完整复盘）
 生成 HTML 报告部署到 GitHub Pages，钉钉推送摘要 + 链接。
 """
 import sys
@@ -40,7 +40,7 @@ def _run_review_impl():
         print(f"[{today}] 今日非交易日，跳过复盘。")
         return {"status": "holiday", "msg": "今日休市"}
 
-    print(f"[{today}] 开始收盘复盘 (v2)...")
+    print(f"[{today}] 开始收盘复盘 (v3 六段式)...")
 
     # 1. 获取所有数据
     print("=" * 50)
