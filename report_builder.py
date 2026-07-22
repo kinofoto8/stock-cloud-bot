@@ -906,14 +906,15 @@ def _parse_tencent_boards(rank_key="plate"):
 
 
 def get_industry_boards():
-    """行业板块 — EM(申万一级) > 腾讯(申万二级top6) > Sina(不推荐)"""
+    """行业板块 — EM(申万一级) > 腾讯(申万二级top6) > Sina(不推荐)
+    m:90+t:1 = 申万一级行业(31个), m:90+t:2 = 申万二级(100+含子类)"""
     print("  [3/5] 获取行业板块...")
     # 尝试 EM clist (申万一级行业, GitHub Actions可用)
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "100", "po": "1", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f3",
-        "fs": "m:90+t:2",
+        "fs": "m:90+t:1",  # 申万一级行业 (t:2是二级, 会混入"铜""铝"等子类)
         "fields": "f2,f3,f12,f14,f104,f105,f106",
     }
     data = em_fetch_json(url, params)
@@ -931,7 +932,7 @@ def get_industry_boards():
                 "fall_count": safe_int(it.get("f105")),
                 "flat_count": safe_int(it.get("f106")),
             })
-        print(f"  [OK] EM行业板块: {len(boards)}个")
+        print(f"  [OK] EM申万一级行业: {len(boards)}个")
         return boards
 
     # EM 失败 → 腾讯看板 (申万二级, top 6)
@@ -955,8 +956,37 @@ def get_industry_boards():
         print(f"  [WARN] Sina行业板块也失败: {e}")
         return []
 
+# 概念板块黑名单: 技术形态/风格/指数类, 不属于真正"概念板块"
+_CONCEPT_BLACKLIST = [
+    "连板", "打板", "涨停", "首板", "多板", "二板",
+    "高换手", "高振幅", "换手",
+    "题材股", "反转股",
+    "中盘股", "大盘股", "小盘股", "龙头股", "价值股",
+    "上证50", "沪深300", "MSCI", "标准普尔", "央视",
+    "历史新高", "新股", "次新股",
+    "回购增持", "TMT", "中特估",
+]
+
+_CONCEPT_NO_LEADING = [
+    "昨日", "最近", "今日",
+]
+
+def _is_valid_concept(name):
+    """判断是否为有效的概念板块(排除技术形态/风格/指数类)。"""
+    if not name:
+        return False
+    for banned in _CONCEPT_NO_LEADING:
+        if name.startswith(banned):
+            return False
+    for banned in _CONCEPT_BLACKLIST:
+        if banned in name:
+            return False
+    return True
+
+
 def get_concept_boards():
-    """概念板块 — EM > 腾讯 > Sina"""
+    """概念板块 — EM(过滤后) > 腾讯 > Sina
+    过滤掉连板/打板/涨停/高换手等技术形态, 仅保留真正概念板块。"""
     print("  [4/5] 获取概念板块...")
     # 尝试 EM clist
     url = "https://push2.eastmoney.com/api/qt/clist/get"
@@ -970,23 +1000,29 @@ def get_concept_boards():
     items = (data.get("data") or {}).get("diff", [])
 
     if items:
-        boards = []
+        all_boards = []
+        filtered = []
         for it in items:
-            boards.append({
-                "name": it.get("f14", ""),
+            name = it.get("f14", "")
+            pct = safe_float(it.get("f3"))
+            board = {
+                "name": name,
                 "code": it.get("f12", ""),
-                "pct": safe_float(it.get("f3")),
+                "pct": pct,
                 "price": safe_float(it.get("f2")),
-            })
-        boards.sort(key=lambda x: x["pct"], reverse=True)
-        print(f"  [OK] EM概念板块: {len(boards)}个")
-        return boards
+            }
+            all_boards.append(board)
+            if _is_valid_concept(name):
+                filtered.append(board)
+        filtered.sort(key=lambda x: x["pct"], reverse=True)
+        filtered_count = len(all_boards) - len(filtered)
+        print(f"  [OK] EM概念板块: {len(all_boards)}个 → 过滤后 {len(filtered)}个 (排除{filtered_count}个技术形态/风格类)")
+        return filtered
 
     # EM 失败 → 腾讯看板
     print("  [INFO] EM概念API不可用, 尝试腾讯看板...")
     tencent_boards = _parse_tencent_boards("concept")
     if tencent_boards:
-        # 腾讯概念板块也按 pct 排, 取涨跌 top 6
         tencent_boards.sort(key=lambda x: x["pct"], reverse=True)
         print(f"  [INFO] 腾讯概念板块: {len(tencent_boards)}个")
         return tencent_boards
@@ -1006,14 +1042,15 @@ def get_concept_boards():
         return []
 
 def get_industry_fund_flow():
-    """行业资金流向 — EM > 腾讯 fundflow"""
+    """行业资金流向 — EM(申万一级) > 腾讯 fundflow
+    m:90+t:1 确保不会出现"铜""铝"等二级子类独立显示。"""
     print("  [5/5] 获取资金流向...")
     # 尝试 EM (最全)
     url = "https://push2.eastmoney.com/api/qt/clist/get"
     params = {
         "pn": "1", "pz": "100", "po": "1", "np": "1",
         "fltt": "2", "invt": "2", "fid": "f62",
-        "fs": "m:90+t:2",
+        "fs": "m:90+t:1",  # 申万一级 (t:2会混入"铜""铝"等子类)
         "fields": "f2,f3,f12,f14,f62,f184,f66,f72,f78,f84",
     }
     data = em_fetch_json(url, params)
@@ -1306,6 +1343,16 @@ SECTOR_LOGIC_MAP = {
     "非银金融": "资本市场活跃+险企投资改善+券商弹性",
     "钢铁行业": "基建投资发力+限产预期+铁矿石成本支撑",
     "有色金属行业": "铜铝等基本金属反弹，供需紧平衡预期",
+    # === 申万一级补充 ===
+    "电子": "AI算力需求+国产替代+半导体周期复苏",
+    "通信": "AI算力硬件+5G-A升级+光通信景气",
+    "医药生物": "创新药出海+医疗器械国产化+估值修复",
+    "建筑材料": "地产链拖累+水泥需求疲弱+玻璃产能过剩",
+    "电力设备": "光伏产能过剩+锂电价格战+电网投资支撑",
+    "汽车": "新能源车销量超预期+智能驾驶落地+出海加速",
+    "房地产": "销售数据低迷+融资压力+政策效果待观察",
+    "轻工制造": "出口订单回暖+原材料价格下降+内需恢复",
+    "综合": "多业务布局+主题催化+资金轮动",
 }
 
 SECTOR_WEAK_MAP = {
@@ -1333,6 +1380,15 @@ SECTOR_WEAK_MAP = {
     "煤炭开采": "煤价回落+季节性需求转淡+新能源替代",
     "社会服务": "消费复苏低于预期+估值偏高",
     "商贸零售": "消费疲弱+电商分流+线下客流低迷",
+    # === 申万一级补充 ===
+    "电子": "前期涨幅过大+科技股获利回吐+估值消化",
+    "通信": "AI算力硬件回调+资金获利了结+5G投资节奏放缓",
+    "医药生物": "集采政策持续影响+创新药研发不确定性+估值承压",
+    "建筑材料": "地产链持续低迷+水泥需求疲弱+行业产能过剩",
+    "电力设备": "光伏锂电产能过剩+价格战持续+海外贸易壁垒",
+    "房地产": "销售数据低迷+融资压力大+市场信心不足",
+    "轻工制造": "出口不确定性+内需疲弱+成本上升",
+    "综合": "缺乏主线+资金分散+市场风格轮动",
 }
 
 
@@ -1389,6 +1445,14 @@ STOCK_SECTOR_LABEL = {
 }
 
 MIDTERM_SECTOR_TEMPLATES = {
+    # 申万一级: 有色金属 (覆盖贵金属、工业金属等二级子类)
+    "有色金属": {
+        "recent": "有色金属板块整体走强，贵金属和工业金属领涨",
+        "logic": "美联储降息预期升温推升金价，地缘风险提供避险需求；铜铝供给端约束支撑价格，资源股估值修复空间大",
+        "stocks": ["赤峰黄金", "中金黄金", "紫金矿业", "兴业银锡", "紫金黄金国际"],
+        "aliases": ["贵金属", "工业金属"],
+    },
+    # 兼容旧版腾讯回退时的申万二级名称
     "贵金属": {
         "recent": "贵金属连续领涨，资金持续流入",
         "logic": "美联储降息预期升温推升金价，地缘风险提供避险需求，黄金股业绩弹性大",
@@ -1399,15 +1463,36 @@ MIDTERM_SECTOR_TEMPLATES = {
         "logic": "国内稳增长政策托底需求，供给端约束支撑价格，资源股估值修复",
         "stocks": ["紫金矿业", "云铝股份", "神火股份", "兴业银锡"],
     },
+    # 申万一级: 石油石化 (覆盖油服工程等)
+    "石油石化": {
+        "recent": "石油石化持续走强，能源股受资金青睐",
+        "logic": "国际油价维持高位，中东局势反复，油服景气周期向上",
+        "stocks": ["中国海洋石油"],
+        "aliases": ["油服工程"],
+    },
     "油服工程": {
         "recent": "油服工程持续走强，能源股受资金青睐",
         "logic": "国际油价维持高位，中东局势反复，油服景气周期向上",
         "stocks": ["中国海洋石油"],
     },
+    # 申万一级: 公用事业 (覆盖电力等)
+    "公用事业": {
+        "recent": "公用事业板块持续受资金青睐，表现稳健",
+        "logic": "高股息防御属性+夏季用电高峰+电力改革政策",
+        "stocks": [],
+        "aliases": ["电力"],
+    },
     "电力": {
         "recent": "电力板块持续受资金青睐，表现稳健",
         "logic": "高股息防御属性+夏季用电高峰+电力改革政策",
         "stocks": [],
+    },
+    # 申万一级: 电子 (覆盖半导体等)
+    "电子": {
+        "recent": "电子板块关注度下降，短期分化回调",
+        "logic": "前期涨幅过大，短期资金获利了结；中长期国产替代和AI算力需求逻辑不变",
+        "stocks": ["科创半导体ETF华夏"],
+        "aliases": ["半导体"],
     },
     "半导体": {
         "recent": "半导体板块关注度下降，短期分化回调",
@@ -1480,6 +1565,9 @@ def _mid_term_outlook(industries, fund_flows):
         for key, tmpl in MIDTERM_SECTOR_TEMPLATES.items():
             if key in name and key not in used_templates:
                 used_templates.add(key)
+                # 同时标记别名(避免一级/二级重复匹配)
+                for alias in tmpl.get("aliases", []):
+                    used_templates.add(alias)
                 flow = flow_map.get(name)
                 flow_str = f"，主力净流入{flow:+.1f}亿" if flow and flow > 0 else ""
                 outlook_parts.append(
