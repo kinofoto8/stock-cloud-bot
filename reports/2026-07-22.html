@@ -87,11 +87,24 @@ tr:hover td{background:#fafbfc}
     <div class="chart-box" id="chart-industry" style="height:350px"></div>
     <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序</div>
   </div>
-</div>
-
-<div class="section">
-  <div class="section-title">三、行业资金流向</div>
-  <p style="color:#999;padding:40px 0;text-align:center">东方财富API在GitHub Actions环境受限，暂无实时资金流向数据。<br>建议通过本地环境运行获取完整数据。</p>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">三、行业资金流向</div>
+    <div class="board-grid">
+      <div class="board-col">
+        <h4 style="color:#c0392b">资金流入前五</h4>
+        <div class="board-item"><span class="name">有色金属 <span style="color:#999;font-size:11px">(+0.57%)</span></span><span class="pct up">+65.76亿</span></div>
+        <div class="board-item"><span class="name">工业金属 <span style="color:#999;font-size:11px">(+0.92%)</span></span><span class="pct up">+40.62亿</span></div>
+        <div class="board-item"><span class="name">铜 <span style="color:#999;font-size:11px">(+3.09%)</span></span><span class="pct up">+35.14亿</span></div>
+        <div class="board-item"><span class="name">贵金属 <span style="color:#999;font-size:11px">(+6.38%)</span></span><span class="pct up">+18.98亿</span></div>
+        <div class="board-item"><span class="name">电力 <span style="color:#999;font-size:11px">(+2.37%)</span></span><span class="pct up">+17.63亿</span></div>
+      </div>
+      <div class="board-col">
+        <h4 style="color:#27ae60">资金流出前五</h4>
+        <div class="board-item" style="color:#999;padding:20px 0;text-align:center">今日全行业资金净流入，无净流出行业</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出 TOP 5（亿元），数据来源：东方财富</div>
+  </div>
 </div>
 
 <div class="section">
@@ -99,29 +112,29 @@ tr:hover td{background:#fafbfc}
   <div class="board-grid">
     <div class="board-col">
       <h4>涨幅 Top 10</h4>
-      <div class="board-item"><span class="name">黄金概念</span><span class="pct up">+0.65%</span></div>
-      <div class="board-item"><span class="name">聚氨酯</span><span class="pct up">+0.47%</span></div>
-      <div class="board-item"><span class="name">超大盘</span><span class="pct up">+0.41%</span></div>
-      <div class="board-item"><span class="name">华为海思</span><span class="pct up">+0.36%</span></div>
-      <div class="board-item"><span class="name">白酒概念</span><span class="pct up">+0.30%</span></div>
-      <div class="board-item"><span class="name">仿制药</span><span class="pct up">+0.24%</span></div>
-      <div class="board-item"><span class="name">分拆上市</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">基金重仓</span><span class="pct up">+0.22%</span></div>
-      <div class="board-item"><span class="name">锂矿</span><span class="pct up">+0.21%</span></div>
-      <div class="board-item"><span class="name">稀缺资源</span><span class="pct up">+0.20%</span></div>
+      <div class="board-item"><span class="name">昨日打二板以上表现</span><span class="pct up">+9.98%</span></div>
+      <div class="board-item"><span class="name">昨日连板_含一字</span><span class="pct up">+7.05%</span></div>
+      <div class="board-item"><span class="name">昨日连板</span><span class="pct up">+6.31%</span></div>
+      <div class="board-item"><span class="name">题材股</span><span class="pct up">+3.48%</span></div>
+      <div class="board-item"><span class="name">资源开采概念</span><span class="pct up">+3.06%</span></div>
+      <div class="board-item"><span class="name">反转股</span><span class="pct up">+2.03%</span></div>
+      <div class="board-item"><span class="name">黄金概念</span><span class="pct up">+1.93%</span></div>
+      <div class="board-item"><span class="name">最近多板</span><span class="pct up">+1.79%</span></div>
+      <div class="board-item"><span class="name">昨日涨停_含一字</span><span class="pct up">+1.54%</span></div>
+      <div class="board-item"><span class="name">国资云概念</span><span class="pct up">+1.51%</span></div>
     </div>
     <div class="board-col">
       <h4>表现最弱 Top 10</h4>
-      <div class="board-item"><span class="name">科创50</span><span class="pct down">-1.34%</span></div>
-      <div class="board-item"><span class="name">HIT电池</span><span class="pct down">-1.29%</span></div>
-      <div class="board-item"><span class="name">专精特新</span><span class="pct down">-1.16%</span></div>
-      <div class="board-item"><span class="name">钠电池</span><span class="pct down">-1.12%</span></div>
-      <div class="board-item"><span class="name">华为概念</span><span class="pct down">-0.94%</span></div>
-      <div class="board-item"><span class="name">智能穿戴</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">BC电池</span><span class="pct down">-0.92%</span></div>
-      <div class="board-item"><span class="name">固态电池</span><span class="pct down">-0.89%</span></div>
-      <div class="board-item"><span class="name">黄河三角</span><span class="pct down">-0.84%</span></div>
-      <div class="board-item"><span class="name">无线耳机</span><span class="pct down">-0.82%</span></div>
+      <div class="board-item"><span class="name">水产概念</span><span class="pct down">-0.05%</span></div>
+      <div class="board-item"><span class="name">央视50_</span><span class="pct down">-0.03%</span></div>
+      <div class="board-item"><span class="name">标准普尔</span><span class="pct down">-0.03%</span></div>
+      <div class="board-item"><span class="name">云计算</span><span class="pct down">-0.03%</span></div>
+      <div class="board-item"><span class="name">MSCI中国</span><span class="pct down">-0.01%</span></div>
+      <div class="board-item"><span class="name">历史新高</span><span class="pct down">+0.00%</span></div>
+      <div class="board-item"><span class="name">肝炎概念</span><span class="pct up">+0.01%</span></div>
+      <div class="board-item"><span class="name">F5G概念</span><span class="pct up">+0.02%</span></div>
+      <div class="board-item"><span class="name">价值股</span><span class="pct up">+0.03%</span></div>
+      <div class="board-item"><span class="name">病原体防治</span><span class="pct up">+0.07%</span></div>
     </div></div></div>
 <div class="section">
   <div class="section-title">五、自选股表现</div>
@@ -1223,7 +1236,7 @@ tr:hover td{background:#fafbfc}
       </tr>
     </tbody></table></div>
 <div class="source">
-  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:27:45 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-07-22 18:36:05 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
 </div></div>
 
 <script>
@@ -1236,8 +1249,8 @@ tr:hover td{background:#fafbfc}
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
     xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
-    yAxis: { type: 'category', data: ["\u9676\u74f7\u884c\u4e1a", "\u9020\u7eb8\u884c\u4e1a", "\u91d1\u878d\u884c\u4e1a", "\u5f00\u53d1\u533a", "\u519c\u836f\u5316\u80a5", "\u6709\u8272\u91d1\u5c5e", "\u7535\u529b\u884c\u4e1a", "\u77f3\u6cb9\u884c\u4e1a", "\u7164\u70ad\u884c\u4e1a", "\u917f\u9152\u884c\u4e1a"], axisLabel: { fontSize: 12 } },
-    series: [{ type: 'bar', data: [0.04, 0.07, 0.07, 0.09, 0.14, 0.16, 0.17, 0.25, 0.26, 0.3],
+    yAxis: { type: 'category', data: ["\u623f\u5730\u4ea7\u7efc\u5408\u670d\u52a1", "\u6cb9\u7530\u670d\u52a1", "\u5149\u4f0f\u4e3b\u6750", "\u533b\u7597\u7f8e\u5bb9", "\u6c28\u7eb6", "\u533b\u7f8e\u8017\u6750", "\u94be\u80a5", "\u9ec4\u91d1", "\u8d35\u91d1\u5c5e", "\u767d\u94f6"], axisLabel: { fontSize: 12 } },
+    series: [{ type: 'bar', data: [4.18, 4.21, 4.41, 4.73, 5.34, 5.73, 6.34, 6.37, 6.38, 6.43],
       itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
       label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
     }]
