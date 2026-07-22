@@ -2290,6 +2290,267 @@ def build_tech_table_section(title, items, tech_data):
     html += "    </tbody></table></div>\n"
     return html
 
+def _gen_stock_analysis_text(stock, tech, klines):
+    """Generate per-stock technical analysis text and trend prediction.
+    Returns: (analysis_text, prediction_text, bullish_count, bearish_count)
+    """
+    pct = stock.get("pct", 0)
+    price = stock.get("price", 0)
+
+    macd_sig = tech.get("macd_signal", "")
+    kdj_sig = tech.get("kdj_signal", "")
+    rsi6 = tech.get("rsi6")
+    rsi_sig = tech.get("rsi_signal", "")
+    boll_sig = tech.get("boll_signal", "")
+    boll_upper = tech.get("boll_upper")
+    boll_mid = tech.get("boll_mid")
+    boll_lower = tech.get("boll_lower")
+    ma5 = tech.get("ma5")
+    ma10 = tech.get("ma10")
+    ma20 = tech.get("ma20")
+    ma_status = tech.get("ma_status", "")
+    vol_ratio = tech.get("vol_ratio", "")
+    kdj_j = tech.get("kdj_j")
+    kdj_k = tech.get("kdj_k")
+    chg5 = tech.get("chg_5d")
+    chg20 = tech.get("chg_20d")
+
+    analysis_parts = []
+
+    # MACD
+    if "金叉" in macd_sig:
+        analysis_parts.append(f"MACD{macd_sig}，多头动能增强")
+    elif "死叉" in macd_sig:
+        analysis_parts.append(f"MACD{macd_sig}，空头动能增强")
+    elif "多头" in macd_sig:
+        analysis_parts.append("MACD多头延续")
+    elif "空头" in macd_sig:
+        analysis_parts.append("MACD空头延续")
+
+    # KDJ
+    if kdj_j is not None:
+        if kdj_j > 100:
+            analysis_parts.append(f"KDJ-J={kdj_j:.0f}超买，短线回调压力大")
+        elif kdj_j < 0:
+            analysis_parts.append(f"KDJ-J={kdj_j:.0f}超卖，可能超跌反弹")
+        elif "金叉" in kdj_sig:
+            analysis_parts.append(f"KDJ金叉(K={kdj_k:.1f}/J={kdj_j:.1f})")
+        elif "死叉" in kdj_sig:
+            analysis_parts.append(f"KDJ死叉(K={kdj_k:.1f}/J={kdj_j:.1f})")
+
+    # RSI
+    if rsi6 is not None:
+        if rsi6 > 70:
+            analysis_parts.append(f"RSI6={rsi6:.1f}偏高")
+        elif rsi6 < 30:
+            analysis_parts.append(f"RSI6={rsi6:.1f}超卖")
+        elif rsi6 > 50:
+            analysis_parts.append(f"RSI6={rsi6:.1f}偏强")
+        else:
+            analysis_parts.append(f"RSI6={rsi6:.1f}偏弱")
+
+    # BOLL
+    if boll_sig:
+        analysis_parts.append(f"布林带{boll_sig}")
+
+    # MA
+    if ma_status:
+        analysis_parts.append(f"均线{ma_status}")
+
+    # Volume
+    if vol_ratio:
+        analysis_parts.append(f"量能{vol_ratio}")
+
+    # Recent trend
+    if chg5 is not None:
+        analysis_parts.append(f"5日{chg5:+.1f}%")
+    if chg20 is not None:
+        analysis_parts.append(f"20日{chg20:+.1f}%")
+
+    analysis_text = "，".join(analysis_parts) + "。" if analysis_parts else "技术指标数据不足。"
+
+    # Count bullish/bearish signals
+    bullish = 0
+    bearish = 0
+    if "金叉" in macd_sig or "多头" in macd_sig:
+        bullish += 1
+    if "死叉" in macd_sig or "空头" in macd_sig:
+        bearish += 1
+    if kdj_j is not None:
+        if kdj_j > 100:
+            bearish += 1
+        elif kdj_j < 0:
+            bullish += 1
+        elif "金叉" in kdj_sig:
+            bullish += 1
+        elif "死叉" in kdj_sig:
+            bearish += 1
+    if rsi6 is not None:
+        if rsi6 > 70:
+            bearish += 1
+        elif rsi6 < 30:
+            bullish += 1
+        elif rsi6 > 50:
+            bullish += 1
+        else:
+            bearish += 1
+    if "多头" in ma_status or "站上" in ma_status:
+        bullish += 1
+    if "空头" in ma_status or "跌破" in ma_status:
+        bearish += 1
+    if chg20 is not None:
+        if chg20 > 5:
+            bullish += 1
+        elif chg20 < -5:
+            bearish += 1
+
+    # Support/Resistance
+    resistance = None
+    support = None
+    if boll_upper and price > 0:
+        resistance = boll_upper
+    if boll_lower and price > 0:
+        support = boll_lower
+    # Use recent high/low
+    if klines and len(klines) >= 5:
+        recent_high = max(k["high"] for k in klines[-5:])
+        recent_low = min(k["low"] for k in klines[-5:])
+        if resistance is None or recent_high > resistance:
+            resistance = recent_high
+        if support is None or recent_low < support:
+            support = recent_low
+    # MA as fallback
+    if ma20 and price > 0:
+        if ma20 > price and (resistance is None or ma20 < resistance):
+            resistance = ma20 if resistance is None else min(resistance, ma20)
+        if ma20 < price and (support is None or ma20 > support):
+            support = ma20 if support is None else max(support, ma20)
+
+    # Trend determination
+    if bullish > bearish + 1:
+        short_term = "偏多"
+        mid_term = "看多"
+    elif bearish > bullish + 1:
+        short_term = "偏空"
+        mid_term = "看空"
+    else:
+        short_term = "震荡"
+        mid_term = "中性"
+
+    pred_parts = []
+    pred_parts.append(f"短期{short_term}")
+    pred_parts.append(f"中期{mid_term}")
+    if resistance is not None and price > 0:
+        pred_parts.append(f"阻力位{resistance:.2f}")
+    if support is not None and price > 0:
+        pred_parts.append(f"支撑位{support:.2f}")
+    prediction = "，".join(pred_parts) + "。"
+
+    return analysis_text, prediction, bullish, bearish
+
+
+def build_stock_analysis_section(watchlist, watchlist_tech, watchlist_kline):
+    """Build the per-stock technical analysis and trend prediction section."""
+    if not watchlist or not watchlist_tech:
+        return ""
+
+    html = '''<div class="section">
+  <div class="section-title">十、自选股技术分析与走势判断</div>
+  <p style="font-size:13px;color:#666;margin-bottom:14px">基于MACD/KDJ/RSI/BOLL/均线/量能等多维技术指标的综合分析，给出短期及中期走势判断。</p>
+'''
+
+    # Summary table
+    html += '''  <table style="margin-bottom:20px">
+    <thead><tr>
+      <th>股票</th><th class="num">涨跌幅</th><th class="num">MACD</th>
+      <th class="num">KDJ-J</th><th class="num">RSI6</th><th class="num">布林位置</th>
+      <th class="num">综合信号</th>
+    </tr></thead>
+    <tbody>
+'''
+    for s in watchlist:
+        code = s.get("code", "")
+        t = watchlist_tech.get(code, {})
+        if not t:
+            continue
+        pct = s.get("pct", 0)
+        pct_cls = "up" if pct > 0 else ("down" if pct < 0 else "flat")
+        macd = t.get("macd_signal", "-")
+        macd_cls = "up" if "金叉" in macd or "多头" in macd else ("down" if "死叉" in macd or "空头" in macd else "")
+        kdj_j = t.get("kdj_j")
+        kdj_str = f"{kdj_j:.1f}" if kdj_j is not None else "-"
+        rsi6 = t.get("rsi6")
+        rsi_str = f"{rsi6:.1f}" if rsi6 is not None else "-"
+        boll = t.get("boll_signal", "-")
+
+        _, _, bull, bear = _gen_stock_analysis_text(s, t, watchlist_kline.get(code, []))
+        if bull > bear + 1:
+            sig = '<span class="up">偏多</span>'
+        elif bear > bull + 1:
+            sig = '<span class="down">偏空</span>'
+        else:
+            sig = '<span class="flat">震荡</span>'
+
+        html += f'      <tr><td>{s["name"]}</td><td class="num {pct_cls}">{pct:+.2f}%</td><td class="num {macd_cls}">{macd}</td><td class="num">{kdj_str}</td><td class="num">{rsi_str}</td><td class="num" style="font-size:11px">{boll}</td><td class="num">{sig}</td></tr>\n'
+
+    html += '    </tbody></table>\n'
+
+    # Per-stock analysis cards
+    html += '  <div class="stock-analysis-grid">\n'
+
+    for s in watchlist:
+        code = s.get("code", "")
+        t = watchlist_tech.get(code, {})
+        if not t:
+            continue
+
+        klines = watchlist_kline.get(code, [])
+        analysis, prediction, bull, bear = _gen_stock_analysis_text(s, t, klines)
+
+        macd = t.get("macd_signal", "")
+        kdj_sig = t.get("kdj_signal", "")
+        rsi_sig = t.get("rsi_signal", "")
+        boll_sig = t.get("boll_signal", "")
+
+        tags = []
+        if macd:
+            cls = "tag-up" if "金叉" in macd or "多头" in macd else ("tag-down" if "死叉" in macd or "空头" in macd else "tag-neutral")
+            tags.append(f'<span class="signal-tag {cls}">MACD {macd}</span>')
+        if kdj_sig:
+            cls = "tag-up" if "金叉" in kdj_sig else ("tag-down" if "死叉" in kdj_sig else ("tag-warn" if "超买" in kdj_sig else "tag-info"))
+            tags.append(f'<span class="signal-tag {cls}">KDJ {kdj_sig}</span>')
+        if rsi_sig:
+            cls = "tag-warn" if "超买" in rsi_sig else ("tag-info" if "超卖" in rsi_sig else ("tag-up" if "偏强" in rsi_sig else "tag-down"))
+            tags.append(f'<span class="signal-tag {cls}">RSI {rsi_sig}</span>')
+        if boll_sig:
+            tags.append(f'<span class="signal-tag tag-neutral">BOLL {boll_sig}</span>')
+
+        tags_html = "".join(tags)
+
+        if bull > bear + 1:
+            trend_badge = '<span class="trend-badge trend-up">偏多</span>'
+        elif bear > bull + 1:
+            trend_badge = '<span class="trend-badge trend-down">偏空</span>'
+        else:
+            trend_badge = '<span class="trend-badge trend-neutral">震荡</span>'
+
+        market_tag = " [港股]" if s.get("market") == "HK" else ""
+        html += f'''    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">{s["name"]}{market_tag} <span style="color:#999;font-size:11px">({code})</span></span>
+        {trend_badge}
+      </div>
+      <div class="analysis-tags">{tags_html}</div>
+      <div class="analysis-text">{analysis}</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>{prediction}</div>
+    </div>
+'''
+
+    html += '  </div>\n</div>\n'
+
+    return html
+
+
 def build_html_report(all_data, date_str):
     _CHART_ID_COUNTER[0] = 0
     beijing_tz = timezone(timedelta(hours=8))
@@ -2370,6 +2631,23 @@ tr:hover td{{background:#fafbfc}}
 .tech-summary{{background:#f8f9fa;border-left:3px solid #c0392b;padding:12px 16px;margin:12px 0;border-radius:6px;font-size:13px;line-height:1.8;color:#444}}
 .stock-chart-block{{margin-bottom:24px}}
 .stock-chart-title{{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:8px;border-left:3px solid #c0392b}}
+.stock-analysis-grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}}
+.analysis-card{{background:#f8f9fa;border-radius:10px;padding:16px;border-left:3px solid #c0392b}}
+.analysis-card-header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}}
+.analysis-card-title{{font-size:15px;font-weight:700;color:#1a1a2e}}
+.analysis-tags{{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}}
+.signal-tag{{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}}
+.tag-up{{background:#fdecea;color:#c0392b}}
+.tag-down{{background:#e8f5e9;color:#27ae60}}
+.tag-warn{{background:#fff3e0;color:#e65100}}
+.tag-info{{background:#e3f2fd;color:#1565c0}}
+.tag-neutral{{background:#f5f5f5;color:#666}}
+.trend-badge{{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:700}}
+.trend-up{{background:#fdecea;color:#c0392b}}
+.trend-down{{background:#e8f5e9;color:#27ae60}}
+.trend-neutral{{background:#f5f5f5;color:#888}}
+.analysis-text{{font-size:13px;line-height:1.8;color:#444;margin-bottom:8px}}
+.analysis-prediction{{font-size:13px;line-height:1.8;color:#333;background:#fff;border-radius:6px;padding:8px 12px;border-left:2px solid #5c6bc0}}
 .source{{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}}
 </style>
 </head>
@@ -2633,6 +2911,9 @@ tr:hover td{{background:#fafbfc}}
     # === 自选股技术指标表格 ===
     html += build_tech_table_section("九、自选股技术指标扫描", watchlist, watchlist_tech)
 
+    # === 十、自选股技术分析与走势判断 ===
+    html += build_stock_analysis_section(watchlist, watchlist_tech, watchlist_kline)
+
     html += f'''<div class="source">
   以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：{now.strftime("%Y-%m-%d %H:%M:%S")} | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
 </div></div>
@@ -2873,6 +3154,20 @@ def build_summary_md(all_data):
             pct = s.get("pct", 0)
             emoji = "🔴" if pct > 3 else ("🟢" if pct < -3 else "⚪")
             md += f"- {emoji} **{s['name']}**（{pct:+.2f}%）：{summary}\n"
+
+    # --- 3e. 走势预测 ---
+    if watchlist_tech:
+        wl_kline = all_data.get("watchlist_kline", {})
+        md += "\n**走势预测：**\n"
+        for s in all_stocks:
+            code = s.get("code", "")
+            t = watchlist_tech.get(code, {})
+            if not t:
+                continue
+            _, prediction, bull, bear = _gen_stock_analysis_text(s, t, wl_kline.get(code, []))
+            # Shorten for DingTalk
+            pred_short = prediction.replace("短期", "短").replace("中期", "中")
+            md += f"- **{s['name']}**：{pred_short}\n"
 
     md += "\n---\n\n"
 
