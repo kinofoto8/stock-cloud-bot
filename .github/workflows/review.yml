@@ -2,8 +2,8 @@ name: A股每日收盘复盘
 
 on:
   schedule:
-    # 北京时间 16:20 → UTC 8:20
-    - cron: "20 8 * * 1-5"
+    # 北京时间 16:30目标出报告 (补偿GitHub 3-4h延迟, cron提前到04:30 UTC)
+    - cron: "30 4 * * 1-5"
   workflow_dispatch:
 
 permissions:
