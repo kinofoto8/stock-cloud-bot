@@ -14,6 +14,9 @@ import os
 import requests
 from datetime import datetime, time as dtime, timezone, timedelta
 
+# GitHub Actions 只扫描不推送钉钉（WorkBuddy自动化负责推送）
+_IN_GITHUB_ACTIONS = bool(os.environ.get("GITHUB_ACTIONS"))
+
 # 北京时区（GitHub Actions设了TZ=Asia/Shanghai, 但显式指定更可靠）
 BEIJING_TZ = timezone(timedelta(hours=8))
 
@@ -447,10 +450,11 @@ def run_monitor():
     if not quotes:
         msg = f"{now_str()} 腾讯API行情获取失败，无法监控。"
         print(msg)
-        try:
-            send_markdown("自选股盘中监控", f"### ⚠️ 监控异常\n**{now_str()}**\n\n行情数据获取失败，请检查网络。")
-        except Exception:
-            pass
+        if not _IN_GITHUB_ACTIONS:
+            try:
+                send_markdown("自选股盘中监控", f"### ⚠️ 监控异常\n**{now_str()}**\n\n行情数据获取失败，请检查网络。")
+            except Exception:
+                pass
         return {"status": "error", "msg": msg}
 
     # ---- 3. 逐只扫描 ----
@@ -634,13 +638,16 @@ def run_monitor():
 
     title = "⚠️ 自选股盘中预警" if alerts else "📊 自选股盘中扫描"
 
-    try:
-        result = send_markdown(title, md)
-        print(f"钉钉推送结果: {result}")
-        if result.get("errcode") != 0:
-            print(f"钉钉推送失败: {result}")
-    except Exception as e:
-        print(f"钉钉推送异常: {e}")
+    if _IN_GITHUB_ACTIONS:
+        print(f"[GitHub Actions] 跳过钉钉推送，仅生成监控日志。")
+    else:
+        try:
+            result = send_markdown(title, md)
+            print(f"钉钉推送结果: {result}")
+            if result.get("errcode") != 0:
+                print(f"钉钉推送失败: {result}")
+        except Exception as e:
+            print(f"钉钉推送异常: {e}")
 
     print(md[:500])
     return {
