@@ -2455,7 +2455,7 @@ def build_stock_analysis_section(watchlist, watchlist_tech, watchlist_kline):
         return ""
 
     html = '''<div class="section">
-  <div class="section-title">十、自选股技术分析与走势判断</div>
+  <div class="section-title">九、自选股技术分析与走势判断</div>
   <p style="font-size:13px;color:#666;margin-bottom:14px">基于MACD/KDJ/RSI/BOLL/均线/量能等多维技术指标的综合分析，给出短期及中期走势判断。</p>
 '''
 
@@ -2570,6 +2570,7 @@ def build_html_report(all_data, date_str):
     watchlist_kline = all_data.get("watchlist_kline", {})
     indices_summary = all_data.get("indices_summary", {})
     watchlist_summary = all_data.get("watchlist_summary", {})
+    news = all_data.get("news", [])
 
     up_count = overview.get("up", 0)
     down_count = overview.get("down", 0)
@@ -2649,6 +2650,9 @@ tr:hover td{{background:#fafbfc}}
 .analysis-text{{font-size:13px;line-height:1.8;color:#444;margin-bottom:8px}}
 .analysis-prediction{{font-size:13px;line-height:1.8;color:#333;background:#fff;border-radius:6px;padding:8px 12px;border-left:2px solid #5c6bc0}}
 .source{{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}}
+.news-list{{display:flex;flex-direction:column;gap:8px}}
+.news-item{{font-size:13px;line-height:1.6;padding:8px 12px;background:#f8f9fa;border-radius:6px;border-left:3px solid #3498db}}
+.news-time{{display:inline-block;color:#999;font-size:11px;margin-right:8px;min-width:60px}}
 </style>
 </head>
 <body>
@@ -2908,11 +2912,43 @@ tr:hover td{{background:#fafbfc}}
         html += '<p style="color:#999">自选股K线数据获取失败</p>\n'
     html += '</div>\n'
 
-    # === 自选股技术指标表格 ===
-    html += build_tech_table_section("九、自选股技术指标扫描", watchlist, watchlist_tech)
-
-    # === 十、自选股技术分析与走势判断 ===
+    # === 九、自选股技术分析与走势判断 ===
     html += build_stock_analysis_section(watchlist, watchlist_tech, watchlist_kline)
+
+    # === 十、今日要闻 ===
+    html += '''<div class="section">
+  <div class="section-title">十、今日要闻</div>
+'''
+    if news:
+        html += '<div class="news-list">\n'
+        for n in news[:8]:
+            src = n.get("source", "")
+            src_str = f' <span style="color:#999;font-size:11px">({src})</span>' if src else ""
+            html += f'  <div class="news-item"><span class="news-time">{n.get("time","")}</span> {n["title"]}{src_str}</div>\n'
+        html += '</div>\n'
+    else:
+        html += '<p style="color:#999">今日暂无要闻数据</p>\n'
+    html += '</div>\n'
+
+    # === 十一、中期板块关注 ===
+    html += '''<div class="section">
+  <div class="section-title">十一、中期板块关注</div>
+  <p style="font-size:13px;color:#666;margin-bottom:14px">基于近期走势、资金动向、政策面和基本面，分析中期（1-3个月）值得关注的板块。</p>
+'''
+    outlook_html = _mid_term_outlook(industries, fund_flows)
+    # Convert markdown to HTML
+    outlook_html = outlook_html.replace("**", "").replace("\n\n", "</p><p>").replace("\n", "<br>")
+    html += f'  <div style="line-height:1.8;font-size:13px"><p>{outlook_html}</p></div>\n'
+    html += '</div>\n'
+
+    # === 十二、明日关注 ===
+    html += '''<div class="section">
+  <div class="section-title">十二、明日关注</div>
+'''
+    tw = _tomorrow_watch(indices_kline, indices_tech, overview, news)
+    tw_html = tw.replace("**", "").replace("* ", "").replace("\n", "<br>")
+    html += f'  <div style="line-height:1.8;font-size:13px">{tw_html}</div>\n'
+    html += '</div>\n'
 
     html += f'''<div class="source">
   以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：{now.strftime("%Y-%m-%d %H:%M:%S")} | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
@@ -3172,17 +3208,31 @@ def build_summary_md(all_data):
     md += "\n---\n\n"
 
     # ================================================================
-    # 四、中期板块展望
+    # 四、今日要闻
     # ================================================================
-    md += "**四、中期板块展望**\n\n"
+    md += "**四、今日要闻**\n\n"
+    if news:
+        for n in news[:6]:
+            src = n.get("source", "")
+            src_str = f"（{src}）" if src else ""
+            md += f"- {n['title']}{src_str}\n"
+    else:
+        md += "（今日暂无要闻数据）\n"
+
+    md += "\n---\n\n"
+
+    # ================================================================
+    # 五、中期板块展望
+    # ================================================================
+    md += "**五、中期板块展望**\n\n"
     md += "基于近期走势、资金动向、政策面和基本面，分析中期（1-3个月）最看好的板块：\n\n"
     md += _mid_term_outlook(industries, fund_flows)
     md += "\n\n---\n\n"
 
     # ================================================================
-    # 五、明日关注
+    # 六、明日关注
     # ================================================================
-    md += "**五、明日关注**\n\n"
+    md += "**六、明日关注**\n\n"
     md += _tomorrow_watch(indices_kline, indices_tech, overview, news)
 
     report_url = get_report_url()
