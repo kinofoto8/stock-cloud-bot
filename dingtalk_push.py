@@ -47,13 +47,16 @@ def _truncate_markdown(text: str, report_url: str = "") -> str:
     """截断 markdown 消息到安全长度，保留结尾标记。"""
     if len(text) <= MAX_MARKDOWN_LEN:
         return text
-    # 从段落边界截断
-    cut = text[:MAX_MARKDOWN_LEN]
-    last_sep = cut.rfind("\n---\n")
-    if last_sep > MAX_MARKDOWN_LEN // 2:
-        cut = cut[:last_sep]
+    # 预计算 footer 长度，确保不超限
     url_hint = f"\n\n[查看完整复盘报告]({report_url})" if report_url else ""
-    return cut + f"\n\n---\n\n*注：消息超长已截断，完整报告请查看 GitHub Pages。*{url_hint}"
+    footer = f"\n\n---\n\n*注：消息超长已截断，完整报告请查看 GitHub Pages。*{url_hint}"
+    limit = MAX_MARKDOWN_LEN - len(footer)
+    # 从段落边界截断
+    cut = text[:limit]
+    last_sep = cut.rfind("\n---\n")
+    if last_sep > limit // 2:
+        cut = cut[:last_sep]
+    return cut + footer
 
 
 def send_markdown(title: str, text: str, report_url: str = "") -> dict:
