@@ -2334,9 +2334,9 @@ def _gen_stock_analysis_text(stock, tech, klines):
         elif kdj_j < 0:
             analysis_parts.append(f"KDJ-J={kdj_j:.0f}超卖，可能超跌反弹")
         elif "金叉" in kdj_sig:
-            analysis_parts.append(f"KDJ金叉(K={kdj_k:.1f}/J={kdj_j:.1f})")
-        elif "死叉" in kdj_sig:
-            analysis_parts.append(f"KDJ死叉(K={kdj_k:.1f}/J={kdj_j:.1f})")
+            analysis_parts.append(f"KDJ金叉(K={kdj_k:.1f}/J={kdj_j:.1f})" if kdj_k is not None else f"KDJ金叉(J={kdj_j:.1f})")
+    elif "死叉" in kdj_sig:
+            analysis_parts.append(f"KDJ死叉(K={kdj_k:.1f}/J={kdj_j:.1f})" if kdj_k is not None else f"KDJ死叉(J={kdj_j:.1f})")
 
     # RSI
     if rsi6 is not None:
