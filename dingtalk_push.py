@@ -43,7 +43,7 @@ def _sign() -> str:
     return f"{_WEBHOOK}&timestamp={timestamp}&sign={sign}"
 
 
-def _truncate_markdown(text: str) -> str:
+def _truncate_markdown(text: str, report_url: str = "") -> str:
     """截断 markdown 消息到安全长度，保留结尾标记。"""
     if len(text) <= MAX_MARKDOWN_LEN:
         return text
@@ -52,12 +52,13 @@ def _truncate_markdown(text: str) -> str:
     last_sep = cut.rfind("\n---\n")
     if last_sep > MAX_MARKDOWN_LEN // 2:
         cut = cut[:last_sep]
-    return cut + "\n\n---\n\n*注：消息超长已截断，完整报告请查看 GitHub Pages。*"
+    url_hint = f"\n\n[查看完整复盘报告]({report_url})" if report_url else ""
+    return cut + f"\n\n---\n\n*注：消息超长已截断，完整报告请查看 GitHub Pages。*{url_hint}"
 
 
-def send_markdown(title: str, text: str) -> dict:
+def send_markdown(title: str, text: str, report_url: str = "") -> dict:
     """发送 Markdown 消息到钉钉群。含长度检查和失败重试。"""
-    text = _truncate_markdown(text)
+    text = _truncate_markdown(text, report_url)
     url = _sign()
     message = {"msgtype": "markdown", "markdown": {"title": title, "text": text}}
     payload = json.dumps(message).encode("utf-8")

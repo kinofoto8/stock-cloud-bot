@@ -85,7 +85,7 @@ def _run_review_impl():
         print("  [GitHub Actions] 跳过钉钉推送，WorkBuddy自动化负责推送。")
     else:
         try:
-            result = send_markdown("A股收盘复盘简报", summary_md)
+            result = send_markdown("A股收盘复盘简报", summary_md, report_url)
             print(f"  钉钉推送: errcode={result.get('errcode')}")
             if result.get("errcode") != 0:
                 print(f"  [WARN] 推送异常: {result}")
