@@ -34,13 +34,21 @@ def run_review():
 
 def _run_review_impl():
     beijing_tz = timezone(timedelta(hours=8))
-    today = datetime.now(beijing_tz).strftime("%Y-%m-%d")
+    now_bj = datetime.now(beijing_tz)
+    today = now_bj.strftime("%Y-%m-%d")
 
     if not is_trade_day():
         print(f"[{today}] 今日非交易日，跳过复盘。")
         return {"status": "holiday", "msg": "今日休市"}
 
-    print(f"[{today}] 开始收盘复盘 (v3 六段式)...")
+    # 时间保护：A股15:00收盘，复盘须在15:30后执行
+    # 防止GitHub Actions cron提前触发导致盘中运行
+    if now_bj.hour < 15 or (now_bj.hour == 15 and now_bj.minute < 30):
+        print(f"[{today} {now_bj.strftime('%H:%M')}] 尚未收盘（A股15:00收盘），"
+              f"复盘需在15:30后执行，本次跳过。")
+        return {"status": "too_early", "msg": "未到复盘时间"}
+
+    print(f"[{today} {now_bj.strftime('%H:%M')}] 开始收盘复盘 (v3 六段式)...")
 
     # 1. 获取所有数据
     print("=" * 50)

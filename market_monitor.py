@@ -12,7 +12,10 @@ v3 改进 (对齐本地自动化风格):
 import sys
 import os
 import requests
-from datetime import datetime, time as dtime
+from datetime import datetime, time as dtime, timezone, timedelta
+
+# 北京时区（GitHub Actions设了TZ=Asia/Shanghai, 但显式指定更可靠）
+BEIJING_TZ = timezone(timedelta(hours=8))
 
 # 从 report_builder 导入腾讯API函数和技术分析工具
 from report_builder import (
@@ -25,7 +28,7 @@ from dingtalk_push import send_markdown
 
 
 def now_str():
-    return datetime.now().strftime("%m月%d日 %H:%M")
+    return datetime.now(BEIJING_TZ).strftime("%m月%d日 %H:%M")
 
 
 # ---- 预警等级判定 ----
@@ -186,7 +189,7 @@ def _generate_suggestion(name, reasons, pct, tech_data, fund_summary):
 # ---- 综合研判生成 ----
 def _generate_comprehensive_analysis(alerts, normal, index_quotes):
     """根据当日扫描结果生成丰富的内容综合研判。"""
-    now_hour = datetime.now().hour
+    now_hour = datetime.now(BEIJING_TZ).hour
     all_stocks = alerts + normal
     high_risk = [a for a in alerts if a.get("severity") == "高危"]
     attention = [a for a in alerts if a.get("severity") == "关注"]
@@ -364,7 +367,7 @@ def _generate_comprehensive_analysis(alerts, normal, index_quotes):
 def is_trade_day_simple(date_str=None):
     """简单交易日检查 (不依赖akshare, 仅判断周一至周五)。"""
     if date_str is None:
-        date_str = datetime.now().strftime("%Y-%m-%d")
+        date_str = datetime.now(BEIJING_TZ).strftime("%Y-%m-%d")
     wd = datetime.strptime(date_str, "%Y-%m-%d").weekday()
     return wd < 5
 
@@ -415,13 +418,21 @@ def get_fund_flow_em(secid, n=3):
 
 def run_monitor():
     """主入口：执行盘中监控。"""
-    today = datetime.now().strftime("%Y-%m-%d")
-    now = datetime.now()
+    now = datetime.now(BEIJING_TZ)
+    today = now.strftime("%Y-%m-%d")
 
     # ---- 1. 交易日检查 ----
     if not is_trade_day_simple(today):
         print(f"[{now_str()}] 今日休市，无需监控。")
         return {"status": "holiday", "msg": "今日休市"}
+
+    # ---- 1b. 交易时段检查 ----
+    # A股交易时段 9:25-15:05，非交易时段不执行监控
+    # 防止GitHub Actions cron提前/延迟触发导致无效运行
+    now_time = now.time()
+    if not (dtime(9, 20) <= now_time <= dtime(15, 10)):
+        print(f"[{now_str()}] 当前不在交易时段（9:25-15:05），跳过监控。")
+        return {"status": "off_hours", "msg": "非交易时段"}
 
     print(f"[{now_str()}] 交易日确认，开始扫描 {len(WATCHLIST)} 只自选股...")
 
