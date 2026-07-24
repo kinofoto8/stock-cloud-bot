@@ -15,6 +15,7 @@ import re
 import os
 import requests
 from datetime import datetime, timezone, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ============================================================
 # 配置
@@ -1232,95 +1233,197 @@ def get_watchlist_data():
 # 新闻获取 — 多源备用 (同花顺优先, 东方财富/Sina备用)
 # ============================================================
 def get_market_news():
-    """获取24小时内市场重要新闻，多源备用。
-    优先使用同花顺实时新闻API（返回24小时内的滚动新闻），
-    其次东方财富要闻，最后Sina财经滚动。
+    """从同花顺、东方财富、雪球7×24 三源并发获取重要新闻，带重要性标记。
+    优先级：color=2(红线)/import>=3(同花顺) > mark>=1(雪球) > 普通新闻
     """
-    print("    获取要闻...")
+    print("    获取要闻 (三源并发)...")
+    all_news = []
 
-    # 方案 A: 同花顺实时财经新闻 (24小时滚动)
-    try:
-        resp = SESSION.get(
-            "https://news.10jqka.com.cn/tapp/news/push/stock",
-            params={"page": "1", "tag": "", "track": "website", "num": "20"},
-            timeout=10,
-            headers={"User-Agent": "Mozilla/5.0", "Referer": "https://news.10jqka.com.cn/"}
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        items = data.get("data", {}).get("list", [])
-        if items:
-            print(f"  [新闻] 同花顺来源: {len(items)} 条")
-            news = []
-            for it in items[:12]:
-                ctime = it.get("ctime", "")
-                if ctime:
-                    try:
-                        ctime = datetime.fromtimestamp(int(ctime)).strftime("%m-%d %H:%M")
-                    except Exception:
-                        pass
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {
+            executor.submit(_fetch_10jqka_news): "同花顺",
+            executor.submit(_fetch_eastmoney_news): "东方财富",
+            executor.submit(_fetch_xueqiu_news): "雪球7x24",
+        }
+        for future in as_completed(futures):
+            source = futures[future]
+            try:
+                items = future.result(timeout=20)
+                if items:
+                    print(f"  [新闻] {source}: {len(items)} 条 (重要 {sum(1 for n in items if n.get('importance',0)>=1)} 条)")
+                    all_news.extend(items)
+            except Exception as e:
+                print(f"  [新闻] {source}: 失败 ({e})")
+
+    if not all_news:
+        print("  [新闻] 所有来源均失败")
+        return []
+
+    # 去重 + 排序（重要优先，同时按时间倒序）
+    all_news = _deduplicate_news(all_news)
+    all_news.sort(key=lambda n: (-n.get("importance", 0), -(n.get("ts", 0))))
+    important_count = sum(1 for n in all_news if n.get("importance", 0) >= 1)
+    print(f"  [新闻] 去重后共 {len(all_news)} 条 (重要 {important_count} 条)")
+    return all_news
+
+
+def _fetch_10jqka_news():
+    """同花顺 24h 滚动新闻 — color=2(红线标注)为重要新闻。"""
+    news = []
+    resp = SESSION.get(
+        "https://news.10jqka.com.cn/tapp/news/push/stock",
+        params={"page": "1", "tag": "", "track": "website", "num": "30"},
+        timeout=10,
+        headers={"User-Agent": "Mozilla/5.0", "Referer": "https://news.10jqka.com.cn/"}
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    items = data.get("data", {}).get("list", [])
+    for it in items:
+        ctime = it.get("ctime", "")
+        if ctime:
+            try:
+                ts = int(ctime)
+                ctime_str = datetime.fromtimestamp(ts).strftime("%m-%d %H:%M")
+            except Exception:
+                ts = 0
+                ctime_str = str(ctime)
+        else:
+            ts = 0
+            ctime_str = ""
+
+        # 重要性: color=2(红色/高亮)权重最高, import>=3 次之
+        importance = 0
+        if str(it.get("color", "")).strip() == "2":
+            importance = 2
+        elif safe_int(it.get("import"), 0) >= 3:
+            importance = 1
+
+        news.append({
+            "title": it.get("title", ""),
+            "time": ctime_str,
+            "ts": ts,
+            "source": "同花顺",
+            "importance": importance,
+        })
+    return news
+
+
+def _fetch_eastmoney_news():
+    """东方财富要闻 — 尝试多个 API 端点。"""
+    news = []
+    # bizid=1: 市场要闻, bizid=3: 行业要闻, bizid=2: 公司要闻
+    for bizid in ["1", "3", "2"]:
+        try:
+            resp = SESSION.get(
+                "https://np-listapi.eastmoney.com/comm/web/getNewsList",
+                params={"client": "web", "bizid": bizid, "last_score": "0", "page_size": "15"},
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            items = (data.get("data") or {}).get("list", [])
+            if not items:
+                continue
+            for it in items:
+                show_time = it.get("showTime", "")
+                try:
+                    ts = int(datetime.strptime(show_time, "%Y-%m-%d %H:%M:%S").timestamp()) if show_time else 0
+                except Exception:
+                    ts = 0
+                # 东方财富的重要性通常通过 score/level 表示
+                importance = 0
+                score = safe_int(it.get("score"), 0)
+                level = safe_int(it.get("level"), 0)
+                if score > 50 or level >= 2:
+                    importance = 1
+
                 news.append({
                     "title": it.get("title", ""),
-                    "time": ctime,
-                    "source": "同花顺",
+                    "time": show_time[-8:-3] if len(show_time) >= 16 else show_time,
+                    "ts": ts,
+                    "source": it.get("source", "东方财富"),
+                    "importance": importance,
                 })
-            return news
-    except Exception as e:
-        print(f"  [新闻] 同花顺来源失败: {e}")
+            if news:
+                break  # 第一个成功的 bizid 即可
+        except Exception:
+            continue
+    return news
 
-    # 方案 B: 东方财富市场要闻
+
+def _fetch_xueqiu_news():
+    """雪球 7×24 实时新闻 — mark>=1 为重要/标注新闻。需先访问首页获取 Cookie。"""
+    news = []
     try:
-        url = "https://np-listapi.eastmoney.com/comm/web/getNewsList"
-        params = {
-            "client": "web", "bizid": "1",
-            "last_score": "0", "page_size": "10",
-        }
-        resp = SESSION.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        items = (data.get("data") or {}).get("list", [])
-        if items:
-            print(f"  [新闻] 东方财富来源: {len(items)} 条")
-            return [{"title": it.get("title", ""),
-                     "time": it.get("showTime", ""),
-                     "source": it.get("source", "")} for it in items[:10]]
-    except Exception as e:
-        print(f"  [新闻] 东方财富来源失败: {e}")
+        xq_sess = requests.Session()
+        xq_sess.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+        })
+        # 第1步: 访问首页获取 Cookie
+        xq_sess.get("https://xueqiu.com/", timeout=15)
+        time.sleep(1)
 
-    # 方案 C: Sina 财经滚动新闻 (lid=2510 股票频道)
-    for lid_name, lid in [("股票", "2510"), ("财经", "1686"), ("7x24", "1687")]:
-        try:
-            url = "https://feed.mix.sina.com.cn/api/roll/get"
-            params = {
-                "pageid": "153", "lid": lid,
-                "k": "", "num": "10", "page": "1",
-                "r": str(time.time())[:13],
+        # 第2步: 调用 API (需要 Referer + X-Requested-With)
+        resp = xq_sess.get(
+            "https://xueqiu.com/statuses/livenews/list.json",
+            params={"since_id": "-1", "max_id": "-1", "count": "20"},
+            timeout=15,
+            headers={
+                "Referer": "https://xueqiu.com/",
+                "X-Requested-With": "XMLHttpRequest",
+                "Accept": "application/json, text/plain, */*",
             }
-            resp = SESSION.get(url, params=params, timeout=10)
-            resp.raise_for_status()
-            data = resp.json()
-            items = data.get("result", {}).get("data", [])
-            if items:
-                print(f"  [新闻] Sina[{lid_name}] 来源: {len(items)} 条")
-                news = []
-                for it in items[:10]:
-                    ctime = it.get("ctime", "")
-                    if ctime and ctime.isdigit():
-                        try:
-                            ctime = datetime.fromtimestamp(int(ctime)).strftime("%H:%M")
-                        except Exception:
-                            pass
-                    news.append({
-                        "title": it.get("title", ""),
-                        "time": ctime,
-                        "source": it.get("media_name", ""),
-                    })
-                return news
-        except Exception as e:
-            print(f"  [新闻] Sina[{lid_name}] 来源失败: {e}")
+        )
+        if resp.status_code != 200:
+            return news
 
-    print("  [新闻] 所有来源均失败")
-    return []
+        data = resp.json()
+        items = data.get("items", [])
+        for it in items:
+            text = it.get("text", "")
+            if not text:
+                continue
+            created_at = it.get("created_at", 0)
+            ts = created_at // 1000 if created_at > 1e12 else created_at
+            ctime_str = datetime.fromtimestamp(ts).strftime("%m-%d %H:%M") if ts else ""
+            mark = safe_int(it.get("mark"), 0)
+            # mark>=1 即雪球标注的重要新闻（同花顺红线等价物）
+            importance = min(mark, 2)
+
+            news.append({
+                "title": text[:120] + ("..." if len(text) > 120 else ""),
+                "time": ctime_str,
+                "ts": ts,
+                "source": "雪球",
+                "importance": importance,
+            })
+    except Exception:
+        pass
+    return news
+
+
+def _deduplicate_news(news_list):
+    """基于标题相似度的简单去重（保留 importance 更高的那条）。"""
+    if len(news_list) <= 1:
+        return news_list
+
+    def _norm(t):
+        return re.sub(r"[^\u4e00-\u9fff\w]", "", t)[:8]
+
+    seen = {}
+    for n in news_list:
+        key = _norm(n["title"])
+        if key and key in seen:
+            # 保留 importance 高的
+            if n["importance"] > seen[key]["importance"]:
+                seen[key] = n
+        else:
+            seen[key] = n
+
+    return list(seen.values())
 
 # ============================================================
 # 市场估值 — PE数据
@@ -2652,6 +2755,10 @@ tr:hover td{{background:#fafbfc}}
 .source{{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}}
 .news-list{{display:flex;flex-direction:column;gap:8px}}
 .news-item{{font-size:13px;line-height:1.6;padding:8px 12px;background:#f8f9fa;border-radius:6px;border-left:3px solid #3498db}}
+.news-item.important{{background:#fff5f5;border-left:3px solid #e74c3c}}
+.news-item .imp-badge{{display:inline-block;font-size:11px;padding:1px 6px;border-radius:3px;margin-right:4px;font-weight:600}}
+.imp-badge.red{{background:#e74c3c;color:#fff}}
+.imp-badge.orange{{background:#f39c12;color:#fff}}
 .news-time{{display:inline-block;color:#999;font-size:11px;margin-right:8px;min-width:60px}}
 </style>
 </head>
@@ -2921,10 +3028,17 @@ tr:hover td{{background:#fafbfc}}
 '''
     if news:
         html += '<div class="news-list">\n'
-        for n in news[:8]:
+        for n in news[:12]:
             src = n.get("source", "")
             src_str = f' <span style="color:#999;font-size:11px">({src})</span>' if src else ""
-            html += f'  <div class="news-item"><span class="news-time">{n.get("time","")}</span> {n["title"]}{src_str}</div>\n'
+            imp = n.get("importance", 0)
+            css_class = 'news-item important' if imp >= 1 else 'news-item'
+            badge = ""
+            if imp >= 2:
+                badge = '<span class="imp-badge red">重要</span>'
+            elif imp == 1:
+                badge = '<span class="imp-badge orange">关注</span>'
+            html += f'  <div class="{css_class}"><span class="news-time">{n.get("time","")}</span> {badge}{n["title"]}{src_str}</div>\n'
         html += '</div>\n'
     else:
         html += '<p style="color:#999">今日暂无要闻数据</p>\n'
@@ -3215,7 +3329,9 @@ def build_summary_md(all_data):
         for n in news[:6]:
             src = n.get("source", "")
             src_str = f"（{src}）" if src else ""
-            md += f"- {n['title']}{src_str}\n"
+            imp = n.get("importance", 0)
+            imp_prefix = "🔴 " if imp >= 2 else ("🟠 " if imp == 1 else "")
+            md += f"- {imp_prefix}{n['title']}{src_str}\n"
     else:
         md += "（今日暂无要闻数据）\n"
 
