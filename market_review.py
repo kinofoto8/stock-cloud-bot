@@ -9,8 +9,7 @@ from datetime import datetime, timezone, timedelta
 from dingtalk_push import send_markdown
 from report_builder import fetch_all_data, generate_report, get_report_url, build_summary_md
 
-# GitHub Actions 只生成报告不推送钉钉（WorkBuddy自动化负责推送）
-_IN_GITHUB_ACTIONS = bool(os.environ.get("GITHUB_ACTIONS"))
+# 钉钉推送：GitHub Actions 与本地统一推送（云上为主推送源，不依赖本地是否在线）
 
 
 def is_trade_day() -> bool:
@@ -81,16 +80,13 @@ def _run_review_impl():
     print("阶段 3: 推送钉钉")
     print("=" * 50)
     summary_md = build_summary_md(all_data)
-    if _IN_GITHUB_ACTIONS:
-        print("  [GitHub Actions] 跳过钉钉推送，WorkBuddy自动化负责推送。")
-    else:
-        try:
-            result = send_markdown("A股收盘复盘简报", summary_md, report_url)
-            print(f"  钉钉推送: errcode={result.get('errcode')}")
-            if result.get("errcode") != 0:
-                print(f"  [WARN] 推送异常: {result}")
-        except Exception as e:
-            print(f"  [WARN] 推送失败: {e}")
+    try:
+        result = send_markdown("A股收盘复盘简报", summary_md, report_url)
+        print(f"  钉钉推送: errcode={result.get('errcode')}")
+        if result.get("errcode") != 0:
+            print(f"  [WARN] 推送异常: {result}")
+    except Exception as e:
+        print(f"  [WARN] 推送失败: {e}")
 
     print(f"\n{'='*50}")
     print(f"复盘完成!")
