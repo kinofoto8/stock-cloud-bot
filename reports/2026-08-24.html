@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股收盘复盘 | 2026年08月24日（周一）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.7;font-size:14px}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#fff;border-radius:16px;padding:36px 40px;margin-bottom:20px}
+.hero h1{font-size:26px;margin-bottom:8px}
+.hero .date{font-size:14px;color:#a0a0b8;margin-bottom:20px}
+.hero .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.hero .summary-item{text-align:center;padding:12px;background:rgba(255,255,255,.08);border-radius:10px}
+.hero .summary-item .num{font-size:28px;font-weight:700}
+.hero .summary-item .num.up{color:#ff6b6b}
+.hero .summary-item .num.down{color:#51cf66}
+.hero .summary-item .label{font-size:12px;color:#a0a0b8;margin-top:4px}
+.hero .summary-item .label .up,.hero .summary-item .label .down{font-size:11px;font-weight:600}
+.section{background:#fff;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.section-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:20px;padding-left:12px;border-left:4px solid #c0392b}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:10px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #f0f0f0}
+tr:hover td{background:#fafbfc}
+.num{font-family:"SF Mono","Fira Code",monospace;text-align:right}
+.up{color:#c0392b}
+.down{color:#27ae60}
+.flat{color:#999}
+.chart-box{width:100%;border-radius:8px;overflow:hidden;margin:10px 0}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.chart-row{grid-template-columns:1fr}.hero .summary{grid-template-columns:repeat(2,1fr)}}
+.board-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.board-col h4{font-size:15px;margin-bottom:12px;color:#555}
+.board-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.board-item .name{flex:1}
+.board-item .pct{font-weight:600}
+.tech-summary{background:#f8f9fa;border-left:3px solid #c0392b;padding:12px 16px;margin:12px 0;border-radius:6px;font-size:13px;line-height:1.8;color:#444}
+.stock-chart-block{margin-bottom:24px}
+.stock-chart-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:8px;border-left:3px solid #c0392b}
+.stock-analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.analysis-card{background:#f8f9fa;border-radius:10px;padding:16px;border-left:3px solid #c0392b}
+.analysis-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.analysis-card-title{font-size:15px;font-weight:700;color:#1a1a2e}
+.analysis-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.signal-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}
+.tag-up{background:#fdecea;color:#c0392b}
+.tag-down{background:#e8f5e9;color:#27ae60}
+.tag-warn{background:#fff3e0;color:#e65100}
+.tag-info{background:#e3f2fd;color:#1565c0}
+.tag-neutral{background:#f5f5f5;color:#666}
+.trend-badge{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:700}
+.trend-up{background:#fdecea;color:#c0392b}
+.trend-down{background:#e8f5e9;color:#27ae60}
+.trend-neutral{background:#f5f5f5;color:#888}
+.analysis-text{font-size:13px;line-height:1.8;color:#444;margin-bottom:8px}
+.analysis-prediction{font-size:13px;line-height:1.8;color:#333;background:#fff;border-radius:6px;padding:8px 12px;border-left:2px solid #5c6bc0}
+.source{font-size:11px;color:#aaa;text-align:right;margin-top:40px;padding:10px 0}
+.news-list{display:flex;flex-direction:column;gap:8px}
+.news-item{font-size:13px;line-height:1.6;padding:8px 12px;background:#f8f9fa;border-radius:6px;border-left:3px solid #3498db}
+.news-item.important{background:#fff5f5;border-left:3px solid #e74c3c}
+.news-item .imp-badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:3px;margin-right:4px;font-weight:600}
+.imp-badge.red{background:#e74c3c;color:#fff}
+.imp-badge.orange{background:#f39c12;color:#fff}
+.news-time{display:inline-block;color:#999;font-size:11px;margin-right:8px;min-width:60px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="hero">
+  <h1>A股收盘复盘报告</h1>
+  <div class="date">2026年08月24日（周一） | 数据来源：腾讯财经 & Sina财经 & 同花顺 | 含技术指标分析</div>
+  <div class="summary">
+    <div class="summary-item">
+      <div class="num up">1460</div>
+      <div class="label">上涨 / 总数 5548</div>
+    </div>
+    <div class="summary-item">
+      <div class="num down">3964</div>
+      <div class="label">下跌 / 平盘 124</div>
+    </div>
+    <div class="summary-item">
+      <div class="num">2.01万亿</div>
+      <div class="label">两市成交额 <span class="up">较前日+1139亿(+6.0%)</span></div>
+    </div>
+    <div class="summary-item">
+      <div class="num up">57</div>
+      <div class="label">涨停 / 跌停 <span class="down">37</span></div>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">一、主要指数表现</div>
+  <table>
+    <thead><tr><th>指数</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">涨跌额</th><th class="num">成交额(亿)</th><th class="num">成交额变化</th></tr></thead>
+    <tbody>
+      <tr><td>上证指数</td><td class="num">3882.01</td><td class="num down">-0.59%</td><td class="num down">-23.19</td><td class="num">9520.39</td><td class="num up">+9.0%</td></tr>
+      <tr><td>深证成指</td><td class="num">13794.29</td><td class="num down">-2.13%</td><td class="num down">-299.88</td><td class="num">10554.17</td><td class="num up">+3.6%</td></tr>
+      <tr><td>创业板指</td><td class="num">3431.89</td><td class="num down">-3.21%</td><td class="num down">-113.69</td><td class="num">5058.28</td><td class="num up">+0.8%</td></tr>
+      <tr><td>科创50</td><td class="num">1602.34</td><td class="num down">-3.10%</td><td class="num down">-51.22</td><td class="num">938.33</td><td class="num up">+23.3%</td></tr>
+      <tr><td>沪深300</td><td class="num">4563.13</td><td class="num down">-1.21%</td><td class="num down">-55.77</td><td class="num">5904.26</td><td class="num up">+20.8%</td></tr>
+      <tr><td>中证500</td><td class="num">7717.09</td><td class="num down">-1.75%</td><td class="num down">-137.24</td><td class="num">3675.54</td><td class="num up">+5.9%</td></tr>
+      <tr><td>中证1000</td><td class="num">7491.49</td><td class="num down">-1.45%</td><td class="num down">-110.31</td><td class="num">4335.55</td><td class="num up">+6.6%</td></tr>
+    </tbody></table></div>
+
+<div class="chart-row">
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">二、行业板块 Top 10</div>
+    <div class="chart-box" id="chart-industry" style="height:350px"></div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 申万一级行业，按涨跌幅排序 | 数据来源：东方财富</div>
+  </div>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title">三、行业资金流向</div>
+    <div class="board-grid">
+      <div class="board-col">
+        <h4 style="color:#c0392b">资金流入前三</h4>
+        <div class="board-item"><span class="name">工业金属</span><span class="pct up">+13.14亿</span></div>
+        <div class="board-item"><span class="name">煤炭开采</span><span class="pct up">+5.45亿</span></div>
+        <div class="board-item"><span class="name">化学原料</span><span class="pct up">+4.20亿</span></div>
+      </div>
+      <div class="board-col">
+        <h4 style="color:#27ae60">资金流出前三</h4>
+        <div class="board-item"><span class="name">半导体</span><span class="pct down">-180.61亿</span></div>
+        <div class="board-item"><span class="name">通信设备</span><span class="pct down">-139.57亿</span></div>
+        <div class="board-item"><span class="name">元件</span><span class="pct down">-77.21亿</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#999">* 主力净流入/流出（亿元），数据来源：腾讯自选股 (仅3流入/3流出)</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">四、概念板块热力图</div>
+  <div class="board-grid">
+    <div class="board-col">
+      <h4>涨幅 Top 10</h4>
+      <div class="board-item"><span class="name">黄酒概念</span><span class="pct up">+3.34%</span></div>
+      <div class="board-item"><span class="name">奢侈品</span><span class="pct up">+2.05%</span></div>
+      <div class="board-item"><span class="name">有色(锑)</span><span class="pct up">+1.78%</span></div>
+      <div class="board-item"><span class="name">白银概念</span><span class="pct up">+1.58%</span></div>
+      <div class="board-item"><span class="name">铅锌概念</span><span class="pct up">+1.44%</span></div>
+      <div class="board-item"><span class="name">中非合作</span><span class="pct up">+1.41%</span></div>
+      <div class="board-item"><span class="name">白酒概念</span><span class="pct up">+0.94%</span></div>
+      <div class="board-item"><span class="name">基金重仓</span><span class="pct up">+0.28%</span></div>
+      <div class="board-item"><span class="name">QFII重仓</span><span class="pct up">+0.22%</span></div>
+      <div class="board-item"><span class="name">超大盘</span><span class="pct up">+0.21%</span></div>
+    </div>
+    <div class="board-col">
+      <h4>表现最弱</h4>
+      <div class="board-item"><span class="name">CRO概念</span><span class="pct down">-2.75%</span></div>
+      <div class="board-item"><span class="name">CXO概念</span><span class="pct down">-2.65%</span></div>
+      <div class="board-item"><span class="name">科创50</span><span class="pct down">-1.78%</span></div>
+      <div class="board-item"><span class="name">创新药</span><span class="pct down">-1.44%</span></div>
+      <div class="board-item"><span class="name">无线耳机</span><span class="pct down">-1.41%</span></div>
+      <div class="board-item"><span class="name">专精特新</span><span class="pct down">-1.32%</span></div>
+      <div class="board-item"><span class="name">宽带提速</span><span class="pct down">-1.28%</span></div>
+      <div class="board-item"><span class="name">华为概念</span><span class="pct down">-1.20%</span></div>
+      <div class="board-item"><span class="name">智能穿戴</span><span class="pct down">-1.15%</span></div>
+      <div class="board-item"><span class="name">黄河三角</span><span class="pct down">-1.07%</span></div>
+    </div></div></div>
+<div class="section">
+  <div class="section-title">五、自选股表现</div>
+  <table>
+    <thead><tr><th>股票</th><th class="num">收盘价</th><th class="num">涨跌幅</th><th class="num">换手率</th><th class="num">量比</th><th class="num">成交额(亿)</th><th class="num">成交额变化</th></tr></thead>
+    <tbody>
+      <tr><td>紫金矿业 <span style="color:#999;font-size:11px">(601899)</span></td>
+        <td class="num">34.54</td>
+        <td class="num down">-0.58%</td>
+        <td class="num">1.64%</td>
+        <td class="num">1.31</td>
+        <td class="num">117.51</td><td class="num up">+12.3%</td></tr>
+      <tr><td>兴业银锡 <span style="color:#999;font-size:11px">(000426)</span></td>
+        <td class="num">42.29</td>
+        <td class="num up">+3.45%</td>
+        <td class="num">8.85%</td>
+        <td class="num">1.98</td>
+        <td class="num">65.00</td><td class="num up">+24.7%</td></tr>
+      <tr><td>中金黄金 <span style="color:#999;font-size:11px">(600489)</span></td>
+        <td class="num">27.26</td>
+        <td class="num up">+0.29%</td>
+        <td class="num">3.22%</td>
+        <td class="num">1.61</td>
+        <td class="num">42.55</td><td class="num up">+28.2%</td></tr>
+      <tr><td>藏格矿业 <span style="color:#999;font-size:11px">(000408)</span></td>
+        <td class="num">77.40</td>
+        <td class="num down">-1.01%</td>
+        <td class="num">0.95%</td>
+        <td class="num">0.99</td>
+        <td class="num">11.55</td><td class="num up">+11.2%</td></tr>
+      <tr><td>宏达股份 <span style="color:#999;font-size:11px">(600331)</span></td>
+        <td class="num">13.05</td>
+        <td class="num up">+0.93%</td>
+        <td class="num">2.50%</td>
+        <td class="num">1.25</td>
+        <td class="num">6.54</td><td class="num up">+13.1%</td></tr>
+      <tr><td>盛新锂能 <span style="color:#999;font-size:11px">(002240)</span></td>
+        <td class="num">32.93</td>
+        <td class="num down">-2.43%</td>
+        <td class="num">6.92%</td>
+        <td class="num">1.59</td>
+        <td class="num">21.56</td><td class="num up">+0.5%</td></tr>
+      <tr><td>科创半导体ETF华夏 <span style="color:#999;font-size:11px">(588170)</span></td>
+        <td class="num">1.00</td>
+        <td class="num down">-0.69%</td>
+        <td class="num">14.57%</td>
+        <td class="num">0.89</td>
+        <td class="num">64.18</td><td class="num up">+27.1%</td></tr>
+      <tr><td>赤峰黄金 <span style="color:#999;font-size:11px">(600988)</span></td>
+        <td class="num">48.77</td>
+        <td class="num down">-1.34%</td>
+        <td class="num">7.07%</td>
+        <td class="num">1.65</td>
+        <td class="num">58.14</td><td class="num up">+16.0%</td></tr>
+      <tr><td>云铝股份 <span style="color:#999;font-size:11px">(000807)</span></td>
+        <td class="num">26.29</td>
+        <td class="num up">+1.58%</td>
+        <td class="num">1.70%</td>
+        <td class="num">0.93</td>
+        <td class="num">15.40</td><td class="num down">-9.4%</td></tr>
+      <tr><td>神火股份 <span style="color:#999;font-size:11px">(000933)</span></td>
+        <td class="num">26.08</td>
+        <td class="num up">+1.16%</td>
+        <td class="num">1.91%</td>
+        <td class="num">1.11</td>
+        <td class="num">11.13</td><td class="num up">+4.1%</td></tr>
+      <tr><td>中国海洋石油 <span style="color:#999;font-size:11px">(00883)</span></td>
+        <td class="num">25.40</td>
+        <td class="num up">+0.87%</td>
+        <td class="num">0.13%</td>
+        <td class="num">0.00</td>
+        <td class="num">15.02</td><td class="num down">-14.9%</td></tr>
+      <tr><td>泡泡玛特 <span style="color:#999;font-size:11px">(09992)</span></td>
+        <td class="num">155.00</td>
+        <td class="num up">+4.03%</td>
+        <td class="num">1.48%</td>
+        <td class="num">0.00</td>
+        <td class="num">30.47</td><td class="num down">-55.2%</td></tr>
+      <tr><td>紫金黄金国际 <span style="color:#999;font-size:11px">(02259)</span></td>
+        <td class="num">159.40</td>
+        <td class="num down">-0.56%</td>
+        <td class="num">0.00%</td>
+        <td class="num">0.00</td>
+        <td class="num">22.23</td><td class="num up">+3.1%</td></tr>
+    </tbody></table></div>
+<div class="section">
+  <div class="section-title">六、上证指数 K线 + 布林带 + 成交量（大盘参考）</div>
+<div class="chart-box" id="chart-sh-kline" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart-sh-kline');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[4067.16, 4057.74, 4045.69, 4093.04], [4061.46, 4075.1, 4032.58, 4089.57], [4068.34, 4083.97, 4059.91, 4107.05], [4053.67, 4057.78, 4043.43, 4080.72], [4044.83, 4027.74, 4015.06, 4078.93], [3938.71, 3959.34, 3927.85, 4007.49], [3977.54, 4010.03, 3955.91, 4010.87], [3985.12, 3993.23, 3963.44, 4006.31], [3979.71, 3987.01, 3958.44, 3997.48], [4017.86, 4031.51, 4008.18, 4060.27], [4053.58, 4096.47, 4051.07, 4097.17], [4094.21, 4091.89, 4077.87, 4103.93], [4074.29, 4108.08, 4073.73, 4109.96], [4094.23, 4090.48, 4080.29, 4117.45], [4093.95, 4163.1, 4070.17, 4164.42], [4153.59, 4106.25, 4085.59, 4175.35], [4090.1, 4110.81, 4075.49, 4117.28], [4103.48, 4120.28, 4093.01, 4133.1], [4098.69, 4027.26, 4007.86, 4099.78], [4026.69, 4073.9, 3992.55, 4075.33], [4058.17, 4094.4, 4052.17, 4097.42], [4090.76, 4112.45, 4087.54, 4143.31], [4054.09, 4028.9, 4019.21, 4093.68], [4031.34, 4043.64, 4027.26, 4073.88], [4059.19, 4041.24, 4005.41, 4060.07], [4019.49, 3990.24, 3971.71, 4028.51], [3996.81, 3970.88, 3967.91, 4016.03], [3977.55, 4036.59, 3938.88, 4040.54], [4031.54, 3996.16, 3995.81, 4074.83], [3966.02, 3913.79, 3900.67, 3983.05], [3909.27, 3967.13, 3869.3, 3967.13], [3963.73, 3955.58, 3943.7, 3981.67], [3912.38, 3882.41, 3867.6, 3940.45], [3865.32, 3764.15, 3745.17, 3869.21], [3791.66, 3796.28, 3741.11, 3831.66], [3812.16, 3864.37, 3743.36, 3864.6], [3839.67, 3867.03, 3839.67, 3884.44], [3868.09, 3876.78, 3851.71, 3878.83], [3853.63, 3814.2, 3808.64, 3861.04], [3808.9, 3858.25, 3793.45, 3858.31], [3823.13, 3813.31, 3797.37, 3844.01], [3823.29, 3828.47, 3782.48, 3845.77], [3812.11, 3804.69, 3767.5, 3839.34], [3833.54, 3832.26, 3822.37, 3847.09], [3812.61, 3809.66, 3797.64, 3827.64], [3816.37, 3822.28, 3799.52, 3831.94], [3815.12, 3878.43, 3815.12, 3884.4], [3864.27, 3900.35, 3864.27, 3902.05], [3896.49, 3940.04, 3885.62, 3940.93], [3943.82, 3966.59, 3938.63, 3967.59], [3950.71, 3934.09, 3930.64, 3966.39], [3933.55, 3946.68, 3927.55, 3950.62], [3957.16, 3926.96, 3924.64, 3968.48], [3930.02, 3927.18, 3903.7, 3932.64], [3930.1, 3982.65, 3924.47, 3983.51], [3979.49, 3990.3, 3955.6, 3994.18], [3952.12, 3894.42, 3879.58, 3961.14], [3907.21, 3903.72, 3888.1, 3925.06], [3891.18, 3905.2, 3883.79, 3912.13], [3902.7, 3882.01, 3855.35, 3910.24]];
+  var volumes = [676025806.0, 642244656.0, 668452583.0, 621194774.0, 662918577.0, 659293555.0, 576570090.0, 598694739.0, 568545244.0, 743131092.0, 678907811.0, 615668296.0, 608077413.0, 658116068.0, 743699355.0, 709003913.0, 644527518.0, 670459917.0, 660108666.0, 659199936.0, 598412203.0, 672331791.0, 656233612.0, 602009738.0, 590364903.0, 514453091.0, 496229374.0, 553063980.0, 627450065.0, 590907356.0, 579982052.0, 576209492.0, 535281873.0, 650450984.0, 709234069.0, 735021925.0, 614255215.0, 562122601.0, 508203905.0, 504879454.0, 494829126.0, 571226391.0, 592298923.0, 597529427.0, 524516960.0, 540324922.0, 592155124.0, 588555280.0, 564988582.0, 542118110.0, 529490944.0, 503257011.0, 572793677.0, 499525613.0, 489834027.0, 511234287.0, 572191213.0, 506633954.0, 446895868.0, 486931412.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 4063.6, 4065.43, 4067.3, 4064.55, 4063.84, 4064.51, 4066.06, 4064.1, 4066.27, 4066.73, 4060.84, 4054.37, 4047.56, 4036.27, 4019.96, 4001.62, 3989.52, 3977.33, 3965.16, 3954.51, 3943.72, 3929.67, 3915.47, 3904.26, 3893.69, 3882.11, 3873.71, 3869.09, 3862.28, 3859.47, 3862.11, 3860.46, 3860.02, 3862.24, 3870.39, 3879.71, 3886.01, 3887.38, 3888.73, 3893.28, 3894.46];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 4164.25, 4166.93, 4170.79, 4169.04, 4168.7, 4168.61, 4164.63, 4168.44, 4166.34, 4165.42, 4179.29, 4178.33, 4177.37, 4181.41, 4204.95, 4198.55, 4188.96, 4175.43, 4156.43, 4154.3, 4139.82, 4120.78, 4091.78, 4078.8, 4058.52, 4036.02, 4021.31, 4009.86, 3981.5, 3968.13, 3978.23, 3971.38, 3969.47, 3975.19, 3977.21, 3991.44, 4007.35, 4008.45, 4009.89, 4009.65, 4009.86];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 3962.94, 3963.94, 3963.81, 3960.05, 3958.98, 3960.42, 3967.48, 3959.77, 3966.2, 3968.04, 3942.39, 3930.41, 3917.75, 3891.14, 3834.97, 3804.68, 3790.08, 3779.24, 3773.89, 3754.71, 3747.63, 3738.56, 3739.16, 3729.72, 3728.87, 3728.2, 3726.12, 3728.32, 3743.06, 3750.81, 3745.99, 3749.54, 3750.56, 3749.3, 3763.58, 3767.99, 3764.67, 3766.31, 3767.56, 3776.9, 3779.07];
+  var ma5_vals = ["-", "-", "-", "-", 4060.47, 4040.79, 4027.77, 4009.62, 3995.47, 3996.22, 4023.65, 4040.02, 4062.99, 4083.69, 4110.0, 4111.96, 4115.74, 4118.18, 4105.54, 4087.7, 4085.33, 4085.66, 4067.38, 4070.66, 4064.13, 4043.29, 4014.98, 4016.52, 4007.02, 3981.53, 3976.91, 3973.85, 3943.01, 3896.61, 3873.11, 3852.56, 3834.85, 3833.72, 3843.73, 3856.13, 3845.91, 3838.2, 3823.78, 3827.4, 3817.68, 3819.47, 3829.46, 3848.6, 3870.15, 3901.54, 3923.9, 3937.55, 3942.87, 3940.3, 3943.51, 3954.75, 3944.3, 3939.65, 3935.26, 3915.13];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 4063.6, 4065.43, 4067.3, 4064.55, 4063.84, 4064.51, 4066.06, 4064.1, 4066.27, 4066.73, 4060.84, 4054.37, 4047.56, 4036.27, 4019.96, 4001.62, 3989.52, 3977.33, 3965.16, 3954.51, 3943.72, 3929.67, 3915.47, 3904.26, 3893.69, 3882.11, 3873.71, 3869.09, 3862.28, 3859.47, 3862.11, 3860.46, 3860.02, 3862.24, 3870.39, 3879.71, 3886.01, 3887.38, 3888.73, 3893.28, 3894.46];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '上证指数', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary"><strong>技术分析：</strong>K线形态为小阴线，涨跌幅-0.59%，布林带方面，价格处于「中轨附近 (带宽 5.9%)」，带宽5.9%，成交量正常 1.0x，较前一交易日放大9.0%，均线跌破 MA20，MACD空头增强，KDJ超卖，RSI6=38.0(偏弱)，5日-2.5%，20日+0.6%。</div>
+</div>
+<div class="section">
+  <div class="section-title">七、指数技术指标</div>
+  <table>
+    <thead><tr>
+      <th>名称</th><th class="num">最新价</th><th class="num">涨跌幅</th>
+      <th class="num">RSI(6)</th><th class="num">MACD信号</th>
+      <th class="num">KDJ(J)</th><th class="num">布林带</th>
+      <th class="num" style="width:90px">均线</th><th class="num" style="width:70px">成交量</th>
+      <th class="num">5日</th><th class="num">20日</th>
+    </tr></thead><tbody>
+      <tr>
+        <td>上证指数</td>
+        <td class="num">3882.01</td>
+        <td class="num down">-0.59%</td>
+        <td class="num ">38.0</td>
+        <td class="num down">空头增强</td>
+        <td class="num ">-1.15</td>
+        <td class="num" style="font-size:11px">中轨附近 (带宽 5.9%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 1.0x</td>
+        <td class="num down">-2.5%</td>
+        <td class="num up">+0.6%</td>
+      </tr>
+      <tr>
+        <td>深证成指</td>
+        <td class="num">13794.29</td>
+        <td class="num down">-2.13%</td>
+        <td class="num ">35.5</td>
+        <td class="num down">空头增强</td>
+        <td class="num ">-2.41</td>
+        <td class="num" style="font-size:11px">中轨附近 (带宽 11.0%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 0.9x</td>
+        <td class="num down">-6.2%</td>
+        <td class="num down">-2.5%</td>
+      </tr>
+      <tr>
+        <td>创业板指</td>
+        <td class="num">3431.89</td>
+        <td class="num down">-3.21%</td>
+        <td class="num ">36.2</td>
+        <td class="num down">空头增强</td>
+        <td class="num ">-2.0</td>
+        <td class="num" style="font-size:11px">中轨附近 (带宽 14.5%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 0.9x</td>
+        <td class="num down">-8.2%</td>
+        <td class="num down">-4.4%</td>
+      </tr>
+      <tr>
+        <td>科创50</td>
+        <td class="num">1602.34</td>
+        <td class="num down">-3.10%</td>
+        <td class="num down">27.4</td>
+        <td class="num down">死叉 ↘</td>
+        <td class="num ">-10.39</td>
+        <td class="num" style="font-size:11px">下轨附近 (带宽 14.8%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 0.9x</td>
+        <td class="num down">-10.4%</td>
+        <td class="num down">-11.4%</td>
+      </tr>
+      <tr>
+        <td>沪深300</td>
+        <td class="num">4563.13</td>
+        <td class="num down">-1.21%</td>
+        <td class="num ">33.5</td>
+        <td class="num down">死叉 ↘</td>
+        <td class="num ">0.32</td>
+        <td class="num" style="font-size:11px">下轨附近 (带宽 5.0%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 1.0x</td>
+        <td class="num down">-3.8%</td>
+        <td class="num down">-3.0%</td>
+      </tr>
+      <tr>
+        <td>中证500</td>
+        <td class="num">7717.09</td>
+        <td class="num down">-1.75%</td>
+        <td class="num ">35.5</td>
+        <td class="num down">空头增强</td>
+        <td class="num ">-3.87</td>
+        <td class="num" style="font-size:11px">中轨附近 (带宽 12.9%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 0.9x</td>
+        <td class="num down">-5.7%</td>
+        <td class="num down">-0.1%</td>
+      </tr>
+      <tr>
+        <td>中证1000</td>
+        <td class="num">7491.49</td>
+        <td class="num down">-1.45%</td>
+        <td class="num ">38.8</td>
+        <td class="num down">空头增强</td>
+        <td class="num ">-2.62</td>
+        <td class="num" style="font-size:11px">中轨附近 (带宽 16.5%)</td>
+        <td class="num down" style="font-size:11px">跌破 MA20</td>
+        <td class="num" style="font-size:11px">正常 1.0x</td>
+        <td class="num down">-6.0%</td>
+        <td class="num up">+3.6%</td>
+      </tr>
+    </tbody></table></div>
+<div class="section"><div class="section-title">八、自选股 K线图（技术分析）</div>
+<p style="color:#999;font-size:12px;margin-bottom:16px">每只自选股60日K线，含BOLL上/中/下轨 + MA5/MA20均线 + 成交量，下方附技术分析总结</p>
+<div class="chart-row">
+<div class="stock-chart-block">
+<div class="stock-chart-title">紫金矿业 (601899) — 多头增强</div>
+<div class="chart-box" id="chart_1" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_1');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[30.52, 29.64, 29.38, 30.58], [29.42, 29.39, 29.32, 29.9], [29.56, 30.78, 29.32, 30.94], [30.21, 30.47, 30.15, 31.02], [30.1, 29.54, 29.42, 30.15], [29.5, 28.83, 28.73, 30.05], [27.48, 27.25, 26.78, 27.93], [27.34, 27.67, 26.8, 27.73], [26.8, 26.9, 26.4, 27.2], [26.4, 26.53, 26.0, 26.89], [27.29, 28.29, 27.01, 28.96], [29.74, 30.51, 29.6, 30.55], [30.2, 29.49, 29.4, 30.3], [29.7, 29.63, 29.32, 30.15], [29.16, 28.89, 28.48, 30.18], [28.45, 29.64, 27.75, 29.7], [29.15, 26.95, 26.84, 29.2], [26.61, 26.85, 26.53, 27.17], [25.71, 25.12, 24.93, 25.96], [25.48, 24.68, 24.44, 25.48], [24.93, 25.37, 24.56, 25.54], [24.63, 24.72, 24.28, 24.84], [24.43, 24.69, 24.0, 25.13], [25.19, 25.88, 25.1, 26.54], [27.08, 27.4, 26.99, 27.88], [27.22, 27.86, 27.2, 28.77], [27.38, 27.2, 27.01, 27.69], [26.7, 26.94, 26.38, 27.61], [26.4, 27.2, 26.13, 27.28], [27.58, 27.3, 26.66, 28.03], [26.81, 26.94, 26.32, 27.21], [26.46, 28.64, 26.33, 28.87], [28.64, 28.41, 28.14, 28.92], [28.4, 28.83, 28.37, 29.17], [28.23, 27.94, 27.5, 28.4], [27.94, 28.93, 27.87, 29.03], [29.53, 29.79, 28.71, 29.91], [30.39, 31.78, 30.39, 32.37], [32.1, 32.64, 31.5, 33.26], [31.32, 31.09, 30.55, 31.67], [32.03, 31.35, 30.71, 32.03], [30.78, 31.27, 30.61, 31.38], [31.52, 31.73, 30.76, 31.87], [32.21, 32.28, 31.59, 32.76], [31.96, 32.53, 31.85, 33.06], [32.28, 32.13, 31.27, 32.52], [32.03, 31.7, 31.43, 32.43], [31.97, 33.68, 31.96, 33.8], [34.96, 34.08, 33.73, 35.38], [33.67, 34.73, 33.64, 34.92], [34.76, 35.03, 34.29, 35.18], [35.24, 32.76, 32.69, 35.35], [32.77, 33.16, 32.76, 33.66], [33.16, 31.79, 31.69, 33.42], [31.38, 32.11, 31.33, 32.24], [32.91, 32.94, 32.59, 33.23], [32.94, 33.14, 32.45, 33.16], [32.08, 32.34, 31.93, 32.86], [33.58, 33.83, 33.45, 34.66], [34.25, 34.74, 33.6, 34.87], [35.4, 34.54, 34.16, 35.47]];
+  var volumes = [2610250.0, 1751622.0, 3333214.0, 2529803.0, 2062166.0, 2716213.0, 3775320.0, 2513161.0, 3044088.0, 3231431.0, 5098539.0, 5714756.0, 2922715.0, 2229817.0, 3620675.0, 3918476.0, 4947402.0, 2846096.0, 5760700.0, 3528208.0, 3232927.0, 3107057.0, 3389084.0, 5067417.0, 5386520.0, 3700913.0, 2235422.0, 1969818.0, 2514997.0, 2657100.0, 2130238.0, 3803205.0, 2683491.0, 2654390.0, 2904169.0, 2757683.0, 3426670.0, 5261658.0, 4394476.0, 4010393.0, 2316589.0, 1870630.0, 2156163.0, 2842980.0, 2842479.0, 2195419.0, 2066598.0, 4306669.0, 4026674.0, 2747124.0, 2736505.0, 4475415.0, 2044842.0, 3309070.0, 1943765.0, 1971968.0, 1845214.0, 1898576.0, 4115787.0, 3007017.0, 3376482.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 28.35, 28.14, 27.91, 27.6, 27.37, 27.26, 27.22, 27.21, 27.18, 27.19, 27.23, 27.16, 27.07, 27.02, 26.98, 26.93, 26.89, 27.03, 27.28, 27.66, 27.98, 28.28, 28.6, 28.96, 29.28, 29.53, 29.75, 29.97, 30.31, 30.65, 31.02, 31.43, 31.63, 31.87, 32.02, 32.23, 32.43, 32.6, 32.62, 32.68, 32.87, 33.03];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 31.8, 31.77, 31.78, 31.48, 31.08, 30.84, 30.73, 30.73, 30.69, 30.7, 30.72, 30.62, 30.25, 30.07, 29.91, 29.76, 29.61, 30.03, 30.92, 31.84, 32.18, 32.54, 32.73, 32.88, 33.19, 33.59, 33.88, 34.02, 34.41, 34.81, 35.24, 35.55, 35.59, 35.59, 35.46, 35.12, 34.9, 34.77, 34.77, 34.89, 35.12, 35.28];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 24.9, 24.51, 24.03, 23.72, 23.66, 23.69, 23.7, 23.7, 23.67, 23.68, 23.74, 23.7, 23.88, 23.96, 24.04, 24.09, 24.18, 24.04, 23.64, 23.48, 23.78, 24.01, 24.48, 25.03, 25.36, 25.47, 25.61, 25.93, 26.21, 26.5, 26.81, 27.3, 27.68, 28.16, 28.58, 29.34, 29.95, 30.42, 30.48, 30.47, 30.61, 30.77];
+  var ma5_vals = ["-", "-", "-", "-", 29.96, 29.8, 29.37, 28.75, 28.04, 27.44, 27.33, 27.98, 28.34, 28.89, 29.36, 29.63, 28.92, 28.39, 27.49, 26.65, 25.79, 25.35, 24.92, 25.07, 25.61, 26.11, 26.61, 27.06, 27.32, 27.3, 27.12, 27.4, 27.7, 28.02, 28.15, 28.55, 28.78, 29.45, 30.22, 30.85, 31.33, 31.63, 31.62, 31.54, 31.83, 31.99, 32.07, 32.46, 32.82, 33.26, 33.84, 34.06, 33.95, 33.49, 32.97, 32.55, 32.63, 32.46, 32.87, 33.4, 33.72];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 28.35, 28.14, 27.91, 27.6, 27.37, 27.26, 27.22, 27.21, 27.18, 27.19, 27.23, 27.16, 27.07, 27.02, 26.98, 26.93, 26.89, 27.03, 27.28, 27.66, 27.98, 28.28, 28.6, 28.96, 29.28, 29.53, 29.75, 29.97, 30.31, 30.65, 31.02, 31.43, 31.63, 31.87, 32.02, 32.23, 32.43, 32.6, 32.62, 32.68, 32.87, 33.03];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '紫金矿业', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为小阴线，涨跌幅-0.58%，布林带方面，价格处于「上轨附近 (带宽 13.7%)」，带宽13.7%，成交量正常 1.2x，较前一交易日放大12.3%，均线多头排列 ↑，MACD多头增强，RSI6=64.8(偏强)，5日+4.9%，20日+10.2%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">兴业银锡 (000426) — 多头增强</div>
+<div class="chart-box" id="chart_2" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_2');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[40.58, 39.7, 38.76, 41.15], [38.91, 39.69, 38.44, 40.96], [40.59, 42.97, 39.66, 43.14], [41.97, 42.08, 41.6, 43.15], [41.62, 39.89, 39.7, 41.75], [39.68, 38.08, 37.83, 39.9], [35.11, 35.06, 34.49, 36.44], [35.08, 36.13, 34.45, 36.34], [34.62, 35.41, 34.22, 35.88], [35.31, 36.05, 35.17, 36.58], [37.5, 36.82, 36.68, 39.06], [39.0, 40.26, 38.38, 40.45], [39.7, 40.01, 39.5, 40.67], [40.0, 40.61, 39.7, 41.36], [40.6, 39.57, 38.8, 41.16], [39.25, 43.01, 38.5, 43.05], [42.6, 38.71, 38.71, 42.6], [36.04, 37.82, 36.01, 37.98], [36.0, 35.28, 35.12, 36.48], [35.43, 33.01, 32.7, 35.52], [33.0, 33.27, 32.56, 33.83], [32.5, 32.96, 31.88, 33.1], [32.9, 33.04, 32.21, 34.06], [33.56, 34.33, 33.09, 34.95], [35.84, 35.34, 35.18, 36.86], [35.42, 35.6, 35.4, 38.45], [34.23, 34.1, 33.53, 35.0], [33.9, 33.23, 32.85, 34.14], [32.54, 32.35, 30.5, 33.05], [32.8, 33.0, 32.24, 34.29], [31.99, 30.45, 30.39, 32.3], [30.0, 31.97, 29.5, 31.99], [32.54, 30.56, 30.44, 32.58], [29.95, 30.15, 29.83, 31.13], [29.5, 27.9, 27.47, 29.65], [28.3, 26.93, 26.3, 28.46], [27.79, 29.62, 26.63, 29.62], [30.6, 31.73, 30.59, 32.58], [32.3, 33.59, 31.93, 34.17], [31.75, 31.37, 31.11, 32.45], [32.49, 33.33, 31.8, 33.35], [31.0, 31.25, 31.0, 32.3], [31.02, 32.35, 30.99, 32.89], [32.83, 31.5, 30.98, 33.41], [31.3, 31.8, 31.2, 33.07], [31.21, 31.31, 30.8, 31.97], [31.49, 33.28, 31.43, 33.33], [33.7, 36.3, 33.04, 36.45], [38.11, 37.58, 36.94, 38.91], [37.73, 39.48, 37.3, 39.55], [39.09, 40.67, 39.0, 40.99], [41.67, 38.73, 38.56, 41.8], [39.86, 40.11, 38.72, 40.31], [40.07, 37.88, 37.87, 40.73], [36.82, 37.89, 36.71, 38.03], [39.12, 39.48, 38.23, 39.55], [39.88, 38.81, 38.23, 40.03], [36.92, 35.96, 35.58, 37.6], [38.28, 38.56, 38.05, 39.56], [39.58, 40.88, 39.22, 41.02], [40.89, 42.29, 39.7, 43.02]];
+  var volumes = [533757.0, 550381.0, 1023074.0, 775916.0, 697434.0, 647722.0, 761187.0, 560170.0, 569675.0, 500278.0, 910525.0, 981453.0, 634102.0, 583910.0, 764831.0, 1123059.0, 983664.0, 813849.0, 892935.0, 791861.0, 552957.0, 648799.0, 602646.0, 885294.0, 921103.0, 851702.0, 567967.0, 458870.0, 724846.0, 556535.0, 499274.0, 507433.0, 499199.0, 380780.0, 625878.0, 576578.0, 721858.0, 1126025.0, 1165491.0, 700727.0, 591340.0, 702986.0, 570213.0, 650488.0, 732927.0, 502819.0, 702372.0, 973661.0, 1299088.0, 877333.0, 926410.0, 1133261.0, 659126.0, 744876.0, 566144.0, 486114.0, 472072.0, 808205.0, 950801.0, 1260043.0, 1571778.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 38.51, 38.19, 37.85, 37.35, 36.97, 36.74, 36.61, 36.57, 36.42, 36.27, 36.12, 35.8, 35.38, 34.91, 34.39, 33.8, 33.0, 32.55, 32.24, 32.16, 32.07, 32.08, 31.99, 31.96, 31.82, 31.64, 31.42, 31.38, 31.54, 31.8, 32.12, 32.63, 32.97, 33.45, 33.84, 34.33, 34.96, 35.42, 35.63, 35.88, 36.36, 36.81];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 43.91, 44.02, 44.06, 43.43, 42.77, 42.42, 42.28, 42.3, 42.34, 42.44, 42.45, 42.58, 42.03, 41.52, 40.76, 40.31, 38.68, 37.76, 36.87, 36.62, 36.53, 36.53, 36.44, 36.39, 36.11, 35.62, 34.97, 34.82, 35.52, 36.57, 37.94, 39.48, 40.3, 41.31, 41.77, 41.97, 42.1, 42.31, 42.31, 42.6, 43.08, 43.85];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 33.11, 32.36, 31.64, 31.28, 31.16, 31.06, 30.95, 30.83, 30.5, 30.1, 29.79, 29.02, 28.73, 28.3, 28.01, 27.3, 27.32, 27.33, 27.62, 27.7, 27.62, 27.62, 27.54, 27.53, 27.52, 27.66, 27.88, 27.95, 27.56, 27.03, 26.31, 25.79, 25.64, 25.58, 25.9, 26.7, 27.82, 28.54, 28.96, 29.16, 29.63, 29.76];
+  var ma5_vals = ["-", "-", "-", "-", 40.87, 40.54, 39.62, 38.25, 36.91, 36.15, 35.89, 36.93, 37.71, 38.75, 39.45, 40.69, 40.38, 39.94, 38.88, 37.57, 35.62, 34.47, 33.51, 33.32, 33.79, 34.25, 34.48, 34.52, 34.12, 33.66, 32.63, 32.2, 31.67, 31.23, 30.21, 29.5, 29.03, 29.27, 29.95, 30.65, 31.93, 32.25, 32.38, 31.96, 32.05, 31.64, 32.05, 32.84, 34.05, 35.59, 37.46, 38.55, 39.31, 39.37, 39.06, 38.82, 38.83, 38.0, 38.14, 38.74, 39.3];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 38.51, 38.19, 37.85, 37.35, 36.97, 36.74, 36.61, 36.57, 36.42, 36.27, 36.12, 35.8, 35.38, 34.91, 34.39, 33.8, 33.0, 32.55, 32.24, 32.16, 32.07, 32.08, 31.99, 31.96, 31.82, 31.64, 31.42, 31.38, 31.54, 31.8, 32.12, 32.63, 32.97, 33.45, 33.84, 34.33, 34.96, 35.42, 35.63, 35.88, 36.36, 36.81];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '兴业银锡', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为放量阳线，涨跌幅+3.45%，布林带方面，价格处于「上轨附近 (带宽 38.3%)」，带宽38.3%，成交量放量 1.6x，较前一交易日放大24.7%，均线多头排列 ↑，MACD多头增强，RSI6=69.6(偏强)，5日+7.1%，20日+26.9%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">中金黄金 (600489) — 多头增强</div>
+<div class="chart-box" id="chart_3" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_3');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[22.532, 21.962, 21.792, 22.822], [21.932, 22.102, 21.932, 22.422], [22.032, 22.722, 21.572, 22.862], [22.282, 22.672, 22.012, 23.012], [22.532, 22.092, 21.892, 22.692], [21.902, 21.742, 21.632, 22.382], [20.342, 20.312, 20.092, 20.922], [20.532, 20.612, 20.022, 20.662], [19.652, 20.022, 19.562, 20.262], [19.812, 20.182, 19.652, 20.282], [20.842, 21.052, 20.552, 21.702], [21.932, 22.122, 21.752, 22.482], [22.042, 22.062, 21.712, 22.392], [22.332, 22.242, 21.812, 22.392], [21.942, 21.462, 21.142, 22.322], [20.762, 21.802, 20.642, 21.832], [21.642, 19.572, 19.572, 21.712], [19.332, 19.422, 19.002, 19.642], [18.722, 18.432, 18.332, 18.962], [18.742, 17.842, 17.592, 18.772], [18.122, 17.932, 17.652, 18.222], [17.392, 17.592, 17.102, 17.642], [17.342, 17.502, 17.242, 17.962], [17.932, 18.632, 17.842, 18.822], [19.442, 19.882, 19.252, 20.292], [19.422, 20.142, 19.422, 21.032], [19.662, 19.292, 19.262, 19.952], [18.952, 19.422, 18.822, 19.992], [18.772, 19.492, 18.582, 19.552], [19.642, 19.882, 19.252, 20.602], [19.352, 19.212, 19.062, 19.632], [18.632, 20.012, 18.492, 20.162], [19.932, 19.662, 19.442, 20.192], [19.532, 19.532, 19.382, 20.112], [19.042, 18.602, 18.232, 19.172], [18.632, 19.072, 18.542, 19.372], [19.372, 20.322, 19.292, 20.392], [20.822, 21.652, 20.762, 22.122], [21.842, 21.992, 21.452, 22.712], [20.942, 20.902, 20.842, 21.722], [21.542, 21.082, 20.702, 21.632], [20.642, 20.882, 20.412, 21.022], [20.642, 21.282, 20.522, 21.502], [21.642, 21.442, 21.292, 22.342], [21.722, 22.552, 21.682, 22.822], [22.232, 22.082, 21.552, 22.422], [22.192, 21.802, 21.672, 22.232], [22.072, 23.792, 21.772, 23.792], [25.032, 24.652, 24.322, 25.472], [24.612, 25.642, 24.542, 25.652], [25.542, 26.162, 25.152, 26.322], [26.662, 24.492, 24.332, 26.732], [24.552, 25.102, 24.522, 25.202], [25.3, 24.31, 24.28, 25.59], [23.77, 24.27, 23.65, 24.44], [25.17, 25.48, 24.83, 25.48], [25.4, 25.35, 25.05, 25.97], [24.66, 25.19, 24.63, 25.79], [26.4, 26.37, 26.0, 27.4], [26.79, 27.18, 26.47, 27.3], [27.59, 27.26, 26.81, 27.96]];
+  var volumes = [764536.0, 509677.0, 712790.0, 618691.0, 547353.0, 517597.0, 863570.0, 596035.0, 833576.0, 717791.0, 1056960.0, 1055063.0, 633405.0, 475284.0, 734734.0, 826965.0, 1208832.0, 825032.0, 1159770.0, 840577.0, 810326.0, 883737.0, 831069.0, 1538372.0, 1767532.0, 1494718.0, 703827.0, 788957.0, 821170.0, 859075.0, 666164.0, 931885.0, 728778.0, 773828.0, 1048644.0, 909321.0, 1102571.0, 1499323.0, 1127073.0, 864164.0, 781327.0, 558264.0, 703875.0, 945728.0, 1063929.0, 820740.0, 633253.0, 1168399.0, 1587078.0, 1134642.0, 1105913.0, 1487046.0, 881855.0, 990532.0, 721188.0, 722915.0, 640298.0, 913455.0, 1357587.0, 1216924.0, 1559996.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 21.02, 20.82, 20.59, 20.33, 20.13, 20.02, 19.94, 19.89, 19.83, 19.8, 19.79, 19.7, 19.59, 19.47, 19.34, 19.19, 19.06, 19.09, 19.21, 19.38, 19.54, 19.69, 19.86, 20.05, 20.19, 20.32, 20.42, 20.54, 20.76, 21.02, 21.31, 21.66, 21.88, 22.15, 22.39, 22.67, 22.99, 23.25, 23.42, 23.64, 23.96, 24.26];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 23.77, 23.84, 23.86, 23.71, 23.41, 23.17, 22.99, 22.95, 22.88, 22.85, 22.83, 22.69, 22.38, 22.02, 21.55, 21.2, 20.66, 20.78, 21.23, 21.71, 21.84, 21.96, 21.96, 21.94, 22.06, 22.45, 22.68, 22.82, 23.38, 24.07, 24.91, 25.69, 26.02, 26.39, 26.55, 26.52, 26.65, 26.82, 27.02, 27.39, 27.79, 28.11];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 18.27, 17.8, 17.33, 16.96, 16.86, 16.87, 16.89, 16.83, 16.78, 16.75, 16.74, 16.7, 16.8, 16.92, 17.12, 17.19, 17.45, 17.41, 17.18, 17.06, 17.24, 17.43, 17.75, 18.15, 18.32, 18.19, 18.16, 18.27, 18.15, 17.98, 17.71, 17.62, 17.74, 17.91, 18.23, 18.83, 19.34, 19.67, 19.83, 19.89, 20.13, 20.41];
+  var ma5_vals = ["-", "-", "-", "-", 22.31, 22.27, 21.91, 21.49, 20.96, 20.57, 20.44, 20.8, 21.09, 21.53, 21.79, 21.94, 21.43, 20.9, 20.14, 19.41, 18.64, 18.24, 17.86, 17.9, 18.31, 18.75, 19.09, 19.47, 19.65, 19.65, 19.46, 19.6, 19.65, 19.66, 19.4, 19.38, 19.44, 19.84, 20.33, 20.79, 21.19, 21.3, 21.23, 21.12, 21.45, 21.65, 21.83, 22.33, 22.98, 23.59, 24.41, 24.95, 25.21, 25.14, 24.87, 24.73, 24.9, 24.92, 25.33, 25.91, 26.27];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 21.02, 20.82, 20.59, 20.33, 20.13, 20.02, 19.94, 19.89, 19.83, 19.8, 19.79, 19.7, 19.59, 19.47, 19.34, 19.19, 19.06, 19.09, 19.21, 19.38, 19.54, 19.69, 19.86, 20.05, 20.19, 20.32, 20.42, 20.54, 20.76, 21.02, 21.31, 21.66, 21.88, 22.15, 22.39, 22.67, 22.99, 23.25, 23.42, 23.64, 23.96, 24.26];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '中金黄金', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为小阴线，涨跌幅+0.29%，布林带方面，价格处于「上轨附近 (带宽 31.7%)」，带宽31.7%，成交量正常 1.4x，较前一交易日放大28.2%，均线多头排列 ↑，MACD多头增强，RSI6=77.8(偏强)，5日+7.0%，20日+29.3%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">藏格矿业 (000408) — 多头增强</div>
+<div class="chart-box" id="chart_4" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_4');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[79.3, 77.18, 76.98, 79.78], [77.0, 76.05, 75.79, 78.16], [78.01, 79.24, 75.75, 79.75], [78.56, 79.9, 78.5, 81.2], [79.0, 77.65, 77.02, 79.39], [77.65, 76.08, 75.82, 78.98], [73.0, 73.05, 71.5, 74.15], [73.65, 75.3, 72.3, 75.68], [73.12, 74.59, 72.85, 75.5], [74.0, 76.01, 73.5, 77.29], [78.0, 79.47, 76.73, 81.15], [81.99, 81.86, 80.0, 83.6], [81.48, 76.34, 76.23, 81.54], [77.15, 77.18, 75.68, 77.94], [76.26, 76.42, 75.11, 79.44], [75.5, 78.96, 73.5, 79.42], [78.89, 72.5, 72.08, 78.89], [72.0, 73.2, 71.37, 74.18], [71.0, 70.1, 69.6, 71.67], [70.78, 68.05, 67.89, 70.95], [68.06, 70.16, 67.65, 70.93], [69.4, 69.32, 68.21, 70.09], [68.8, 68.32, 67.44, 70.23], [69.0, 69.8, 67.9, 71.07], [71.6, 73.35, 71.5, 75.19], [73.58, 74.72, 73.06, 77.58], [75.68, 73.05, 72.78, 75.89], [73.3, 70.56, 70.48, 73.39], [70.58, 68.84, 66.74, 70.88], [69.41, 69.3, 68.26, 72.05], [68.77, 67.35, 66.87, 68.9], [67.09, 70.98, 66.5, 71.8], [73.02, 71.5, 71.03, 74.0], [70.71, 70.68, 70.03, 73.15], [69.62, 68.6, 67.79, 70.45], [68.72, 69.84, 67.38, 70.42], [70.75, 72.31, 70.6, 72.63], [74.0, 76.56, 74.0, 77.88], [77.7, 79.46, 76.62, 80.59], [77.8, 77.27, 77.0, 79.36], [78.19, 79.73, 78.13, 80.0], [79.0, 79.41, 78.06, 81.35], [79.01, 79.6, 77.66, 80.55], [80.0, 79.8, 78.75, 81.25], [80.8, 80.62, 79.3, 81.37], [79.91, 79.93, 78.28, 81.0], [80.18, 80.93, 77.68, 81.08], [81.6, 86.57, 81.57, 86.99], [87.8, 86.79, 86.0, 89.07], [87.1, 90.0, 87.07, 91.0], [90.0, 89.2, 88.27, 90.99], [88.0, 82.38, 82.28, 88.9], [82.08, 81.15, 80.95, 84.06], [81.02, 78.04, 77.91, 81.69], [77.29, 77.66, 76.05, 78.18], [80.0, 79.41, 78.36, 80.8], [78.7, 78.72, 77.7, 79.99], [77.0, 75.56, 75.5, 77.7], [77.4, 77.1, 76.34, 79.29], [77.58, 78.19, 77.16, 79.1], [79.75, 77.4, 76.54, 80.3]];
+  var volumes = [130062.0, 121022.0, 143959.0, 120584.0, 89561.0, 95135.0, 148368.0, 102080.0, 91493.0, 127398.0, 190992.0, 235912.0, 177598.0, 114683.0, 151432.0, 221056.0, 229395.0, 148048.0, 205246.0, 171947.0, 132416.0, 126280.0, 147876.0, 183768.0, 224687.0, 167598.0, 113324.0, 120683.0, 178659.0, 184452.0, 116742.0, 165223.0, 154881.0, 115513.0, 130014.0, 150987.0, 182992.0, 240786.0, 208707.0, 122464.0, 112960.0, 125552.0, 101535.0, 109441.0, 122540.0, 122118.0, 139430.0, 231473.0, 185151.0, 181079.0, 141569.0, 333453.0, 200943.0, 169992.0, 152104.0, 164182.0, 141263.0, 154610.0, 156351.0, 133675.0, 148639.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 75.96, 75.61, 75.27, 74.72, 74.22, 74.0, 73.93, 73.93, 73.7, 73.41, 73.07, 72.47, 71.92, 71.68, 71.36, 70.97, 70.51, 70.5, 70.67, 71.14, 71.6, 72.08, 72.58, 73.15, 73.65, 74.01, 74.27, 74.66, 75.46, 76.36, 77.4, 78.49, 79.06, 79.54, 79.91, 80.36, 80.84, 81.16, 81.11, 80.99, 81.04, 80.92];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 82.53, 82.61, 82.79, 82.59, 81.98, 81.61, 81.49, 81.49, 81.37, 81.35, 81.11, 80.31, 78.49, 77.93, 77.08, 76.31, 74.41, 74.38, 75.23, 77.08, 77.93, 79.29, 80.34, 81.22, 82.06, 82.95, 83.58, 84.39, 86.28, 87.79, 89.79, 91.0, 91.18, 91.18, 90.85, 90.07, 89.29, 88.73, 88.82, 88.87, 88.84, 88.86];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 69.39, 68.6, 67.75, 66.86, 66.45, 66.39, 66.38, 66.38, 66.03, 65.47, 65.04, 64.63, 65.36, 65.43, 65.63, 65.62, 66.61, 66.62, 66.1, 65.19, 65.26, 64.86, 64.82, 65.07, 65.23, 65.07, 64.96, 64.94, 64.65, 64.93, 65.0, 65.98, 66.94, 67.9, 68.97, 70.65, 72.39, 73.59, 73.41, 73.12, 73.24, 72.98];
+  var ma5_vals = ["-", "-", "-", "-", 78.0, 77.78, 77.18, 76.4, 75.33, 75.01, 75.68, 77.45, 77.65, 78.17, 78.25, 78.15, 76.28, 75.65, 74.24, 72.56, 70.8, 70.17, 69.19, 69.13, 70.19, 71.1, 71.85, 72.3, 72.1, 71.29, 69.82, 69.41, 69.59, 69.96, 69.82, 70.32, 70.59, 71.6, 73.35, 75.09, 77.07, 78.49, 79.09, 79.16, 79.83, 79.87, 80.18, 81.57, 82.97, 84.84, 86.7, 86.99, 85.9, 84.15, 81.69, 79.73, 79.0, 77.88, 77.69, 77.8, 77.39];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 75.96, 75.61, 75.27, 74.72, 74.22, 74.0, 73.93, 73.93, 73.7, 73.41, 73.07, 72.47, 71.92, 71.68, 71.36, 70.97, 70.51, 70.5, 70.67, 71.14, 71.6, 72.08, 72.58, 73.15, 73.65, 74.01, 74.27, 74.66, 75.46, 76.36, 77.4, 78.49, 79.06, 79.54, 79.91, 80.36, 80.84, 81.16, 81.11, 80.99, 81.04, 80.92];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '藏格矿业', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为小阴线，涨跌幅-1.01%，布林带方面，价格处于「中轨附近 (带宽 19.6%)」，带宽19.6%，成交量正常 1.0x，较前一交易日放大11.2%，均线空头排列 ↓，MACD多头增强，RSI6=41.0(偏弱)，5日-2.5%，20日-2.9%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">宏达股份 (600331) — 多头增强 金叉 ↗</div>
+<div class="chart-box" id="chart_5" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_5');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[15.3, 14.36, 14.23, 15.39], [14.37, 14.16, 14.1, 14.5], [14.36, 14.85, 14.03, 15.0], [14.85, 14.91, 14.71, 15.49], [14.77, 14.33, 14.25, 14.84], [14.41, 13.91, 13.8, 14.61], [13.02, 12.85, 12.69, 13.45], [12.95, 12.53, 12.16, 13.0], [12.6, 12.41, 12.19, 12.67], [12.41, 12.66, 12.21, 12.76], [12.8, 13.18, 12.54, 13.43], [13.67, 13.41, 13.13, 13.84], [13.39, 12.92, 12.9, 13.43], [12.88, 13.04, 12.7, 13.29], [12.91, 12.8, 12.74, 13.55], [12.78, 13.06, 12.43, 13.08], [13.08, 12.28, 12.24, 13.08], [12.28, 11.83, 11.81, 12.43], [11.41, 11.77, 11.11, 12.06], [11.7, 11.05, 10.98, 11.76], [11.0, 10.85, 10.76, 11.25], [10.82, 10.99, 10.61, 11.1], [11.01, 10.8, 10.74, 11.35], [10.87, 11.32, 10.71, 11.63], [11.57, 11.7, 11.33, 12.03], [11.67, 11.24, 11.24, 11.92], [11.18, 11.05, 10.9, 11.34], [11.11, 11.26, 10.84, 11.42], [11.15, 10.83, 10.31, 11.15], [10.83, 10.64, 10.57, 11.04], [10.59, 9.88, 9.87, 10.59], [10.02, 10.53, 9.75, 10.58], [10.55, 10.56, 10.41, 10.98], [10.57, 10.67, 10.5, 11.1], [10.75, 11.11, 10.47, 11.4], [11.27, 10.72, 10.41, 11.4], [10.78, 11.5, 10.72, 11.54], [11.5, 12.3, 11.46, 12.57], [12.3, 12.76, 12.14, 12.97], [12.42, 11.8, 11.77, 12.45], [12.0, 11.99, 11.73, 12.1], [11.75, 12.07, 11.66, 12.31], [12.07, 12.57, 11.96, 12.84], [12.58, 12.35, 12.31, 13.0], [12.11, 12.55, 12.11, 12.78], [12.42, 12.83, 12.15, 12.84], [12.8, 13.1, 12.53, 13.32], [13.16, 13.29, 12.99, 13.57], [13.68, 13.19, 13.03, 13.77], [13.22, 13.88, 13.18, 14.08], [13.85, 14.09, 13.75, 14.2], [14.26, 13.51, 13.5, 14.26], [13.5, 13.68, 13.39, 13.97], [13.68, 12.91, 12.9, 13.76], [12.87, 12.5, 12.3, 12.91], [12.8, 12.88, 12.56, 12.9], [12.8, 12.76, 12.68, 13.04], [12.5, 12.31, 12.27, 12.76], [12.53, 12.69, 12.42, 12.91], [12.8, 12.93, 12.61, 13.07], [12.91, 13.05, 12.58, 13.14]];
+  var volumes = [468848.0, 323407.0, 578514.0, 525818.0, 384713.0, 467575.0, 659999.0, 632053.0, 411246.0, 427352.0, 643231.0, 577156.0, 475367.0, 358872.0, 544175.0, 525124.0, 466710.0, 614891.0, 809645.0, 579892.0, 535253.0, 417825.0, 423931.0, 753156.0, 736462.0, 453187.0, 407728.0, 448621.0, 558055.0, 392947.0, 580853.0, 452639.0, 464678.0, 498385.0, 741857.0, 677152.0, 789126.0, 945418.0, 728868.0, 676822.0, 415933.0, 385403.0, 579775.0, 572817.0, 483877.0, 424608.0, 583849.0, 527426.0, 642227.0, 818002.0, 550424.0, 726425.0, 415759.0, 658479.0, 658829.0, 445042.0, 351482.0, 359159.0, 435386.0, 449254.0, 508252.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 13.12, 12.94, 12.78, 12.58, 12.4, 12.27, 12.13, 12.04, 11.98, 11.9, 11.8, 11.64, 11.49, 11.37, 11.26, 11.17, 11.05, 11.02, 11.04, 11.09, 11.13, 11.18, 11.24, 11.33, 11.38, 11.42, 11.5, 11.6, 11.7, 11.82, 11.98, 12.19, 12.34, 12.5, 12.61, 12.68, 12.79, 12.85, 12.85, 12.85, 12.9, 12.96];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 15.15, 15.12, 15.04, 14.79, 14.39, 14.07, 13.83, 13.76, 13.72, 13.7, 13.64, 13.54, 13.27, 13.07, 12.79, 12.54, 12.12, 11.95, 12.07, 12.33, 12.4, 12.51, 12.61, 12.8, 12.92, 13.04, 13.23, 13.45, 13.69, 13.86, 14.13, 14.3, 14.38, 14.44, 14.37, 14.3, 14.14, 14.07, 14.07, 14.07, 14.02, 14.0];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 11.08, 10.76, 10.52, 10.37, 10.41, 10.46, 10.44, 10.32, 10.24, 10.11, 9.96, 9.73, 9.71, 9.68, 9.72, 9.81, 9.99, 10.08, 10.01, 9.85, 9.85, 9.86, 9.86, 9.85, 9.83, 9.8, 9.77, 9.75, 9.72, 9.78, 9.83, 10.08, 10.3, 10.55, 10.85, 11.06, 11.44, 11.63, 11.63, 11.63, 11.78, 11.92];
+  var ma5_vals = ["-", "-", "-", "-", 14.52, 14.43, 14.17, 13.71, 13.21, 12.87, 12.73, 12.84, 12.92, 13.04, 13.07, 13.05, 12.82, 12.6, 12.35, 12.0, 11.56, 11.3, 11.09, 11.0, 11.13, 11.21, 11.22, 11.31, 11.22, 11.0, 10.73, 10.63, 10.49, 10.46, 10.55, 10.72, 10.91, 11.26, 11.68, 11.82, 12.07, 12.18, 12.24, 12.16, 12.31, 12.47, 12.68, 12.82, 12.99, 13.26, 13.51, 13.59, 13.67, 13.61, 13.34, 13.1, 12.95, 12.67, 12.63, 12.71, 12.75];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 13.12, 12.94, 12.78, 12.58, 12.4, 12.27, 12.13, 12.04, 11.98, 11.9, 11.8, 11.64, 11.49, 11.37, 11.26, 11.17, 11.05, 11.02, 11.04, 11.09, 11.13, 11.18, 11.24, 11.33, 11.38, 11.42, 11.5, 11.6, 11.7, 11.82, 11.98, 12.19, 12.34, 12.5, 12.61, 12.68, 12.79, 12.85, 12.85, 12.85, 12.9, 12.96];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '宏达股份', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为长下影阳线，涨跌幅+0.93%，布林带方面，价格处于「中轨附近 (带宽 16.0%)」，带宽16.0%，成交量正常 1.2x，较前一交易日放大13.1%，均线空头排列 ↓，MACD多头增强，KDJ金叉 ↗，RSI6=55.4(偏强)，5日+1.3%，20日+8.8%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">盛新锂能 (002240) — 空头增强</div>
+<div class="chart-box" id="chart_6" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_6');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[47.48, 45.45, 45.2, 47.98], [45.34, 43.76, 43.65, 45.85], [43.83, 43.16, 41.6, 43.98], [42.7, 43.81, 42.25, 44.82], [43.44, 42.49, 42.0, 43.65], [42.76, 43.55, 41.36, 44.89], [43.0, 42.62, 41.56, 45.02], [43.51, 46.88, 42.7, 46.88], [47.7, 47.7, 47.1, 49.08], [47.7, 50.98, 46.53, 52.2], [50.0, 51.08, 49.1, 54.05], [51.1, 51.63, 49.15, 53.47], [50.52, 48.81, 48.8, 50.55], [48.81, 48.3, 47.87, 50.19], [47.0, 45.74, 45.57, 49.08], [44.72, 46.98, 42.52, 47.01], [46.01, 43.05, 42.9, 46.2], [43.05, 47.36, 42.52, 47.36], [46.88, 46.51, 46.3, 49.5], [46.48, 42.35, 42.25, 46.7], [41.53, 42.57, 40.05, 43.29], [42.95, 44.83, 42.45, 46.57], [44.85, 45.65, 43.16, 46.43], [45.67, 43.6, 43.46, 45.9], [44.45, 42.1, 42.03, 44.8], [41.93, 41.43, 41.4, 44.41], [42.5, 42.38, 41.61, 44.0], [41.0, 38.14, 38.14, 41.98], [36.03, 35.55, 34.33, 37.3], [35.0, 34.1, 34.05, 35.69], [34.09, 32.19, 31.9, 34.09], [32.7, 33.08, 31.65, 33.18], [33.08, 31.11, 31.0, 33.2], [30.81, 30.17, 29.95, 31.2], [30.1, 28.88, 28.6, 30.86], [28.71, 25.99, 25.99, 29.0], [26.09, 27.39, 24.59, 27.5], [27.1, 27.65, 26.86, 28.38], [27.99, 30.42, 27.8, 30.42], [29.82, 28.46, 28.31, 30.23], [29.02, 29.16, 27.9, 29.55], [28.99, 28.47, 28.2, 29.91], [28.75, 29.08, 27.29, 29.83], [28.87, 27.95, 27.83, 29.32], [28.21, 28.11, 27.95, 29.18], [27.67, 28.71, 27.29, 28.93], [28.71, 29.42, 28.51, 29.49], [29.68, 30.72, 29.2, 30.75], [31.01, 31.12, 30.35, 31.3], [31.48, 32.05, 30.6, 32.31], [32.42, 32.84, 32.22, 33.38], [32.7, 31.93, 31.86, 32.86], [32.19, 33.0, 32.19, 34.2], [33.1, 32.97, 32.43, 33.66], [33.56, 33.89, 33.01, 34.71], [34.16, 33.65, 33.15, 34.67], [33.99, 33.23, 32.8, 34.23], [32.4, 31.78, 31.68, 33.15], [32.31, 31.67, 31.38, 32.35], [31.65, 33.75, 31.46, 34.65], [34.28, 32.93, 32.59, 35.5]];
+  var volumes = [464159.0, 474651.0, 413387.0, 379003.0, 313847.0, 519801.0, 497506.0, 609148.0, 916410.0, 1024290.0, 1014912.0, 896591.0, 839726.0, 590618.0, 810523.0, 952597.0, 691248.0, 789165.0, 822246.0, 675590.0, 591519.0, 649251.0, 628179.0, 465451.0, 449180.0, 519603.0, 532413.0, 571271.0, 879923.0, 672775.0, 476487.0, 412922.0, 456191.0, 443078.0, 447714.0, 554077.0, 629070.0, 487432.0, 590423.0, 656553.0, 515797.0, 436647.0, 592209.0, 480458.0, 424560.0, 356036.0, 343060.0, 467538.0, 475143.0, 480359.0, 558957.0, 387042.0, 557390.0, 435933.0, 438933.0, 423727.0, 347467.0, 363185.0, 220897.0, 628678.0, 631722.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 46.11, 45.97, 46.02, 46.14, 46.13, 46.11, 46.01, 46.0, 45.56, 44.95, 44.11, 43.16, 42.24, 41.35, 40.44, 39.6, 38.55, 37.77, 36.78, 35.98, 35.28, 34.61, 33.8, 32.97, 32.19, 31.49, 30.85, 30.2, 29.83, 29.61, 29.51, 29.54, 29.48, 29.58, 29.72, 29.97, 30.35, 30.64, 30.85, 30.91, 31.17, 31.36];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 51.98, 52.03, 52.02, 52.0, 52.01, 52.04, 52.19, 52.2, 52.63, 53.17, 53.11, 52.97, 52.17, 51.92, 51.57, 51.52, 51.35, 51.27, 50.21, 48.9, 48.26, 47.39, 45.93, 43.96, 42.23, 40.57, 38.77, 36.11, 34.5, 33.53, 33.04, 33.18, 32.93, 33.29, 33.71, 34.33, 34.6, 34.84, 34.83, 34.91, 35.19, 35.33];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 40.25, 39.91, 40.02, 40.28, 40.26, 40.19, 39.83, 39.79, 38.49, 36.73, 35.11, 33.36, 32.3, 30.78, 29.32, 27.68, 25.75, 24.27, 23.35, 23.06, 22.31, 21.83, 21.66, 21.97, 22.14, 22.4, 22.93, 24.29, 25.16, 25.69, 25.97, 25.89, 26.03, 25.86, 25.72, 25.6, 26.1, 26.45, 26.86, 26.91, 27.16, 27.39];
+  var ma5_vals = ["-", "-", "-", "-", 43.73, 43.35, 43.13, 43.87, 44.65, 46.35, 47.85, 49.65, 50.04, 50.16, 49.11, 48.29, 46.58, 46.29, 45.93, 45.25, 44.37, 44.72, 44.38, 43.8, 43.75, 43.52, 43.03, 41.53, 39.92, 38.32, 36.47, 34.61, 33.21, 32.13, 31.09, 29.85, 28.71, 28.02, 28.07, 27.98, 28.62, 28.83, 29.12, 28.62, 28.55, 28.46, 28.65, 28.98, 29.62, 30.4, 31.23, 31.73, 32.19, 32.56, 32.93, 33.09, 33.35, 33.1, 32.84, 32.82, 32.67];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 46.11, 45.97, 46.02, 46.14, 46.13, 46.11, 46.01, 46.0, 45.56, 44.95, 44.11, 43.16, 42.24, 41.35, 40.44, 39.6, 38.55, 37.77, 36.78, 35.98, 35.28, 34.61, 33.8, 32.97, 32.19, 31.49, 30.85, 30.2, 29.83, 29.61, 29.51, 29.54, 29.48, 29.58, 29.72, 29.97, 30.35, 30.64, 30.85, 30.91, 31.17, 31.36];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '盛新锂能', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为大阴线，涨跌幅-2.43%，布林带方面，价格处于「中轨附近 (带宽 25.3%)」，带宽25.3%，成交量正常 1.4x，较前一交易日放大0.5%，均线站上 MA20，MACD空头增强，RSI6=54.7(偏强)，5日-2.1%，20日+12.9%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">科创半导体ETF华夏 (588170) — 空头增强</div>
+<div class="chart-box" id="chart_7" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_7');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[0.875, 0.816, 0.804, 0.875], [0.805, 0.77, 0.767, 0.816], [0.772, 0.778, 0.755, 0.791], [0.779, 0.8, 0.779, 0.824], [0.781, 0.839, 0.781, 0.842], [0.821, 0.808, 0.802, 0.839], [0.776, 0.784, 0.772, 0.806], [0.801, 0.85, 0.797, 0.851], [0.835, 0.864, 0.835, 0.883], [0.863, 0.915, 0.863, 0.916], [0.966, 0.889, 0.88, 0.966], [0.896, 0.933, 0.863, 0.933], [0.935, 0.942, 0.927, 0.956], [0.922, 1.024, 0.92, 1.027], [1.017, 1.04, 1.014, 1.044], [1.052, 1.071, 1.033, 1.083], [1.058, 1.075, 1.034, 1.101], [1.054, 1.13, 1.048, 1.14], [1.141, 1.166, 1.13, 1.181], [1.153, 1.204, 1.143, 1.221], [1.221, 1.32, 1.204, 1.333], [1.326, 1.377, 1.3, 1.38], [1.393, 1.392, 1.347, 1.465], [1.327, 1.235, 1.229, 1.348], [1.2, 1.193, 1.168, 1.245], [1.212, 1.192, 1.149, 1.232], [1.168, 1.232, 1.16, 1.242], [1.232, 1.271, 1.19, 1.306], [1.304, 1.397, 1.27, 1.397], [1.39, 1.292, 1.288, 1.439], [1.236, 1.214, 1.199, 1.307], [1.194, 1.215, 1.137, 1.249], [1.23, 1.122, 1.119, 1.233], [1.078, 1.041, 1.031, 1.128], [1.03, 0.973, 0.968, 1.054], [0.994, 0.899, 0.876, 1.007], [0.91, 1.07, 0.849, 1.07], [1.025, 1.02, 1.007, 1.08], [1.026, 0.98, 0.965, 1.035], [0.956, 1.013, 0.95, 1.042], [0.998, 1.053, 0.975, 1.062], [1.016, 0.982, 0.973, 1.064], [0.971, 0.98, 0.904, 1.0], [0.958, 0.898, 0.884, 0.966], [1.0, 0.92, 0.917, 1.017], [0.89, 0.829, 0.828, 0.902], [0.836, 0.865, 0.824, 0.882], [0.865, 0.949, 0.864, 0.966], [0.916, 0.977, 0.916, 0.998], [0.97, 1.015, 0.964, 1.016], [1.017, 1.049, 1.009, 1.055], [1.029, 1.018, 1.007, 1.053], [1.027, 1.04, 1.021, 1.049], [1.058, 1.01, 1.009, 1.06], [1.02, 1.021, 0.998, 1.03], [1.018, 1.077, 1.015, 1.078], [1.078, 1.104, 1.066, 1.107], [1.066, 1.022, 1.012, 1.084], [1.038, 1.019, 1.005, 1.045], [1.014, 1.012, 1.0, 1.034], [1.02, 1.01, 0.98, 1.03]];
+  var volumes = [11172252.0, 8669038.0, 8647291.0, 8918867.0, 9252751.0, 6236487.0, 6193912.0, 7717723.0, 8487720.0, 9160505.0, 10715916.0, 8501390.0, 7372375.0, 11148565.0, 14434018.0, 11792460.0, 11297005.0, 12103057.0, 12339655.0, 12942839.0, 13264993.0, 15237493.0, 19387610.0, 20780740.0, 17980372.0, 42465300.0, 40837631.0, 58035669.0, 58046584.0, 77774105.0, 61196725.0, 59543447.0, 52483141.0, 46887276.0, 62013265.0, 68799608.0, 99655963.0, 97721858.0, 65417923.0, 83004245.0, 80095756.0, 90217695.0, 99909444.0, 109657563.0, 139675714.0, 131421418.0, 112063640.0, 118612015.0, 97735303.0, 76607967.0, 73944027.0, 65238607.0, 56974181.0, 76569934.0, 54020794.0, 70698302.0, 73232579.0, 95436467.0, 69492955.0, 50344671.0, 63986070.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 0.93, 0.96, 0.99, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.15, 1.17, 1.19, 1.2, 1.21, 1.21, 1.21, 1.2, 1.2, 1.19, 1.18, 1.17, 1.16, 1.14, 1.12, 1.1, 1.09, 1.07, 1.05, 1.04, 1.01, 1.0, 0.99, 0.98, 0.98, 0.98, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 1.21, 1.27, 1.34, 1.4, 1.42, 1.43, 1.43, 1.43, 1.44, 1.46, 1.47, 1.46, 1.44, 1.43, 1.42, 1.43, 1.45, 1.46, 1.46, 1.47, 1.47, 1.45, 1.42, 1.38, 1.38, 1.37, 1.37, 1.35, 1.32, 1.25, 1.2, 1.17, 1.12, 1.11, 1.1, 1.11, 1.12, 1.13, 1.13, 1.13, 1.13, 1.12];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 0.66, 0.65, 0.64, 0.65, 0.67, 0.7, 0.73, 0.77, 0.81, 0.84, 0.87, 0.91, 0.95, 0.99, 0.99, 0.98, 0.94, 0.94, 0.92, 0.9, 0.88, 0.87, 0.86, 0.86, 0.83, 0.81, 0.77, 0.75, 0.75, 0.78, 0.8, 0.82, 0.84, 0.85, 0.85, 0.85, 0.86, 0.85, 0.85, 0.86, 0.86, 0.86];
+  var ma5_vals = ["-", "-", "-", "-", 0.8, 0.8, 0.8, 0.82, 0.83, 0.84, 0.86, 0.89, 0.91, 0.94, 0.97, 1.0, 1.03, 1.07, 1.1, 1.13, 1.18, 1.24, 1.29, 1.31, 1.3, 1.28, 1.25, 1.22, 1.26, 1.28, 1.28, 1.28, 1.25, 1.18, 1.11, 1.05, 1.02, 1.0, 0.99, 1.0, 1.03, 1.01, 1.0, 0.99, 0.97, 0.92, 0.9, 0.89, 0.91, 0.93, 0.97, 1.0, 1.02, 1.03, 1.03, 1.03, 1.05, 1.05, 1.05, 1.05, 1.03];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 0.93, 0.96, 0.99, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.15, 1.17, 1.19, 1.2, 1.21, 1.21, 1.21, 1.2, 1.2, 1.19, 1.18, 1.17, 1.16, 1.14, 1.12, 1.1, 1.09, 1.07, 1.05, 1.04, 1.01, 1.0, 0.99, 0.98, 0.98, 0.98, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '科创半导体ETF华夏', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为长下影阴线，涨跌幅-0.20%，布林带方面，价格处于「中轨附近 (带宽 26.3%)」，带宽26.3%，成交量正常 0.9x，较前一交易日放大27.1%，均线站上 MA20，MACD空头增强，RSI6=45.7(偏弱)，5日-6.2%，20日-4.1%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">赤峰黄金 (600988) — 多头增强</div>
+<div class="chart-box" id="chart_8" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_8');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[35.0, 33.37, 33.23, 35.1], [33.36, 33.5, 32.9, 33.97], [33.55, 34.15, 32.41, 34.42], [33.3, 33.45, 32.81, 33.93], [33.28, 32.23, 31.92, 33.4], [32.02, 31.36, 31.15, 32.18], [29.75, 29.2, 28.9, 30.28], [29.5, 29.37, 28.57, 29.66], [28.2, 28.17, 27.71, 28.79], [27.61, 28.26, 27.51, 28.87], [29.26, 30.37, 28.81, 30.93], [32.49, 32.63, 31.96, 33.38], [32.6, 31.98, 31.65, 32.73], [32.4, 32.5, 31.72, 32.52], [31.64, 30.59, 30.54, 32.5], [30.33, 31.09, 29.3, 31.16], [30.36, 27.98, 27.98, 30.66], [27.5, 28.19, 27.28, 28.38], [27.18, 26.62, 26.53, 27.29], [26.8, 25.93, 25.0, 26.9], [25.8, 26.68, 25.35, 26.88], [25.7, 26.32, 25.68, 26.42], [26.0, 25.81, 25.51, 26.39], [26.64, 28.39, 26.64, 28.39], [30.37, 31.23, 29.86, 31.23], [31.23, 31.6, 31.23, 33.59], [30.31, 30.42, 30.23, 31.49], [30.03, 31.32, 29.5, 32.05], [29.9, 31.35, 29.9, 31.49], [31.81, 32.84, 30.45, 33.64], [31.6, 32.33, 31.07, 33.13], [31.69, 34.95, 30.88, 35.08], [33.94, 33.4, 33.39, 35.35], [32.81, 34.62, 32.78, 35.61], [34.17, 31.74, 31.16, 34.56], [31.25, 32.25, 30.93, 33.2], [33.1, 35.48, 32.81, 35.48], [36.82, 38.22, 36.59, 39.03], [38.23, 38.83, 37.22, 40.78], [36.35, 36.49, 35.0, 37.87], [37.8, 38.14, 36.03, 38.56], [37.09, 37.29, 36.22, 37.5], [36.7, 37.86, 36.57, 38.34], [38.96, 37.17, 37.0, 39.99], [37.6, 39.56, 37.5, 40.79], [38.2, 38.86, 36.89, 39.34], [38.53, 37.75, 37.15, 38.85], [38.2, 40.84, 37.57, 41.0], [43.53, 41.3, 41.08, 43.6], [41.02, 42.09, 40.2, 42.09], [41.9, 43.73, 40.68, 44.18], [44.8, 40.3, 39.8, 45.99], [40.31, 40.98, 39.8, 41.2], [41.0, 38.66, 38.6, 41.53], [37.67, 39.78, 37.5, 39.99], [40.5, 40.78, 40.19, 41.54], [41.05, 42.21, 40.79, 42.68], [40.8, 42.72, 40.66, 43.7], [45.0, 46.1, 44.55, 46.99], [46.98, 49.43, 46.11, 49.88], [49.6, 48.77, 47.49, 51.99]];
+  var volumes = [478838.0, 337448.0, 480893.0, 349435.0, 419701.0, 322847.0, 714710.0, 416306.0, 612309.0, 425502.0, 954485.0, 858661.0, 401603.0, 373596.0, 604830.0, 619449.0, 680996.0, 553243.0, 688607.0, 600244.0, 624562.0, 517739.0, 490962.0, 673026.0, 372467.0, 1483166.0, 714000.0, 903481.0, 663506.0, 861807.0, 648712.0, 859098.0, 827023.0, 636745.0, 887527.0, 606365.0, 811912.0, 1084722.0, 1096695.0, 831977.0, 749888.0, 508178.0, 510380.0, 777590.0, 897949.0, 533706.0, 635509.0, 733872.0, 882901.0, 774417.0, 817378.0, 1220211.0, 687519.0, 789240.0, 558126.0, 404548.0, 514787.0, 611302.0, 1026165.0, 1013615.0, 1175790.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 30.55, 30.21, 29.85, 29.44, 29.18, 29.13, 29.15, 29.21, 29.3, 29.46, 29.69, 29.79, 29.91, 29.98, 30.08, 30.14, 30.2, 30.57, 31.07, 31.69, 32.21, 32.79, 33.33, 33.94, 34.38, 34.79, 35.16, 35.52, 36.0, 36.5, 36.96, 37.53, 37.8, 38.17, 38.38, 38.78, 39.21, 39.54, 39.77, 40.13, 40.78, 41.31];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 35.34, 35.11, 34.79, 34.25, 33.65, 33.48, 33.52, 33.62, 33.81, 34.02, 34.44, 34.67, 35.15, 35.37, 35.74, 35.84, 35.96, 36.68, 37.92, 38.99, 39.3, 39.85, 39.99, 39.91, 39.93, 40.58, 41.01, 41.05, 41.64, 42.16, 42.86, 43.73, 43.99, 44.17, 44.15, 43.7, 43.18, 43.33, 43.74, 44.94, 46.79, 48.12];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 25.75, 25.32, 24.92, 24.62, 24.72, 24.78, 24.77, 24.8, 24.8, 24.9, 24.94, 24.91, 24.66, 24.59, 24.42, 24.44, 24.44, 24.47, 24.23, 24.38, 25.13, 25.73, 26.68, 27.97, 28.83, 29.0, 29.3, 29.99, 30.36, 30.83, 31.06, 31.33, 31.6, 32.18, 32.61, 33.86, 35.24, 35.76, 35.79, 35.32, 34.77, 34.5];
+  var ma5_vals = ["-", "-", "-", "-", 33.34, 32.94, 32.08, 31.12, 30.07, 29.27, 29.07, 29.76, 30.28, 31.15, 31.61, 31.76, 30.83, 30.07, 28.89, 27.96, 27.08, 26.75, 26.27, 26.63, 27.69, 28.67, 29.49, 30.59, 31.18, 31.51, 31.65, 32.56, 32.97, 33.63, 33.41, 33.39, 33.5, 34.46, 35.3, 36.25, 37.43, 37.79, 37.72, 37.39, 38.0, 38.15, 38.24, 38.84, 39.66, 40.17, 41.14, 41.65, 41.68, 41.15, 40.69, 40.1, 40.48, 40.83, 42.32, 44.25, 45.85];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 30.55, 30.21, 29.85, 29.44, 29.18, 29.13, 29.15, 29.21, 29.3, 29.46, 29.69, 29.79, 29.91, 29.98, 30.08, 30.14, 30.2, 30.57, 31.07, 31.69, 32.21, 32.79, 33.33, 33.94, 34.38, 34.79, 35.16, 35.52, 36.0, 36.5, 36.96, 37.53, 37.8, 38.17, 38.38, 38.78, 39.21, 39.54, 39.77, 40.13, 40.78, 41.31];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '赤峰黄金', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为长上影阴线，涨跌幅-1.34%，布林带方面，价格处于「突破上轨 ↑」，带宽33.0%，成交量正常 1.4x，较前一交易日放大16.0%，均线多头排列 ↑，MACD多头增强，RSI6=78.2(偏强)，5日+19.6%，20日+27.9%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">云铝股份 (000807) — 多头增强</div>
+<div class="chart-box" id="chart_9" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_9');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[29.031, 28.111, 28.091, 29.171], [28.221, 28.531, 27.941, 28.751], [29.331, 29.911, 28.851, 30.041], [29.901, 30.111, 29.511, 30.481], [29.441, 28.221, 28.031, 29.521], [27.981, 27.261, 27.121, 28.571], [26.221, 26.421, 26.021, 27.111], [26.521, 26.321, 25.671, 26.621], [25.71, 26.65, 25.6, 26.84], [26.5, 27.23, 26.45, 27.47], [27.7, 28.1, 27.06, 28.8], [28.45, 26.9, 26.54, 28.75], [26.4, 25.38, 25.31, 26.4], [25.47, 25.0, 24.67, 25.57], [24.75, 24.17, 23.83, 25.15], [23.96, 25.99, 23.95, 26.07], [25.54, 23.93, 23.82, 25.59], [24.31, 24.64, 24.01, 25.2], [23.57, 23.59, 23.2, 24.32], [23.96, 22.48, 22.28, 24.19], [22.8, 23.16, 22.4, 23.65], [22.86, 22.14, 21.81, 22.88], [21.8, 21.8, 21.58, 22.41], [21.98, 21.77, 21.56, 22.21], [22.38, 22.42, 22.1, 22.97], [22.76, 22.88, 22.56, 23.46], [22.57, 22.39, 22.13, 22.74], [22.55, 22.32, 22.16, 22.93], [22.02, 21.89, 21.22, 22.12], [22.3, 23.15, 22.0, 23.64], [22.75, 23.06, 22.55, 23.27], [23.48, 24.98, 22.9, 25.34], [25.1, 26.1, 24.65, 26.53], [25.6, 25.37, 25.33, 26.43], [25.37, 25.12, 24.68, 25.46], [25.45, 26.02, 25.02, 26.65], [25.76, 25.18, 24.48, 25.88], [25.09, 25.58, 24.81, 25.9], [25.88, 26.87, 25.33, 27.61], [26.16, 25.4, 25.28, 26.41], [25.47, 25.62, 25.11, 25.77], [25.16, 25.6, 24.94, 25.75], [25.78, 26.15, 25.77, 26.4], [26.53, 26.5, 26.5, 27.57], [26.4, 26.62, 26.23, 27.19], [26.27, 25.68, 25.45, 26.3], [25.95, 26.02, 25.7, 26.45], [25.72, 26.82, 25.45, 26.88], [26.88, 26.66, 26.11, 27.09], [26.72, 27.13, 26.68, 27.56], [27.5, 27.85, 27.37, 28.16], [28.13, 27.23, 27.16, 28.99], [27.98, 27.44, 27.29, 28.46], [26.9, 25.89, 25.83, 27.06], [25.54, 25.91, 25.44, 25.98], [26.11, 26.71, 25.91, 26.77], [26.43, 26.57, 26.31, 26.84], [25.99, 25.96, 25.69, 26.3], [26.28, 25.26, 25.11, 26.67], [25.47, 25.88, 25.17, 25.95], [26.28, 26.29, 25.88, 26.38]];
+  var volumes = [654703.0, 604961.0, 755706.0, 640205.0, 989059.0, 670499.0, 589327.0, 593175.0, 496210.0, 506144.0, 866802.0, 1241427.0, 1217199.0, 851610.0, 1054123.0, 1276164.0, 973892.0, 801374.0, 1046942.0, 890944.0, 846089.0, 862221.0, 700190.0, 837562.0, 946779.0, 988892.0, 580753.0, 654282.0, 809061.0, 1158275.0, 924321.0, 1957457.0, 1607986.0, 1076063.0, 929903.0, 1135257.0, 1234299.0, 961790.0, 1288085.0, 935108.0, 590395.0, 521806.0, 662985.0, 943572.0, 1114330.0, 921845.0, 880617.0, 1030360.0, 863334.0, 850031.0, 903048.0, 1200303.0, 1146193.0, 1369355.0, 590899.0, 711622.0, 465283.0, 500570.0, 853064.0, 650515.0, 589117.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 26.45, 26.2, 25.88, 25.47, 25.06, 24.77, 24.55, 24.35, 24.15, 23.91, 23.7, 23.45, 23.36, 23.39, 23.41, 23.46, 23.46, 23.52, 23.57, 23.73, 23.88, 24.0, 24.18, 24.39, 24.63, 24.84, 24.98, 25.16, 25.39, 25.62, 25.82, 26.06, 26.18, 26.24, 26.27, 26.31, 26.34, 26.41, 26.43, 26.35, 26.38, 26.41];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 30.5, 30.42, 30.31, 29.83, 29.15, 28.74, 28.43, 28.24, 28.02, 27.73, 27.21, 26.33, 25.87, 26.04, 26.11, 26.24, 26.25, 26.4, 26.55, 27.04, 27.21, 27.4, 27.53, 27.67, 27.79, 27.94, 27.97, 27.93, 27.92, 27.64, 27.59, 27.55, 27.65, 27.82, 27.8, 27.76, 27.8, 27.77, 27.75, 27.75, 27.72, 27.71];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 22.4, 21.98, 21.46, 21.12, 20.96, 20.79, 20.66, 20.45, 20.27, 20.09, 20.2, 20.58, 20.84, 20.74, 20.71, 20.68, 20.67, 20.64, 20.59, 20.42, 20.55, 20.6, 20.82, 21.12, 21.47, 21.74, 21.99, 22.39, 22.85, 23.61, 24.05, 24.58, 24.7, 24.67, 24.74, 24.86, 24.89, 25.06, 25.11, 24.95, 25.03, 25.11];
+  var ma5_vals = ["-", "-", "-", "-", 28.98, 28.81, 28.39, 27.67, 26.97, 26.78, 26.94, 27.04, 26.85, 26.52, 25.91, 25.49, 24.89, 24.75, 24.46, 24.13, 23.56, 23.2, 22.63, 22.27, 22.26, 22.2, 22.25, 22.36, 22.38, 22.53, 22.56, 23.08, 23.84, 24.53, 24.93, 25.52, 25.56, 25.45, 25.75, 25.81, 25.73, 25.81, 25.93, 25.85, 26.1, 26.11, 26.19, 26.33, 26.36, 26.46, 26.9, 27.14, 27.26, 27.11, 26.86, 26.64, 26.5, 26.21, 26.08, 26.08, 25.99];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 26.45, 26.2, 25.88, 25.47, 25.06, 24.77, 24.55, 24.35, 24.15, 23.91, 23.7, 23.45, 23.36, 23.39, 23.41, 23.46, 23.46, 23.52, 23.57, 23.73, 23.88, 24.0, 24.18, 24.39, 24.63, 24.84, 24.98, 25.16, 25.39, 25.62, 25.82, 26.06, 26.18, 26.24, 26.27, 26.31, 26.34, 26.41, 26.43, 26.35, 26.38, 26.41];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '云铝股份', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为十字星，涨跌幅+1.58%，布林带方面，价格处于「中轨附近 (带宽 9.8%)」，带宽9.8%，成交量正常 1.0x，较前一交易日缩小9.4%，均线空头排列 ↓，MACD多头增强，RSI6=51.5(偏强)，5日-1.6%，20日+2.6%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">神火股份 (000933) — 多头增强</div>
+<div class="chart-box" id="chart_10" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_10');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[29.38, 29.05, 28.95, 29.94], [29.35, 30.25, 29.06, 30.48], [30.6, 30.88, 30.11, 31.24], [30.64, 30.72, 29.99, 30.99], [30.48, 28.68, 28.55, 30.5], [28.53, 27.8, 27.66, 28.82], [26.6, 26.76, 26.31, 27.45], [26.76, 26.3, 25.81, 26.98], [25.62, 26.25, 25.3, 26.5], [26.11, 26.77, 26.09, 27.05], [26.9, 27.31, 26.61, 28.47], [27.88, 26.44, 26.23, 27.95], [26.02, 24.91, 24.7, 26.02], [24.93, 24.55, 24.38, 25.07], [24.2, 23.74, 23.62, 24.78], [23.8, 25.11, 23.56, 25.2], [24.8, 22.99, 22.93, 24.8], [22.99, 23.3, 22.88, 23.53], [22.53, 22.22, 21.91, 22.63], [22.55, 21.41, 21.31, 22.58], [21.67, 22.0, 21.16, 22.25], [21.78, 21.2, 20.93, 21.78], [20.89, 21.11, 20.74, 21.57], [21.38, 21.17, 20.93, 21.6], [21.7, 22.06, 21.59, 22.38], [22.06, 22.52, 22.0, 22.86], [22.17, 21.78, 21.66, 22.34], [22.17, 21.89, 21.71, 22.54], [21.64, 21.35, 20.95, 21.84], [22.01, 23.49, 21.91, 23.49], [23.03, 23.13, 22.5, 23.56], [23.25, 24.68, 22.91, 24.95], [24.68, 25.51, 24.43, 25.79], [25.02, 24.59, 24.45, 25.52], [24.58, 23.98, 23.77, 24.68], [24.43, 25.2, 23.82, 25.6], [24.85, 24.46, 23.87, 25.04], [24.66, 25.0, 24.3, 25.45], [25.03, 26.26, 24.8, 26.84], [25.8, 24.98, 24.96, 25.96], [25.2, 25.35, 24.7, 25.65], [24.76, 25.1, 24.33, 25.25], [25.29, 25.75, 25.2, 25.85], [26.2, 26.36, 26.14, 26.96], [25.76, 26.07, 25.76, 26.47], [25.75, 25.37, 25.26, 25.92], [25.68, 25.69, 25.25, 25.94], [25.49, 26.2, 25.17, 26.31], [26.41, 26.34, 25.76, 26.5], [26.4, 26.83, 26.4, 27.13], [27.04, 27.34, 26.86, 27.75], [27.74, 26.91, 26.84, 28.43], [27.6, 27.24, 27.12, 28.0], [26.75, 25.9, 25.88, 26.89], [25.6, 25.83, 25.45, 25.98], [26.08, 26.56, 25.86, 26.66], [26.25, 26.38, 26.07, 26.65], [25.8, 25.83, 25.68, 26.09], [26.18, 25.25, 25.11, 26.43], [25.32, 25.78, 25.17, 25.82], [25.94, 26.08, 25.6, 26.22]];
+  var volumes = [439367.0, 566728.0, 533261.0, 520407.0, 695699.0, 480223.0, 537969.0, 599689.0, 493368.0, 338358.0, 726997.0, 877852.0, 1036618.0, 459065.0, 719754.0, 705883.0, 694112.0, 523350.0, 794931.0, 560179.0, 508850.0, 522972.0, 502605.0, 661272.0, 758879.0, 623346.0, 458688.0, 448998.0, 480755.0, 1058202.0, 980525.0, 1393682.0, 1086262.0, 710833.0, 672070.0, 866893.0, 792865.0, 728765.0, 877697.0, 611675.0, 502172.0, 630872.0, 596761.0, 674340.0, 731278.0, 614477.0, 511029.0, 724005.0, 701208.0, 609301.0, 588726.0, 858011.0, 683383.0, 759642.0, 318335.0, 420970.0, 302038.0, 317143.0, 486386.0, 412748.0, 429834.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 26.27, 25.92, 25.47, 24.98, 24.5, 24.17, 23.91, 23.66, 23.44, 23.19, 23.03, 22.82, 22.73, 22.76, 22.76, 22.77, 22.78, 22.85, 22.94, 23.14, 23.32, 23.49, 23.68, 23.91, 24.17, 24.37, 24.52, 24.71, 24.93, 25.18, 25.34, 25.55, 25.66, 25.75, 25.82, 25.91, 25.98, 26.07, 26.11, 26.06, 26.1, 26.14];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 31.69, 31.48, 31.02, 30.25, 29.32, 28.69, 28.16, 27.79, 27.45, 27.09, 26.57, 25.77, 25.32, 25.47, 25.47, 25.5, 25.52, 25.69, 25.92, 26.44, 26.61, 26.83, 26.92, 27.05, 27.21, 27.36, 27.4, 27.35, 27.3, 26.97, 27.1, 27.21, 27.37, 27.59, 27.58, 27.45, 27.51, 27.45, 27.4, 27.4, 27.36, 27.34];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 20.86, 20.36, 19.92, 19.71, 19.69, 19.65, 19.66, 19.52, 19.42, 19.3, 19.49, 19.87, 20.14, 20.06, 20.05, 20.05, 20.03, 20.01, 19.95, 19.84, 20.03, 20.14, 20.44, 20.78, 21.13, 21.39, 21.63, 22.07, 22.55, 23.38, 23.58, 23.9, 23.96, 23.91, 24.06, 24.36, 24.44, 24.7, 24.83, 24.72, 24.85, 24.94];
+  var ma5_vals = ["-", "-", "-", "-", 29.92, 29.67, 28.97, 28.05, 27.16, 26.78, 26.68, 26.61, 26.34, 26.0, 25.39, 24.95, 24.26, 23.94, 23.47, 23.01, 22.38, 22.03, 21.59, 21.38, 21.51, 21.61, 21.73, 21.88, 21.92, 22.21, 22.33, 22.91, 23.63, 24.28, 24.38, 24.79, 24.75, 24.65, 24.98, 25.18, 25.21, 25.34, 25.49, 25.51, 25.73, 25.73, 25.85, 25.94, 25.93, 26.09, 26.48, 26.72, 26.93, 26.84, 26.64, 26.49, 26.38, 26.1, 25.97, 25.96, 25.86];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 26.27, 25.92, 25.47, 24.98, 24.5, 24.17, 23.91, 23.66, 23.44, 23.19, 23.03, 22.82, 22.73, 22.76, 22.76, 22.77, 22.78, 22.85, 22.94, 23.14, 23.32, 23.49, 23.68, 23.91, 24.17, 24.37, 24.52, 24.71, 24.93, 25.18, 25.34, 25.55, 25.66, 25.75, 25.82, 25.91, 25.98, 26.07, 26.11, 26.06, 26.1, 26.14];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '神火股份', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为长下影阳线，涨跌幅+1.16%，布林带方面，价格处于「中轨附近 (带宽 9.2%)」，带宽9.2%，成交量正常 1.1x，较前一交易日放大4.1%，均线跌破 MA20，MACD多头增强，RSI6=51.1(偏强)，5日-1.8%，20日+2.9%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">中国海洋石油 [港股] (00883) — 多头增强 超买 ⚠</div>
+<div class="chart-box" id="chart_11" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_11');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[25.45, 25.85, 25.45, 25.91], [25.69, 26.15, 25.69, 26.53], [26.55, 26.81, 26.45, 26.85], [26.81, 26.71, 26.37, 27.07], [26.75, 26.47, 26.15, 26.75], [26.43, 25.99, 25.99, 26.65], [25.91, 26.51, 25.83, 26.73], [26.11, 26.15, 25.93, 26.49], [25.97, 25.01, 24.65, 26.11], [25.66, 24.72, 24.42, 25.86], [24.5, 24.92, 24.22, 24.98], [24.16, 24.2, 24.02, 24.86], [24.08, 23.58, 23.24, 24.26], [23.24, 22.84, 22.62, 23.46], [22.8, 22.38, 21.96, 22.88], [22.5, 22.2, 21.96, 22.88], [22.5, 21.9, 21.52, 22.64], [21.9, 21.82, 21.68, 22.0], [21.5, 21.22, 21.0, 21.66], [21.5, 20.86, 20.82, 21.5], [21.08, 21.08, 20.72, 21.32], [21.12, 20.32, 20.16, 21.12], [20.04, 20.4, 19.92, 20.4], [20.6, 21.18, 20.56, 21.3], [21.1, 21.04, 20.72, 21.24], [21.14, 21.1, 20.78, 21.26], [21.6, 21.78, 21.54, 22.28], [22.08, 21.8, 21.68, 22.4], [21.76, 21.82, 21.26, 21.96], [22.2, 22.26, 21.94, 22.34], [22.8, 22.8, 22.5, 23.04], [22.76, 22.9, 22.36, 23.1], [22.82, 22.88, 22.8, 23.08], [22.9, 22.72, 22.36, 23.0], [23.2, 23.9, 23.2, 24.28], [23.8, 23.5, 23.06, 23.84], [23.8, 24.1, 23.54, 24.12], [24.14, 24.22, 23.92, 24.32], [24.44, 23.56, 23.44, 24.64], [22.78, 23.2, 22.76, 23.38], [22.88, 22.98, 22.58, 23.2], [23.1, 23.5, 23.0, 23.68], [23.8, 24.18, 23.72, 24.4], [23.88, 23.82, 23.66, 24.12], [23.36, 23.74, 23.36, 23.86], [23.6, 23.58, 23.36, 23.82], [23.2, 22.96, 22.74, 23.3], [22.68, 22.7, 22.52, 22.96], [22.94, 23.26, 22.9, 23.36], [23.52, 23.4, 23.26, 23.72], [23.86, 24.24, 23.76, 24.46], [24.18, 23.96, 23.8, 24.18], [23.64, 23.86, 23.42, 24.1], [23.62, 23.82, 23.44, 23.96], [23.84, 23.92, 23.84, 24.3], [24.16, 24.42, 24.08, 24.66], [24.6, 24.46, 24.18, 24.8], [24.4, 24.66, 24.2, 24.8], [24.72, 25.18, 24.7, 25.18], [24.94, 25.4, 24.86, 25.5]];
+  var volumes = [85073696.0, 85992482.0, 95119288.0, 77362920.0, 58134257.0, 74271346.0, 81041375.0, 80163810.0, 149937593.0, 138730609.0, 87623138.0, 162984344.0, 114726492.0, 161471341.0, 135613995.0, 103528687.0, 76882301.0, 42066412.0, 145439996.0, 79967735.0, 84288812.0, 93656662.0, 83097836.0, 67465854.0, 72475046.0, 43738516.0, 82081421.0, 61346565.0, 50938816.0, 51143717.0, 87387288.0, 89396295.0, 54298555.0, 60100336.0, 135890783.0, 68783946.0, 79541529.0, 62811921.0, 97623407.0, 96872154.0, 103115194.0, 80383898.0, 92366391.0, 50777375.0, 54447012.0, 48769813.0, 112853000.0, 70718846.0, 68081143.0, 40294974.0, 79197736.0, 31708759.0, 44862368.0, 30333866.0, 38850073.0, 74838852.0, 43129372.0, 52849248.0, 69928959.0, 59516954.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 24.31, 24.08, 23.78, 23.46, 23.19, 22.92, 22.67, 22.43, 22.22, 22.06, 21.94, 21.83, 21.76, 21.73, 21.72, 21.8, 21.86, 21.97, 22.09, 22.21, 22.33, 22.42, 22.58, 22.77, 22.9, 23.04, 23.16, 23.22, 23.27, 23.34, 23.39, 23.47, 23.52, 23.57, 23.62, 23.62, 23.67, 23.69, 23.71, 23.79, 23.9];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 28.29, 28.22, 28.12, 27.8, 27.37, 26.91, 26.48, 25.82, 25.15, 24.7, 24.28, 23.78, 23.47, 23.3, 23.28, 23.61, 23.81, 24.15, 24.48, 24.64, 24.71, 24.75, 24.75, 24.79, 24.84, 24.8, 24.7, 24.63, 24.54, 24.42, 24.36, 24.46, 24.5, 24.51, 24.49, 24.49, 24.6, 24.66, 24.75, 25.01, 25.27];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 20.34, 19.93, 19.45, 19.12, 19.01, 18.92, 18.87, 19.05, 19.29, 19.42, 19.59, 19.88, 20.06, 20.15, 20.16, 19.99, 19.91, 19.79, 19.71, 19.78, 19.94, 20.09, 20.42, 20.75, 20.97, 21.27, 21.63, 21.82, 22.0, 22.25, 22.43, 22.48, 22.54, 22.63, 22.76, 22.76, 22.74, 22.72, 22.67, 22.58, 22.53];
+  var ma5_vals = ["-", "-", "-", "-", 26.4, 26.43, 26.5, 26.37, 26.03, 25.68, 25.46, 25.0, 24.49, 24.05, 23.58, 23.04, 22.58, 22.23, 21.9, 21.6, 21.38, 21.06, 20.78, 20.77, 20.8, 20.81, 21.1, 21.38, 21.51, 21.75, 22.09, 22.32, 22.53, 22.71, 23.04, 23.18, 23.42, 23.69, 23.86, 23.72, 23.61, 23.49, 23.48, 23.54, 23.64, 23.76, 23.66, 23.36, 23.25, 23.18, 23.31, 23.51, 23.74, 23.86, 23.96, 24.0, 24.1, 24.26, 24.53, 24.82];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 24.31, 24.08, 23.78, 23.46, 23.19, 22.92, 22.67, 22.43, 22.22, 22.06, 21.94, 21.83, 21.76, 21.73, 21.72, 21.8, 21.86, 21.97, 22.09, 22.21, 22.33, 22.42, 22.58, 22.77, 22.9, 23.04, 23.16, 23.22, 23.27, 23.34, 23.39, 23.47, 23.52, 23.57, 23.62, 23.62, 23.67, 23.69, 23.71, 23.79, 23.9];
+  var vol_colors = [["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '中国海洋石油', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为小阳线，涨跌幅+0.87%，布林带方面，价格处于「突破上轨 ↑」，带宽11.5%，成交量正常 1.0x，较前一交易日缩小14.9%，均线多头排列 ↑，MACD多头增强，KDJ超买 ⚠，RSI6=84.2(超买 ⚠)，5日+6.2%，20日+9.5%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">泡泡玛特 [港股] (09992) — 多头增强</div>
+<div class="chart-box" id="chart_12" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_12');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[161.7, 173.4, 161.7, 181.0], [175.6, 179.6, 174.5, 186.5], [179.6, 179.2, 175.6, 181.0], [178.1, 179.3, 171.6, 179.9], [181.0, 177.5, 177.0, 185.6], [178.0, 176.4, 173.4, 180.0], [173.0, 170.5, 168.8, 175.4], [172.0, 168.5, 168.0, 174.9], [169.8, 173.1, 168.2, 177.4], [172.9, 178.3, 172.5, 180.9], [181.8, 183.0, 177.8, 187.1], [184.2, 177.0, 174.2, 186.3], [177.6, 174.8, 169.1, 179.0], [175.1, 171.3, 169.9, 175.5], [165.5, 164.3, 163.1, 169.5], [163.5, 160.0, 158.1, 165.0], [159.5, 156.7, 156.4, 163.7], [158.1, 158.1, 156.3, 160.2], [158.0, 156.0, 152.0, 158.0], [154.0, 158.5, 150.4, 161.7], [158.5, 158.5, 153.0, 160.4], [155.8, 154.7, 151.1, 157.9], [155.4, 153.4, 151.1, 157.4], [153.4, 153.3, 152.5, 157.9], [153.3, 152.7, 148.3, 153.9], [151.1, 151.1, 149.5, 153.7], [151.1, 154.9, 147.1, 156.6], [154.3, 151.0, 149.6, 155.8], [150.0, 150.7, 147.2, 151.3], [153.2, 153.5, 152.3, 157.5], [155.3, 155.0, 151.1, 156.4], [155.4, 157.3, 153.6, 158.8], [158.2, 168.1, 158.0, 170.9], [169.0, 163.6, 161.6, 170.8], [163.6, 164.0, 161.4, 168.7], [165.0, 163.2, 158.8, 166.0], [163.0, 159.3, 158.5, 163.0], [158.6, 162.0, 158.3, 164.4], [162.0, 160.9, 158.7, 162.4], [161.5, 165.2, 159.7, 167.0], [164.6, 162.8, 159.2, 165.6], [163.0, 166.4, 160.9, 169.2], [168.0, 163.2, 162.1, 172.4], [161.0, 162.6, 158.1, 163.9], [162.6, 159.9, 159.8, 163.6], [160.0, 160.2, 157.3, 162.5], [161.0, 161.4, 159.3, 162.3], [156.0, 157.3, 151.0, 157.8], [157.8, 157.8, 155.9, 159.8], [157.8, 154.4, 153.3, 158.6], [154.3, 152.7, 152.5, 155.5], [153.0, 151.0, 150.7, 153.7], [153.9, 154.2, 152.1, 156.6], [153.2, 154.1, 152.9, 156.1], [154.1, 153.5, 153.2, 156.9], [152.6, 150.1, 149.2, 153.2], [150.8, 150.5, 150.2, 152.2], [152.0, 153.7, 150.8, 156.0], [141.1, 149.0, 140.1, 149.6], [149.0, 155.0, 148.1, 155.6]];
+  var volumes = [60530111.0, 39441077.0, 20389924.0, 21006431.0, 16685930.0, 15512853.0, 19205125.0, 14530423.0, 15722628.0, 20802599.0, 20417954.0, 20968123.0, 19310176.0, 11812744.0, 23003683.0, 22399530.0, 15310725.0, 9414527.0, 17053820.0, 19699634.0, 14026757.0, 15237645.0, 15662540.0, 9866611.0, 15251047.0, 8587037.0, 17778166.0, 12088570.0, 10719376.0, 12460614.0, 9558369.0, 9110385.0, 27066067.0, 12052493.0, 10741067.0, 10641850.0, 8993962.0, 7254760.0, 5891934.0, 9565960.0, 11178789.0, 15878996.0, 16124933.0, 10573360.0, 13490332.0, 8381789.0, 6638049.0, 19505149.0, 8351920.0, 13414139.0, 8205640.0, 12043127.0, 13775057.0, 5403919.0, 7731506.0, 15655340.0, 7205744.0, 10846769.0, 44114816.0, 19765924.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 170.78, 170.03, 168.78, 167.49, 166.19, 164.95, 163.69, 162.91, 162.03, 160.91, 159.67, 158.28, 157.29, 156.96, 156.57, 156.56, 156.72, 156.84, 157.04, 157.29, 157.62, 157.83, 158.42, 158.91, 159.37, 159.73, 160.19, 160.52, 160.83, 161.19, 161.23, 161.12, 160.8, 160.11, 159.63, 159.1, 158.45, 158.01, 157.59, 157.0, 156.49];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 187.88, 187.89, 187.27, 186.48, 185.33, 184.22, 183.1, 182.42, 182.02, 180.81, 178.12, 173.37, 169.7, 167.71, 165.67, 165.6, 166.11, 166.3, 166.75, 167.13, 168.04, 168.5, 169.6, 170.03, 170.29, 170.21, 169.89, 169.91, 169.31, 168.45, 168.31, 168.65, 169.4, 168.48, 168.23, 167.86, 167.82, 167.98, 167.56, 167.51, 166.33];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 153.67, 152.17, 150.3, 148.51, 147.06, 145.69, 144.28, 143.4, 142.05, 141.02, 141.23, 143.18, 144.88, 146.2, 147.47, 147.51, 147.32, 147.39, 147.33, 147.44, 147.2, 147.17, 147.24, 147.79, 148.46, 149.26, 150.49, 151.12, 152.35, 153.92, 154.15, 153.58, 152.2, 151.73, 151.03, 150.35, 149.08, 148.04, 147.63, 146.49, 146.65];
+  var ma5_vals = ["-", "-", "-", "-", 177.8, 178.4, 176.58, 174.44, 173.2, 173.36, 174.68, 175.98, 177.24, 176.88, 174.08, 169.48, 165.42, 162.08, 159.02, 157.86, 157.56, 157.16, 156.22, 155.68, 154.52, 153.04, 153.08, 152.6, 152.08, 152.24, 153.02, 153.5, 156.92, 159.5, 161.6, 163.24, 163.64, 162.42, 161.88, 162.12, 162.04, 163.46, 163.7, 164.04, 162.98, 162.46, 161.46, 160.28, 159.32, 158.22, 156.72, 154.64, 154.02, 153.28, 153.1, 152.58, 152.48, 152.38, 151.36, 151.66];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 170.78, 170.03, 168.78, 167.49, 166.19, 164.95, 163.69, 162.91, 162.03, 160.91, 159.67, 158.28, 157.29, 156.96, 156.57, 156.56, 156.72, 156.84, 157.04, 157.29, 157.62, 157.83, 158.42, 158.91, 159.37, 159.73, 160.19, 160.52, 160.83, 161.19, 161.23, 161.12, 160.8, 160.11, 159.63, 159.1, 158.45, 158.01, 157.59, 157.0, 156.49];
+  var vol_colors = [["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '泡泡玛特', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为放量阳线，涨跌幅+4.03%，布林带方面，价格处于「中轨附近 (带宽 12.6%)」，带宽12.6%，成交量正常 1.0x，较前一交易日缩小55.2%，均线空头排列 ↓，MACD多头增强，RSI6=55.0(偏强)，5日+1.0%，20日-6.2%。</div>
+</div>
+<div class="stock-chart-block">
+<div class="stock-chart-title">紫金黄金国际 [港股] (02259) — 多头增强</div>
+<div class="chart-box" id="chart_13" style="height:420px"></div>
+<script>
+(function() {
+  var dom = document.getElementById('chart_13');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  var dates = ["05-29", "06-01", "06-02", "06-03", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-17", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24"];
+  var ohlc = [[132.5, 128.2, 127.1, 132.5], [129.8, 128.2, 127.9, 132.4], [128.6, 126.1, 121.3, 128.6], [127.0, 125.0, 124.5, 128.2], [123.2, 119.5, 118.3, 124.8], [119.5, 117.3, 116.2, 120.3], [113.6, 107.0, 105.1, 113.6], [110.0, 108.5, 105.3, 110.0], [104.4, 103.3, 98.35, 104.4], [100.2, 102.2, 98.4, 103.3], [106.2, 105.6, 101.1, 110.8], [115.0, 121.5, 114.3, 122.9], [121.5, 119.6, 118.0, 123.3], [120.7, 118.0, 115.5, 122.0], [118.0, 109.6, 109.3, 118.0], [107.5, 106.9, 102.8, 109.0], [108.1, 99.55, 98.5, 108.1], [98.0, 100.0, 92.95, 100.7], [96.6, 92.95, 91.6, 96.6], [94.0, 93.75, 89.4, 95.0], [94.0, 93.0, 92.9, 96.0], [89.25, 88.5, 84.2, 89.65], [91.5, 94.3, 90.35, 98.3], [100.0, 107.5, 100.0, 112.1], [109.1, 107.7, 106.0, 113.0], [103.2, 105.6, 102.0, 106.4], [103.0, 104.3, 100.8, 108.5], [100.1, 99.7, 95.3, 101.7], [100.5, 98.3, 96.9, 103.5], [95.75, 97.5, 95.0, 97.85], [94.8, 103.0, 93.2, 104.2], [104.9, 99.2, 98.75, 104.9], [101.7, 103.5, 99.6, 107.4], [100.2, 96.5, 93.65, 102.6], [95.55, 97.95, 93.1, 98.5], [99.3, 108.2, 98.6, 110.0], [112.9, 118.2, 111.6, 124.9], [120.0, 119.5, 117.1, 125.0], [113.0, 115.0, 112.0, 116.0], [120.0, 118.5, 115.5, 120.8], [115.1, 114.2, 112.7, 116.5], [113.5, 117.7, 112.1, 117.9], [120.7, 118.2, 116.5, 125.7], [120.6, 118.2, 115.7, 123.8], [118.2, 117.0, 112.7, 118.2], [117.0, 117.1, 115.0, 118.6], [118.6, 129.0, 118.2, 131.3], [139.0, 131.4, 129.3, 139.0], [131.4, 137.1, 128.2, 140.0], [138.4, 144.0, 136.7, 146.2], [148.5, 133.8, 133.1, 149.0], [137.4, 135.6, 133.7, 137.8], [137.1, 128.2, 126.5, 137.7], [125.2, 127.5, 123.9, 130.3], [132.2, 135.1, 130.4, 136.0], [141.8, 137.8, 134.4, 141.8], [134.0, 133.3, 130.3, 137.5], [145.0, 148.3, 144.1, 155.4], [154.2, 160.3, 152.0, 162.1], [165.0, 159.4, 156.8, 165.8]];
+  var volumes = [18344425.0, 4825395.0, 7590857.0, 4240772.0, 6854750.0, 4234801.0, 15087374.0, 5638954.0, 9443760.0, 7158833.0, 13240970.0, 20855863.0, 10222532.0, 6489908.0, 29305768.0, 9482672.0, 5228513.0, 9103694.0, 9189884.0, 7014940.0, 6907935.0, 9940871.0, 11553731.0, 19698877.0, 7259225.0, 7791147.0, 5616739.0, 11258082.0, 7020182.0, 3836267.0, 6894617.0, 5763883.0, 7173116.0, 8097959.0, 6122669.0, 10208569.0, 26099949.0, 11597461.0, 8113809.0, 8753299.0, 4556829.0, 5221008.0, 14243091.0, 8349324.0, 4456760.0, 3145525.0, 12753469.0, 16932332.0, 12186561.0, 20390074.0, 14758894.0, 5818110.0, 9481323.0, 8024824.0, 7495518.0, 9540890.0, 6404369.0, 20554036.0, 13389384.0, 13802174.0];
+  var mid_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 111.64, 109.88, 107.89, 106.3, 105.43, 104.84, 104.25, 104.12, 103.68, 103.43, 103.19, 103.06, 101.95, 101.14, 100.07, 99.48, 99.55, 100.48, 101.46, 102.56, 103.8, 104.86, 106.32, 107.51, 108.05, 108.51, 109.09, 110.32, 111.91, 113.85, 116.17, 117.71, 119.53, 120.77, 122.32, 124.17, 125.66, 126.41, 127.85, 130.12, 132.16];
+  var upper_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 133.71, 132.0, 130.2, 127.71, 125.06, 123.43, 121.95, 121.77, 121.31, 121.22, 121.16, 121.0, 117.82, 114.83, 111.48, 110.05, 110.31, 113.97, 117.28, 118.92, 121.03, 121.91, 122.49, 123.49, 124.69, 125.6, 126.52, 129.62, 132.61, 136.29, 140.88, 142.78, 144.24, 144.6, 143.52, 142.88, 143.74, 144.45, 147.93, 153.79, 158.39];
+  var lower_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 89.57, 87.76, 85.58, 84.9, 85.79, 86.25, 86.55, 86.46, 86.04, 85.64, 85.22, 85.12, 86.08, 87.45, 88.66, 88.92, 88.79, 87.0, 85.64, 86.2, 86.57, 87.81, 90.14, 91.54, 91.41, 91.42, 91.66, 91.02, 91.2, 91.41, 91.47, 92.65, 94.83, 96.94, 101.11, 105.47, 107.57, 108.37, 107.77, 106.44, 105.93];
+  var ma5_vals = ["-", "-", "-", "-", 125.4, 123.22, 118.98, 115.46, 111.12, 107.66, 105.32, 108.22, 110.44, 113.38, 114.86, 115.12, 110.73, 106.81, 101.8, 98.63, 95.85, 93.64, 92.5, 95.41, 98.2, 100.72, 103.88, 104.96, 103.12, 101.08, 100.56, 99.54, 100.3, 99.94, 100.03, 101.07, 104.87, 108.07, 111.77, 115.88, 117.08, 116.98, 116.72, 117.36, 117.06, 117.64, 119.9, 122.54, 126.32, 131.72, 135.06, 136.38, 135.74, 133.82, 132.04, 132.84, 132.38, 136.4, 142.96, 147.82];
+  var ma20_vals = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", 111.64, 109.88, 107.89, 106.3, 105.43, 104.84, 104.25, 104.12, 103.68, 103.43, 103.19, 103.06, 101.95, 101.14, 100.07, 99.48, 99.55, 100.48, 101.46, 102.56, 103.8, 104.86, 106.32, 107.51, 108.05, 108.51, 109.09, 110.32, 111.91, 113.85, 116.17, 117.71, 119.53, 120.77, 122.32, 124.17, 125.66, 126.41, 127.85, 130.12, 132.16];
+  var vol_colors = [["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"], ["#27ae60", "#27ae60"], ["#c0392b", "#c0392b"], ["#c0392b", "#c0392b"], ["#27ae60", "#27ae60"]];
+  chart.setOption({
+    animation: false,
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    grid: [{ left: '10%', right: '5%', top: '5%', height: '55%' },
+           { left: '10%', right: '5%', top: '72%', height: '18%' }],
+    xAxis: [{ type: 'category', data: dates, boundaryGap: true, axisLine: { onZero: false },
+              axisLabel: { interval: Math.floor(dates.length/8), rotate: 0, fontSize: 11 } },
+            { type: 'category', gridIndex: 1, data: dates, boundaryGap: true,
+              axisLabel: { show: false } }],
+    yAxis: [{ type: 'value', scale: true, splitArea: { show: true },
+              axisLabel: { fontSize: 11 } },
+            { type: 'value', gridIndex: 1, scale: true,
+              axisLabel: { fontSize: 10, formatter: function(v) { return (v/10000).toFixed(0)+'万'; } } }],
+    series: [
+      { name: '紫金黄金国际', type: 'candlestick', data: ohlc,
+         itemStyle: { color: '#c0392b', color0: '#27ae60', borderColor: '#c0392b', borderColor0: '#27ae60' } },
+      { name: 'BOLL上轨', type: 'line', data: upper_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'BOLL中轨', type: 'line', data: mid_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 1 } },
+      { name: 'BOLL下轨', type: 'line', data: lower_vals, symbol: 'none',
+         lineStyle: { color: '#ffa726', width: 0.8, type: 'dashed' } },
+      { name: 'MA5', type: 'line', data: ma5_vals, symbol: 'none',
+         lineStyle: { color: '#5c6bc0', width: 1 } },
+      { name: 'MA20', type: 'line', data: ma20_vals, symbol: 'none',
+         lineStyle: { color: '#ef5350', width: 1 } },
+      { name: '成交量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: volumes,
+         itemStyle: { color: function(p) { return vol_colors[p.dataIndex] ? vol_colors[p.dataIndex][0] : '#999'; } } }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+<div class="tech-summary" style="font-size:12px">K线形态为小阴线，涨跌幅-0.56%，布林带方面，价格处于「突破上轨 ↑」，带宽39.7%，成交量正常 1.1x，较前一交易日放大3.1%，均线多头排列 ↑，MACD多头增强，RSI6=78.0(偏强)，5日+18.0%，20日+34.5%。</div>
+</div>
+</div>
+</div>
+<div class="section">
+  <div class="section-title">九、自选股技术分析与走势判断</div>
+  <p style="font-size:13px;color:#666;margin-bottom:14px">基于MACD/KDJ/RSI/BOLL/均线/量能等多维技术指标的综合分析，给出短期及中期走势判断。</p>
+  <table style="margin-bottom:20px">
+    <thead><tr>
+      <th>股票</th><th class="num">涨跌幅</th><th class="num">MACD</th>
+      <th class="num">KDJ-J</th><th class="num">RSI6</th><th class="num">布林位置</th>
+      <th class="num">综合信号</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>紫金矿业</td><td class="num down">-0.58%</td><td class="num up">多头增强</td><td class="num">86.7</td><td class="num">64.8</td><td class="num" style="font-size:11px">上轨附近 (带宽 13.7%)</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>兴业银锡</td><td class="num up">+3.45%</td><td class="num up">多头增强</td><td class="num">85.0</td><td class="num">69.6</td><td class="num" style="font-size:11px">上轨附近 (带宽 38.3%)</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>中金黄金</td><td class="num up">+0.29%</td><td class="num up">多头增强</td><td class="num">89.8</td><td class="num">77.8</td><td class="num" style="font-size:11px">上轨附近 (带宽 31.7%)</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>藏格矿业</td><td class="num down">-1.01%</td><td class="num up">多头增强</td><td class="num">13.4</td><td class="num">41.0</td><td class="num" style="font-size:11px">中轨附近 (带宽 19.6%)</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>宏达股份</td><td class="num up">+0.93%</td><td class="num up">多头增强</td><td class="num">33.8</td><td class="num">55.4</td><td class="num" style="font-size:11px">中轨附近 (带宽 16.0%)</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>盛新锂能</td><td class="num down">-2.43%</td><td class="num down">空头增强</td><td class="num">31.0</td><td class="num">54.7</td><td class="num" style="font-size:11px">中轨附近 (带宽 25.3%)</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>科创半导体ETF华夏</td><td class="num down">-0.69%</td><td class="num down">空头增强</td><td class="num">0.7</td><td class="num">45.7</td><td class="num" style="font-size:11px">中轨附近 (带宽 26.3%)</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>赤峰黄金</td><td class="num down">-1.34%</td><td class="num up">多头增强</td><td class="num">95.6</td><td class="num">78.2</td><td class="num" style="font-size:11px">突破上轨 ↑</td><td class="num"><span class="up">偏多</span></td></tr>
+      <tr><td>云铝股份</td><td class="num up">+1.58%</td><td class="num up">多头增强</td><td class="num">21.6</td><td class="num">51.5</td><td class="num" style="font-size:11px">中轨附近 (带宽 9.8%)</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>神火股份</td><td class="num up">+1.16%</td><td class="num up">多头增强</td><td class="num">18.5</td><td class="num">51.1</td><td class="num" style="font-size:11px">中轨附近 (带宽 9.2%)</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>中国海洋石油</td><td class="num up">+0.87%</td><td class="num up">多头增强</td><td class="num">106.1</td><td class="num">84.2</td><td class="num" style="font-size:11px">突破上轨 ↑</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>泡泡玛特</td><td class="num up">+4.03%</td><td class="num up">多头增强</td><td class="num">89.2</td><td class="num">55.0</td><td class="num" style="font-size:11px">中轨附近 (带宽 12.6%)</td><td class="num"><span class="flat">震荡</span></td></tr>
+      <tr><td>紫金黄金国际</td><td class="num down">-0.56%</td><td class="num up">多头增强</td><td class="num">94.6</td><td class="num">78.0</td><td class="num" style="font-size:11px">突破上轨 ↑</td><td class="num"><span class="up">偏多</span></td></tr>
+    </tbody></table>
+  <div class="stock-analysis-grid">
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">紫金矿业 <span style="color:#999;font-size:11px">(601899)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 上轨附近 (带宽 13.7%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=64.8偏强，布林带上轨附近 (带宽 13.7%)，均线多头排列 ↑，量能正常 1.2x，5日+4.9%，20日+10.2%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位35.47，支撑位33.03。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">兴业银锡 <span style="color:#999;font-size:11px">(000426)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 上轨附近 (带宽 38.3%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=69.6偏强，布林带上轨附近 (带宽 38.3%)，均线多头排列 ↑，量能放量 1.6x，5日+7.1%，20日+26.9%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位43.85，支撑位36.81。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">中金黄金 <span style="color:#999;font-size:11px">(600489)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 上轨附近 (带宽 31.7%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=77.8偏高，布林带上轨附近 (带宽 31.7%)，均线多头排列 ↑，量能正常 1.4x，5日+7.0%，20日+29.3%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位28.11，支撑位24.26。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">藏格矿业 <span style="color:#999;font-size:11px">(000408)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-down">RSI 偏弱</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 19.6%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=41.0偏弱，布林带中轨附近 (带宽 19.6%)，均线空头排列 ↓，量能正常 1.0x，5日-2.5%，20日-2.9%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位80.92，支撑位72.98。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">宏达股份 <span style="color:#999;font-size:11px">(600331)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">KDJ 金叉 ↗</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 16.0%)</span></div>
+      <div class="analysis-text">MACD多头延续，KDJ金叉(K=32.9/J=33.8)，RSI6=55.4偏强，布林带中轨附近 (带宽 16.0%)，均线空头排列 ↓，量能正常 1.2x，5日+1.3%，20日+8.8%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位14.00，支撑位12.96。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">盛新锂能 <span style="color:#999;font-size:11px">(002240)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-down">MACD 空头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 25.3%)</span></div>
+      <div class="analysis-text">MACD空头延续，RSI6=54.7偏强，布林带中轨附近 (带宽 25.3%)，均线站上 MA20，量能正常 1.4x，5日-2.1%，20日+12.9%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位35.50，支撑位31.36。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">科创半导体ETF华夏 <span style="color:#999;font-size:11px">(588170)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-down">MACD 空头增强</span><span class="signal-tag tag-down">RSI 偏弱</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 26.3%)</span></div>
+      <div class="analysis-text">MACD空头延续，RSI6=45.7偏弱，布林带中轨附近 (带宽 26.3%)，均线站上 MA20，量能正常 0.9x，5日-6.2%，20日-4.1%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位1.12，支撑位0.99。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">赤峰黄金 <span style="color:#999;font-size:11px">(600988)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 突破上轨 ↑</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=78.2偏高，布林带突破上轨 ↑，均线多头排列 ↑，量能正常 1.4x，5日+19.6%，20日+27.9%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位51.99，支撑位41.31。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">云铝股份 <span style="color:#999;font-size:11px">(000807)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 9.8%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=51.5偏强，布林带中轨附近 (带宽 9.8%)，均线空头排列 ↓，量能正常 1.0x，5日-1.6%，20日+2.6%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位26.41，支撑位25.11。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">神火股份 <span style="color:#999;font-size:11px">(000933)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 9.2%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=51.1偏强，布林带中轨附近 (带宽 9.2%)，均线跌破 MA20，量能正常 1.1x，5日-1.8%，20日+2.9%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位26.14，支撑位24.94。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">中国海洋石油 [港股] <span style="color:#999;font-size:11px">(00883)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-warn">KDJ 超买 ⚠</span><span class="signal-tag tag-warn">RSI 超买 ⚠</span><span class="signal-tag tag-neutral">BOLL 突破上轨 ↑</span></div>
+      <div class="analysis-text">MACD多头延续，KDJ-J=106超买，短线回调压力大，RSI6=84.2偏高，布林带突破上轨 ↑，均线多头排列 ↑，量能正常 1.0x，5日+6.2%，20日+9.5%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位25.50，支撑位23.90。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">泡泡玛特 [港股] <span style="color:#999;font-size:11px">(09992)</span></span>
+        <span class="trend-badge trend-neutral">震荡</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 中轨附近 (带宽 12.6%)</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=55.0偏强，布林带中轨附近 (带宽 12.6%)，均线空头排列 ↓，量能正常 1.0x，5日+1.0%，20日-6.2%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期震荡，中期中性，阻力位156.49，支撑位140.10。</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-header">
+        <span class="analysis-card-title">紫金黄金国际 [港股] <span style="color:#999;font-size:11px">(02259)</span></span>
+        <span class="trend-badge trend-up">偏多</span>
+      </div>
+      <div class="analysis-tags"><span class="signal-tag tag-up">MACD 多头增强</span><span class="signal-tag tag-up">RSI 偏强</span><span class="signal-tag tag-neutral">BOLL 突破上轨 ↑</span></div>
+      <div class="analysis-text">MACD多头延续，RSI6=78.0偏高，布林带突破上轨 ↑，均线多头排列 ↑，量能正常 1.1x，5日+18.0%，20日+34.5%。</div>
+      <div class="analysis-prediction"><strong>走势判断：</strong>短期偏多，中期看多，阻力位165.80，支撑位132.16。</div>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">十、今日要闻</div>
+<div class="news-list">
+  <div class="news-item important"><span class="news-time">08-24 17:08</span> <span class="imp-badge red">重要</span>国管公积金新政 首套房最高可贷款340万元 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item important"><span class="news-time">08-24 17:03</span> <span class="imp-badge red">重要</span>中国人民银行将在8月27日至9月1日开展隔夜逆回购操作，每日操作量不超过6000亿元 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:12</span> 佩蒂股份：2026年上半年净利润2432.07万元，同比下降69.25% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:12</span> 遥望科技：2026年上半年净利润1.53亿元，同比扭亏为盈 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:11</span> 江特电机：公司签署增资意向协议，拟重组85.3038%股权 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:10</span> 中国电研：2026年上半年净利润2.64亿元，同比增长2.14% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:10</span> 扬农化工：2026年上半年净利润7.9亿元，同比下降1.99% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:09</span> 海正药业：盐酸表柔比星获CEP证书，2026年4月30日申请 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:05</span> 万盛股份：2026年上半年净利润216.58万元，同比下降91.77% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:05</span> 臻宝科技：2026年上半年净利润1.07亿元，同比增长25.74% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:04</span> 甘李药业：GZC8072片获准开展体重控制临床试验 <span style="color:#999;font-size:11px">(同花顺)</span></div>
+  <div class="news-item"><span class="news-time">08-24 17:03</span> 轻纺城：2026年上半年净利润3.8亿元，同比增长127.56% <span style="color:#999;font-size:11px">(同花顺)</span></div>
+</div>
+</div>
+<div class="section">
+  <div class="section-title">十一、中期板块关注</div>
+  <p style="font-size:13px;color:#666;margin-bottom:14px">基于近期走势、资金动向、政策面和基本面，分析中期（1-3个月）值得关注的板块。</p>
+  <div style="line-height:1.8;font-size:13px"><p>1. 电力行业板块<br>* 近期表现：电力板块持续受资金青睐，表现稳健<br>* 看好逻辑：高股息防御属性+夏季用电高峰+电力改革政策<br>* 代表标的：</p><p>2. 焦炭Ⅱ板块<br>* 近期表现：今日涨+5.39%<br>* 看好逻辑：板块资金关注度高，短期趋势向好<br>* 代表标的：关注板块龙头</p><p>3. 保险Ⅱ板块<br>* 近期表现：今日涨+2.58%<br>* 看好逻辑：板块资金关注度高，短期趋势向好<br>* 代表标的：关注板块龙头</p><p>4. 煤炭开采板块<br>* 近期表现：今日涨+2.17%，主力净流入+5.4亿<br>* 看好逻辑：板块资金关注度高，短期趋势向好<br>* 代表标的：关注板块龙头</p><p>需回避板块：<br>* 次新股：行业调整+资金流出</p></div>
+</div>
+<div class="section">
+  <div class="section-title">十二、明日关注</div>
+  <div style="line-height:1.8;font-size:13px">关键点位：上证支撑 3855/压力 3910，5日区间 3855-3994<br>操作建议：市场情绪偏弱，控制仓位，等待企稳信号</div>
+</div>
+<div class="source">
+  以上数据由云端自动化生成，仅供参考，不构成投资建议 | 生成时间：2026-08-24 17:13:30 | 含 K线/BOLL/MACD/KDJ/RSI 技术指标
+</div></div>
+
+<script>
+// 行业板块图表
+(function() {
+  var dom = document.getElementById('chart-industry');
+  if (!dom) return;
+  var chart = echarts.init(dom);
+  chart.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '12%', right: '5%', top: '3%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
+    yAxis: { type: 'category', data: ["\u91d1\u878d\u884c\u4e1a", "\u7164\u70ad\u884c\u4e1a", "\u5f00\u53d1\u533a", "\u917f\u9152\u884c\u4e1a", "\u767d\u9152\u2161", "\u519c\u5546\u884c\u2161", "\u79cd\u690d\u4e1a", "\u7164\u70ad\u5f00\u91c7", "\u4fdd\u9669\u2161", "\u7126\u70ad\u2161"], axisLabel: { fontSize: 12 } },
+    series: [{ type: 'bar', data: [0.14, 0.23, 0.27, 1.07, 1.73, 2.03, 2.06, 2.17, 2.58, 5.39],
+      itemStyle: { color: function(p) { return p.value > 0 ? '#c0392b' : '#27ae60'; } },
+      label: { show: true, position: 'right', formatter: '{c}%', fontSize: 11 }
+    }]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+})();
+</script>
+</body></html>
