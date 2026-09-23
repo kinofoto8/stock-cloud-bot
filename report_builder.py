@@ -44,6 +44,7 @@ WATCHLIST = [
     {"code": "00883",  "name": "中国海洋石油",   "sina": "hk00883",  "market": "HK", "secid": "116.00883"},
     {"code": "09992",  "name": "泡泡玛特",      "sina": "hk09992",  "market": "HK", "secid": "116.09992"},
     {"code": "02259",  "name": "紫金黄金国际",   "sina": "hk02259",  "market": "HK", "secid": "116.02259"},
+    {"code": "00005",  "name": "汇丰控股",      "sina": "hk00005",  "market": "HK", "secid": "116.00005"},
 ]
 
 GITHUB_PAGES_BASE = "https://kinofoto8.github.io/stock-cloud-bot"
