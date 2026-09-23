@@ -1,10 +1,8 @@
 name: A股每日收盘复盘
 
 on:
-  schedule:
-    # 北京时间 16:30 → UTC 8:30
-    # 不再提前补偿GitHub延迟，脚本内置15:30时间保护防止提前运行
-    - cron: "30 8 * * 1-5"
+  # 定时调度已停用：收盘复盘改由本地 WorkBuddy 自动化执行（避免钉钉重复推送）
+  # 需要时可在 Actions 页面手动 Run workflow
   workflow_dispatch:
 
 permissions:
