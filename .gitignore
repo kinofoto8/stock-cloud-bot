@@ -3,3 +3,9 @@ __pycache__/
 .env
 
 # workflows
+
+# 本地归档：一次性调试脚本与临时产物（部分旧脚本内含 token，切勿提交）
+_archive/
+
+# 本地生成的复盘报告（远端 Pages 由 GitHub Actions 负责部署）
+reports/*.html
